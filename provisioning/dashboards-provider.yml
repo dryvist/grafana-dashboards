@@ -1,0 +1,12 @@
+# Example Grafana file-provisioning provider. ansible-proxmox-apps renders
+# its own copy from grafana_stack/templates/dashboards-provider.yml.j2.
+apiVersion: 1
+providers:
+  - name: grafana_dashboards
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 60
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
