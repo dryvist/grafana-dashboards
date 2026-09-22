@@ -33,7 +33,7 @@ groups:
             model:
               editorMode: code
               expr: >-
-                sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total[15m]))
+                sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total{host!=""}[15m]))
               instant: true
               range: false
               refId: A
@@ -45,10 +45,10 @@ groups:
             model:
               editorMode: code
               expr: >-
-                sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total[15m]))
+                sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total{host!=""}[15m]))
                 / clamp_min(
-                    sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total[15m]))
-                    + sum by (repo, agent) (increase(claude_jsonl_cache_read_tokens_total[15m])),
+                    sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total{host!=""}[15m]))
+                    + sum by (repo, agent) (increase(claude_jsonl_cache_read_tokens_total{host!=""}[15m])),
                     1
                   ) * 100
               instant: true

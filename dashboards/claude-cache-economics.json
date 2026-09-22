@@ -673,7 +673,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"main\"}[$__rate_interval])) / clamp_min(sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"main\"}[$__rate_interval])) + sum(rate(claude_jsonl_cache_creation_tokens_total{agent=\"main\"}[$__rate_interval])), 1e-9) * 100",
+          "expr": "sum(rate(claude_jsonl_cache_read_tokens_total{host!=\"\",agent=\"main\"}[$__rate_interval])) / clamp_min(sum(rate(claude_jsonl_cache_read_tokens_total{host!=\"\",agent=\"main\"}[$__rate_interval])) + sum(rate(claude_jsonl_cache_creation_tokens_total{host!=\"\",agent=\"main\"}[$__rate_interval])), 1e-9) * 100",
           "legendFormat": "main",
           "range": true,
           "refId": "A"
@@ -684,7 +684,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"subagent\"}[$__rate_interval])) / clamp_min(sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"subagent\"}[$__rate_interval])) + sum(rate(claude_jsonl_cache_creation_tokens_total{agent=\"subagent\"}[$__rate_interval])), 1e-9) * 100",
+          "expr": "sum(rate(claude_jsonl_cache_read_tokens_total{host!=\"\",agent=\"subagent\"}[$__rate_interval])) / clamp_min(sum(rate(claude_jsonl_cache_read_tokens_total{host!=\"\",agent=\"subagent\"}[$__rate_interval])) + sum(rate(claude_jsonl_cache_creation_tokens_total{host!=\"\",agent=\"subagent\"}[$__rate_interval])), 1e-9) * 100",
           "legendFormat": "subagent",
           "range": true,
           "refId": "B"

@@ -682,7 +682,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_jsonl_subagents_total[$__range]))",
+          "expr": "sum(increase(claude_jsonl_subagents_total{host!=\"\"}[$__range]))",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -731,7 +731,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum by (repo) (increase(claude_jsonl_subagents_total[$__range])))",
+          "expr": "topk(10, sum by (repo) (increase(claude_jsonl_subagents_total{host!=\"\"}[$__range])))",
           "legendFormat": "{{repo}}",
           "instant": true,
           "range": false,
@@ -778,7 +778,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (agent, bucket) (increase(claude_jsonl_turn_pause_total[$__range]))",
+          "expr": "sum by (agent, bucket) (increase(claude_jsonl_turn_pause_total{host!=\"\"}[$__range]))",
           "legendFormat": "{{agent}} / {{bucket}}",
           "instant": true,
           "range": false,
@@ -825,7 +825,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "topk(15, sum by (tool, agent) (increase(claude_jsonl_tool_result_tokens_total[$__range])))",
+          "expr": "topk(15, sum by (tool, agent) (increase(claude_jsonl_tool_result_tokens_total{host!=\"\"}[$__range])))",
           "instant": true,
           "range": false,
           "format": "table",
