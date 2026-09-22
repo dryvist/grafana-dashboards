@@ -9,7 +9,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5m",
   "time": {
     "from": "now-7d",
@@ -650,6 +650,68 @@
           }
         }
       ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Cache-hit %, main vs subagent",
+      "description": "reads / (reads + creation) per turn kind. Target: at least 80% (top harnesses reach 94%). Complements 'Subagent share of reads', which shows volume, not hit rate.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"main\"}[$__rate_interval])) / clamp_min(sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"main\"}[$__rate_interval])) + sum(rate(claude_jsonl_cache_creation_tokens_total{agent=\"main\"}[$__rate_interval])), 1e-9) * 100",
+          "legendFormat": "main",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"subagent\"}[$__rate_interval])) / clamp_min(sum(rate(claude_jsonl_cache_read_tokens_total{agent=\"subagent\"}[$__rate_interval])) + sum(rate(claude_jsonl_cache_creation_tokens_total{agent=\"subagent\"}[$__rate_interval])), 1e-9) * 100",
+          "legendFormat": "subagent",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     }
   ]
 }
