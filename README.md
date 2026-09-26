@@ -45,13 +45,15 @@ they live here instead of in the Ansible role's by-ID fetch list.
 
 ## Validate
 
-From the Nix dev shell (`direnv` / `nix develop`):
+`scripts/validate_dashboards.sh` checks every file's JSON validity and its
+`uid`-equals-filename convention; CI (`Validate Dashboards`) runs it on every
+pull request. Run it locally with:
 
 ```bash
-jq empty dashboards/*.json
-for f in dashboards/*.json; do
-  stem="${f##*/}"; stem="${stem%.json}"
-  uid="$(jq -r .uid "$f")"
-  test "$uid" = "$stem"
-done
+scripts/validate_dashboards.sh
 ```
+
+## License
+
+Apache License, Version 2.0 (see `LICENSE`). The vendored `hindsight-*`
+dashboards keep their original MIT license — see `NOTICE`.

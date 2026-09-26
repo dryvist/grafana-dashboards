@@ -1,0 +1,17 @@
+---
+name: CI Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  gate:
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: write
+    uses: dryvist/.github/.github/workflows/_ci-gate.yml@main
