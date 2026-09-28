@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/dryvist/grafana-dashboards/compare/v1.0.0...v1.1.0) (2026-09-28)
+
+
+### Features
+
+* AI usage overview dashboard ([#2](https://github.com/dryvist/grafana-dashboards/issues/2)) ([bd56ac2](https://github.com/dryvist/grafana-dashboards/commit/bd56ac296bffc44b3458ece3309e864fdb923bc8))
+
 ## 1.0.0 (2026-09-28)
 
 
