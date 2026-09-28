@@ -1,0 +1,214 @@
+{
+  "uid": "ai-usage",
+  "title": "AI usage",
+  "description": "Cross-fabric AI usage rollup: tokens/cost per day by agent/tier/model/device, local serving throughput, router error/fallback rates, Claude Code cache economics, Codex/Hermes activity, and Langfuse trace volume. Sourced from claude-code-metrics/cache-economics/subagents-tools (this repo) plus the LiteLLM router's own Prometheus metrics. Panels using litellm_* metric names are UNVERIFIED against a live proxy as of authoring — see docs/AI_OBSERVABILITY.md for the verification note before treating this as demo-ready.",
+  "tags": ["ai-observability", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-7d", "to": "now" },
+  "editable": true,
+  "graphTooltip": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "agent",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "query": "label_values(claude_jsonl_cost_usd_total, repo)",
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Cost by day (Claude Code JSONL ETL)",
+      "description": "Daily USD, summed across every repo the ETL attributes a session to. Codex/Hermes cost is not yet in this series — see 'Codex turns' and 'Hermes calls' panels for their own activity counters until a comparable cost figure is derived for them.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(claude_jsonl_cost_usd_total{repo=~\"$agent\"}[1d])) by (repo)",
+          "legendFormat": "{{repo}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Cost by tier (local vs subscription)",
+      "description": "Requires the router's litellm_spend_metric_total to expose metadata.tier as a label. Router callback settings (60-ops.yml) confirmed enabled this pass; the exact label set exposed by this deployment's LiteLLM version is UNVERIFIED — CIDR-blocked from a live query. If the label is absent, this panel needs metadata.tier promoted via a Prometheus relabel in the callback, not a new exporter.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(litellm_spend_metric_total[7d])) by (tier)",
+          "legendFormat": "{{tier}}",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Tokens by model",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(claude_jsonl_cache_read_tokens_total{repo=~\"$agent\"}[1d])) by (model) + sum(increase(claude_jsonl_cache_creation_tokens_total{repo=~\"$agent\"}[1d])) by (model)",
+          "legendFormat": "{{model}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Local tok/s per backend",
+      "description": "mlx-served throughput per model, sourced from the local-serving stack's own gauge. Metric name matches this estate's mlx-preflight/serving convention (mlx_serving_tokens_per_second) — UNVERIFIED live this pass.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "mlx_serving_tokens_per_second",
+          "legendFormat": "{{model}} ({{host}})",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Router error / fallback rate",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(rate(litellm_deployment_failure_responses_total[5m])) / clamp_min(sum(rate(litellm_requests_metric_total[5m])), 0.001)",
+          "legendFormat": "error rate",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(rate(litellm_deployment_failed_fallbacks_total[5m])) + sum(rate(litellm_deployment_successful_fallbacks_total[5m]))",
+          "legendFormat": "fallback rate",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Claude Code cache write/read ratio",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 16, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(claude_jsonl_cache_creation_tokens_total[$__range])) / clamp_min(sum(increase(claude_jsonl_cache_read_tokens_total[$__range])), 1)",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 3 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Codex turns (24h)",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 18, "y": 16, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(codex_conversation_turn_count_total[24h]))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Hermes calls (24h)",
+      "description": "hermes_agent_llm_calls_total is this role's own naming convention guess (agent_name + '_llm_calls_total'), not confirmed against a live hermes_agent metric export — verify against the role's actual instrumentation before demo.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 24, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(hermes_agent_llm_calls_total[24h]))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Langfuse traces (24h)",
+      "description": "Langfuse's own metrics are not scraped by this stack today — this panel is a placeholder pending either a Langfuse Prometheus exporter or a periodic ETL push of its trace-count API into VictoriaMetrics (langfuse_traces_total). Do not ship this panel as-is if it renders 'No data' at demo time; pull the count from the Langfuse API directly instead until the metric exists.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 6, "y": 24, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "sum(increase(langfuse_traces_total[24h]))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
+    }
+  ]
+}
