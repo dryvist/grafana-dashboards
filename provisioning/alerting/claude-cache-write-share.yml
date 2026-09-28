@@ -1,0 +1,69 @@
+# Grafana file-provisioned alert rule (unified alerting). Mirrors the
+# dashboards-provider.yml pattern: ansible-proxmox-apps renders its own copy
+# under /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: claude-cache-economics
+    folder: Claude Code
+    interval: 5m
+    rules:
+      - uid: claude-cache-write-share-high
+        title: Cache-write share exceeds 20% (session-level pipeline gap)
+        condition: C
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            A session's cache-write share is above the 20% threshold that
+            G2 flags as anomalous (mid-session model/effort/MCP change, or a
+            pause longer than the cache TTL).
+          description: >-
+            {{ index $labels "agent" }} on {{ index $labels "repo" }}:
+            {{ index $values "C" }}% of cache tokens this window were writes,
+            not reads. Check for a mid-session model, effort, or MCP change,
+            or a pause exceeding the TTL (see the H1/H5 pause-bucket panel).
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: >-
+                sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total{host!=""}[15m]))
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: >-
+                sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total{host!=""}[15m]))
+                / clamp_min(
+                    sum by (repo, agent) (increase(claude_jsonl_cache_creation_tokens_total{host!=""}[15m]))
+                    + sum by (repo, agent) (increase(claude_jsonl_cache_read_tokens_total{host!=""}[15m])),
+                    1
+                  ) * 100
+              instant: true
+              range: false
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 20
+              refId: C
+        noDataState: NoData
+        execErrState: Error
