@@ -1,0 +1,530 @@
+{
+  "uid": "ai-token-offload",
+  "title": "AI Token Offload",
+  "description": "Daily UTC observed token workload across Claude Code, Codex and ZCode, with dispatcher completion counts, token reporting coverage and a fixed pre-offload snapshot. Token workload is not billed cost or a causal estimate of savings.",
+  "tags": [
+    "ai-observability",
+    "offload"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-30d/d",
+    "to": "now/d"
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Reading the daily totals",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 5
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Each bar ends at 00:00 UTC and covers the preceding calendar day. The default range excludes the current partial day; keep UTC midnight boundaries when changing the range. Claude includes input, output, cache creation and cache read tokens. Codex uses only `token_type=\"total\"`; cached and reasoning tokens are subsets. ZCode jobs count completed runs, including continuations, by completion time. Reported tokens cover only runs that return a complete native token total; missing usage is unknown. Offload share is the observed ZCode token fraction, not monetary savings or a causal comparison. Check reporting coverage before comparing days."
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Daily Claude and Codex tokens",
+      "description": "Counters summed across all reporting sessions. Claude's four mutually exclusive token types are included; Codex's total already includes its cached and reasoning subsets. Missing telemetry remains unknown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(claude_code_token_usage_tokens_total[1d]))",
+          "legendFormat": "Claude Code",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[1d]))",
+          "legendFormat": "Codex",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Daily ZCode jobs",
+      "description": "Completed dispatcher runs by outcome. Continuations each count once; a run is attributed to its UTC completion day.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (outcome) (max_over_time(agent_dispatch_runs{tool=\"zcode\"}[1d] offset 1ms))",
+          "legendFormat": "{{outcome}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Daily reported ZCode tokens",
+      "description": "Sum of complete native token totals reported by ZCode. This is a partial total when coverage is below 100%; no reported totals produces No data, not zero.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms))",
+          "legendFormat": "Reported ZCode tokens",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Daily observed offload share",
+      "description": "Reported ZCode tokens / (Claude + Codex + reported ZCode tokens). A workload share, not a cost or savings estimate. Unreported ZCode usage is excluded; coverage below 100% understates ZCode's contribution. Missing agent telemetry or no reported ZCode usage leaves the share unknown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)) / (sum(increase(claude_code_token_usage_tokens_total[1d])) + sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[1d])) + sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)))",
+          "legendFormat": "Reported ZCode share",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Daily ZCode token reporting coverage",
+      "description": "Runs with a complete native total / all completed ZCode runs. Zero is shown only when runs exist but none report tokens. No completed runs produces No data.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(count(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)) or on() (0 * sum(max_over_time(agent_dispatch_runs{tool=\"zcode\"}[1d] offset 1ms)))) / sum(max_over_time(agent_dispatch_runs{tool=\"zcode\"}[1d] offset 1ms))",
+          "legendFormat": "Runs reporting tokens",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Daily ZCode jobs by repository",
+      "description": "Completed dispatcher runs per repository and outcome. Job and run identify individual events; the dashboard groups them for daily reporting.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (repo, outcome) (max_over_time(agent_dispatch_runs{tool=\"zcode\"}[1d] offset 1ms))",
+          "legendFormat": "{{repo}} / {{outcome}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Daily ZCode run duration",
+      "description": "Mean elapsed seconds per completed run by outcome; each continuation is a separate run.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (outcome) (max_over_time(agent_dispatch_duration_seconds{tool=\"zcode\"}[1d] offset 1ms)) / sum by (outcome) (max_over_time(agent_dispatch_runs{tool=\"zcode\"}[1d] offset 1ms))",
+          "legendFormat": "{{outcome}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Pre-offload snapshot: 2026-10-03 UTC (partial day)",
+      "description": "Frozen snapshot: 2026-10-03 00:00:00 through 20:06:04 UTC (72,364 seconds; 20h 06m 04s). Captured with sum(increase(claude_code_token_usage_tokens_total[72364s])) and sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[72364s])) evaluated at time=1791057964. Claude telemetry covered the laptop only; Codex includes some unattributed series. No ZCode series were observed at capture. This is an observed partial-day baseline, not a full-day or both-device total; compare only matching duration and telemetry coverage.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(last_over_time(ai_offload_baseline_tokens{harness=\"claude\",day=\"2026-10-03\"}[730d] @ 1791057965))",
+          "legendFormat": "Claude Code baseline",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(last_over_time(ai_offload_baseline_tokens{harness=\"codex\",day=\"2026-10-03\"}[730d] @ 1791057965))",
+          "legendFormat": "Codex baseline",
+          "range": false,
+          "instant": true,
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    }
+  ]
+}

@@ -26,6 +26,7 @@ directory holds an example provider config for the file-based path.
 
 | File | `uid` (must equal the filename stem) |
 | --- | --- |
+| `dashboards/ai-token-offload.json` | `ai-token-offload` |
 | `dashboards/claude-code-metrics.json` | `claude-code-metrics` |
 | `dashboards/claude-cache-economics.json` | `claude-cache-economics` |
 | `dashboards/claude-context-bloat.json` | `claude-context-bloat` |
