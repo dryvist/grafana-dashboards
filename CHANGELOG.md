@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/dryvist/grafana-dashboards/compare/v1.1.0...v1.2.0) (2026-10-03)
+
+
+### Features
+
+* add daily AI token offload dashboard ([#5](https://github.com/dryvist/grafana-dashboards/issues/5)) ([6f37a03](https://github.com/dryvist/grafana-dashboards/commit/6f37a03fddfdc52c73c9e6afa10c30bcc002131b))
+
 ## [1.1.0](https://github.com/dryvist/grafana-dashboards/compare/v1.0.0...v1.1.0) (2026-09-28)
 
 
