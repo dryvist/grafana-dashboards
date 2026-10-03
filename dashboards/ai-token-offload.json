@@ -89,7 +89,11 @@
             "barAlignment": -1,
             "lineWidth": 0,
             "fillOpacity": 80,
-            "spanNulls": false
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
           }
         },
         "overrides": []
@@ -146,7 +150,11 @@
             "barAlignment": -1,
             "lineWidth": 0,
             "fillOpacity": 80,
-            "spanNulls": false
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
           }
         },
         "overrides": []
@@ -374,7 +382,11 @@
             "barAlignment": -1,
             "lineWidth": 0,
             "fillOpacity": 80,
-            "spanNulls": false
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
           }
         },
         "overrides": []
