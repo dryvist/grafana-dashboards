@@ -504,7 +504,11 @@
         "defaults": {
           "unit": "short",
           "min": 0,
-          "decimals": 0
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
         },
         "overrides": []
       },
