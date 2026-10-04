@@ -5,7 +5,7 @@
   "tags": ["ai-observability", "overview"],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5m",
   "time": { "from": "now-7d", "to": "now" },
   "editable": true,
@@ -159,27 +159,6 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "expr": "sum(increase(codex_conversation_turn_count_total[24h]))",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
-    },
-    {
-      "id": 8,
-      "type": "stat",
-      "title": "Hermes calls (24h)",
-      "description": "hermes_agent_llm_calls_total is this role's own naming convention guess (agent_name + '_llm_calls_total'), not confirmed against a live hermes_agent metric export — verify against the role's actual instrumentation before demo.",
-      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "x": 0, "y": 24, "w": 6, "h": 8 },
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "editorMode": "code",
-          "expr": "sum(increase(hermes_agent_llm_calls_total[24h]))",
           "legendFormat": "",
           "range": false,
           "instant": true,

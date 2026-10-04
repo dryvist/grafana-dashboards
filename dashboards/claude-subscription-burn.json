@@ -1,6 +1,6 @@
 {
   "uid": "claude-subscription-burn",
-  "title": "Claude Code \u2014 Subscription Burn",
+  "title": "Claude Code — Subscription Burn",
   "description": "Is the subscription worth it, and where is the spend going? Cost figures come from the exporter's own USD counter rather than a reimplemented price table.",
   "tags": [
     "claude-code",
@@ -9,7 +9,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5m",
   "time": {
     "from": "now-30d",
@@ -64,7 +64,7 @@
       "id": 1,
       "type": "stat",
       "title": "API-equivalent spend (range)",
-      "description": "What this usage would have cost at API rates. Against a flat subscription this is the value received, not an invoice.",
+      "description": "What this usage would have cost at API rates. Against a flat subscription this is the value received, not a bill.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -478,7 +478,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "Spend by query source",
-      "description": "Which surface originated the spend \u2014 main loop versus subagents and background work.",
+      "description": "Which surface originated the spend — main loop versus subagents and background work.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -538,7 +538,7 @@
       "id": 10,
       "type": "stat",
       "title": "Tokens served from cache",
-      "description": "From the transcript ETL. Cache reads bill at a fraction of full input rate, so this is the volume the discount applied to.",
+      "description": "From the session-log ETL. Cache reads bill at a fraction of full input rate, so this is the volume the discount applied to.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -636,7 +636,7 @@
       "id": 12,
       "type": "timeseries",
       "title": "Token volume by type",
-      "description": "Native token counter. 'cacheCreation' here does not split by TTL \u2014 the Cache Economics board covers that from the transcript ETL.",
+      "description": "Native token counter. 'cacheCreation' here does not split by TTL — the Cache Economics board covers that from the session-log ETL.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"

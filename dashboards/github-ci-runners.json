@@ -1,0 +1,130 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "preload": false,
+  "refresh": "1m",
+  "schemaVersion": 42,
+  "tags": ["github", "ci", "runners"],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Self-hosted runners online",
+      "description": "github_runner_org_online (roles/github_exporter). Queue-time and job-duration panels are not available yet: the workflow_run/workflow_job collectors need an event source this estate does not deliver yet — see roles/github_exporter/README.md.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": { "mode": "fixed", "fixedColor": "green" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "sum(github_runner_org_online{owner=\"$org\"})"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Self-hosted runners busy",
+      "description": "github_runner_org_busy (roles/github_exporter).",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": { "mode": "fixed", "fixedColor": "orange" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "sum(github_runner_org_busy{owner=\"$org\"})"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Runner online/busy over time",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "online",
+          "expr": "sum(github_runner_org_online{owner=\"$org\"})"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "busy",
+          "expr": "sum(github_runner_org_busy{owner=\"$org\"})"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "title": "Not available yet",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 4 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Queue time (p50/p95 by repo) and job duration are not on this dashboard.** The `workflow_run`/`workflow_job` collectors that would produce them read only from github_exporter's own database, which only its built-in webhook receiver populates — and this estate has no path for GitHub to deliver a webhook to an internal-only host. Tracked as an open gap in roles/github_exporter/README.md, not fixed by widening a permission."
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "org",
+        "label": "Organization",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "query": "label_values(github_runner_org_online, owner)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "text": "dryvist", "value": "dryvist" }
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "GitHub CI Runners",
+  "uid": "github-ci-runners",
+  "weekStart": "",
+  "id": null,
+  "version": 1
+}
