@@ -36,6 +36,11 @@ directory holds an example provider config for the file-based path.
 | `dashboards/hindsight-api-service.json` | `hindsight-api-service` |
 | `dashboards/hindsight-llm.json` | `hindsight-llm` |
 | `dashboards/hindsight-operations.json` | `hindsight-operations` |
+| `dashboards/github-ci-runners.json` | `github-ci-runners` |
+| `dashboards/litellm-all-prometheus-metrics.json` | `litellm-all-prometheus-metrics` |
+| `dashboards/litellm-genai-otel.json` | `litellm-genai-otel` |
+| `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
+| `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
 grafana.com by ID and revision inside the Ansible role. They do not live here.
