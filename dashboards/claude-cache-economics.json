@@ -1,7 +1,7 @@
 {
   "uid": "claude-cache-economics",
-  "title": "Claude Code \u2014 Cache Economics",
-  "description": "Prompt-cache economics for Claude Code and Codex: the read multiple, the 5m vs 1h TTL split, and subagent attribution. Sourced from the session-transcript ETL, which carries fields the OTEL exporter omits.",
+  "title": "Claude Code — Cache Economics",
+  "description": "Prompt-cache economics for Claude Code and Codex: the read multiple, the 5m vs 1h TTL split, and subagent attribution. Sourced from the session-log ETL, which carries fields the OTEL exporter omits.",
   "tags": [
     "claude-code",
     "ai-observability",
@@ -9,7 +9,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "refresh": "5m",
   "time": {
     "from": "now-7d",
@@ -58,7 +58,7 @@
       "id": 1,
       "type": "stat",
       "title": "Cache read : creation",
-      "description": "How many times each written cache token is re-read. This is the whole economic case for prompt caching \u2014 higher is better.",
+      "description": "How many times each written cache token is re-read. This is the whole economic case for prompt caching — higher is better.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -155,7 +155,7 @@
       "id": 3,
       "type": "stat",
       "title": "Cache written",
-      "description": "Cache-creation tokens \u2014 billed at a premium, so this is the cost side.",
+      "description": "Cache-creation tokens — billed at a premium, so this is the cost side.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -347,7 +347,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "Cache writes by TTL (5m vs 1h)",
-      "description": "The split the native OTEL exporter does not expose. A session pinned to the 1h TTL legitimately records zero 5m writes \u2014 an empty series here is not a broken pipeline.",
+      "description": "The split the native OTEL exporter does not expose. A session pinned to the 1h TTL legitimately records zero 5m writes — an empty series here is not a broken pipeline.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -365,7 +365,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (ttl) (rate(claude_jsonl_cache_creation_tokens_total[$__rate_interval]))",
+          "expr": "sum by (ttl) (increase(claude_jsonl_cache_creation_tokens_total[$__rate_interval]))",
           "legendFormat": "{{ttl}}",
           "range": true,
           "instant": false,
@@ -425,7 +425,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(claude_jsonl_cache_read_tokens_total[$__rate_interval]))",
+          "expr": "sum by (model) (increase(claude_jsonl_cache_read_tokens_total[$__rate_interval]))",
           "legendFormat": "{{model}}",
           "range": true,
           "instant": false,
@@ -467,7 +467,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "Cache reads: main session vs subagents",
-      "description": "Subagent usage is recorded in separate transcript files; the parent session's records cannot be used to derive it.",
+      "description": "Subagent usage is recorded in separate session-log files; the parent session's records cannot be used to derive it.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -485,7 +485,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (agent) (rate(claude_jsonl_cache_read_tokens_total[$__rate_interval]))",
+          "expr": "sum by (agent) (increase(claude_jsonl_cache_read_tokens_total[$__rate_interval]))",
           "legendFormat": "{{agent}}",
           "range": true,
           "instant": false,
@@ -545,7 +545,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(claude_jsonl_output_tokens_total[$__rate_interval]))",
+          "expr": "sum by (model) (increase(claude_jsonl_output_tokens_total[$__rate_interval]))",
           "legendFormat": "output {{model}}",
           "range": true,
           "instant": false,
@@ -557,7 +557,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_jsonl_thinking_tokens_total[$__rate_interval]))",
+          "expr": "sum(increase(claude_jsonl_thinking_tokens_total[$__rate_interval]))",
           "legendFormat": "thinking (all models)",
           "range": true,
           "instant": false,
@@ -599,7 +599,7 @@
       "id": 11,
       "type": "table",
       "title": "Cost drivers by repo",
-      "description": "Repo is resolved from the workspace layout, not the working-directory basename \u2014 a worktree lives at <repo>/main, so the basename names the worktree. Work outside the workspace folds into 'other'.",
+      "description": "Repo is resolved from the workspace layout, not the working-directory basename — a worktree lives at <repo>/main, so the basename names the worktree. Work outside the workspace folds into 'other'.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"

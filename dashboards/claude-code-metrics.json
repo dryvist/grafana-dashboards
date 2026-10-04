@@ -1152,7 +1152,7 @@
         "type": "prometheus",
         "uid": "victoriametrics"
       },
-      "description": "Top 10 most expensive sessions in the selected window. Useful for spotting runaway sessions. Once OTEL_RESOURCE_ATTRIBUTES=git.repo=\u2026 is set on the shell that launches Claude, this panel can be repointed to group by `git_repo`.",
+      "description": "Top 10 most expensive sessions in the selected window. Useful for spotting runaway sessions. Once OTEL_RESOURCE_ATTRIBUTES=git.repo=… is set on the shell that launches Claude, this panel can be repointed to group by `git_repo`.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2429,6 +2429,125 @@
       ],
       "title": "Tool Decisions Over Time",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 67
+      },
+      "id": 38,
+      "title": "By Harness",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "description": "Token volume per AI coding harness. Claude Code exposes a cost series (see Cost & Tokens above); Codex does not emit a cost metric to this store, so this panel is token-volume only for both harnesses.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      },
+      "id": 39,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval]))",
+          "legendFormat": "Claude Code",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(codex_turn_token_usage_sum[$__rate_interval]))",
+          "legendFormat": "Codex",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Tokens by Harness",
+      "type": "timeseries"
     }
   ],
   "preload": false,
@@ -2554,5 +2673,6 @@
   "timezone": "browser",
   "title": "Claude Code Metrics (Prometheus)",
   "uid": "claude-code-metrics",
-  "gnetId": 25255
+  "gnetId": 25255,
+  "version": 1
 }

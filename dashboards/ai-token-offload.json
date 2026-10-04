@@ -1,14 +1,14 @@
 {
   "uid": "ai-token-offload",
   "title": "AI Token Offload",
-  "description": "Daily UTC observed token workload across Claude Code, Codex and ZCode, with dispatcher completion counts, token reporting coverage and a fixed pre-offload snapshot. Token workload is not billed cost or a causal estimate of savings.",
+  "description": "Daily UTC observed token workload across Claude Code, Codex, Hermes and ZCode, router spend, latency and fallback rung per virtual key, dispatcher completion counts, token reporting coverage and a fixed pre-offload snapshot. Token workload is not billed cost or a causal estimate of savings.",
   "tags": [
     "ai-observability",
     "offload"
   ],
   "timezone": "utc",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5m",
   "time": {
     "from": "now-30d/d",
@@ -38,8 +38,8 @@
     {
       "id": 2,
       "type": "timeseries",
-      "title": "Daily Claude and Codex tokens",
-      "description": "Counters summed across all reporting sessions. Claude's four mutually exclusive token types are included; Codex's total already includes its cached and reasoning subsets. Missing telemetry remains unknown.",
+      "title": "Daily Claude, Codex and Hermes tokens",
+      "description": "Counters summed across all reporting sessions. Claude's four mutually exclusive token types are included; Codex's total already includes its cached and reasoning subsets. Hermes is the router's total-token counter for every hermes-* virtual key. Missing telemetry remains unknown.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -78,6 +78,19 @@
           "instant": false,
           "interval": "1d",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(litellm_total_tokens_metric_total{api_key_alias=~\"hermes-.*\"}[1d]))",
+          "legendFormat": "Hermes",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "C"
         }
       ],
       "fieldConfig": {
@@ -507,7 +520,12 @@
           "decimals": 2,
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": []
@@ -524,6 +542,259 @@
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "title": "Router per virtual key",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 37,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Daily router spend by key",
+      "description": "Router-reported spend per virtual key alias (litellm_spend_metric_total), summed across router instances.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 38,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (api_key_alias) (increase(litellm_spend_metric_total[1d]))",
+          "legendFormat": "{{api_key_alias}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Daily mean request latency by key",
+      "description": "End-to-end router request latency per virtual key alias: daily sum over daily count of litellm_request_total_latency_metric.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 38,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (api_key_alias) (increase(litellm_request_total_latency_metric_sum[1d])) / sum by (api_key_alias) (increase(litellm_request_total_latency_metric_count[1d]))",
+          "legendFormat": "{{api_key_alias}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Daily fallback rung served by key",
+      "description": "Successful fallbacks per virtual key alias and the fallback group that served them (litellm_deployment_successful_fallbacks_total). A request served by its first rung does not appear here.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (api_key_alias, fallback_model) (increase(litellm_deployment_successful_fallbacks_total[1d]))",
+          "legendFormat": "{{api_key_alias}} → {{fallback_model}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Daily Hermes tokens by key",
+      "description": "Router total-token counter per hermes-* virtual key alias.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 46,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (api_key_alias) (increase(litellm_total_tokens_metric_total{api_key_alias=~\"hermes-.*\"}[1d]))",
+          "legendFormat": "{{api_key_alias}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       }
     }
   ]

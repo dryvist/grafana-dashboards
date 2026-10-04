@@ -1,7 +1,7 @@
 {
   "uid": "claude-subagents-tools",
-  "title": "Claude Code \u2014 Subagents & Tools",
-  "description": "How much work is delegated to subagents, what it costs, and how the edit tools are performing. Subagent attribution comes from the transcript ETL; the exporter cannot separate it from main-session usage.",
+  "title": "Claude Code — Subagents & Tools",
+  "description": "How much work is delegated to subagents, what it costs, and how the edit tools are performing. Subagent attribution comes from the session-log ETL; the exporter cannot separate it from main-session usage.",
   "tags": [
     "claude-code",
     "ai-observability",
@@ -9,7 +9,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "refresh": "5m",
   "time": {
     "from": "now-7d",
@@ -58,7 +58,7 @@
       "id": 1,
       "type": "stat",
       "title": "Subagent share of cache reads",
-      "description": "Measured at roughly a quarter of all read volume across history. The exporter cannot attribute this \u2014 subagent usage is recorded in separate transcript files, and the parent session's records do not carry it.",
+      "description": "Measured at roughly a quarter of all read volume across history. The exporter cannot attribute this — subagent usage is recorded in separate session-log files, and the parent session's records do not carry it.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -205,7 +205,7 @@
       "id": 4,
       "type": "stat",
       "title": "Read amplification: subagent vs main",
-      "description": "Cache-read tokens per message in subagents, divided by the same figure for main sessions. Above 1 means each subagent turn carries more context than a main-session turn \u2014 the signal that a subagent is being handed a larger prompt than the work needs.",
+      "description": "Cache-read tokens per message in subagents, divided by the same figure for main sessions. Above 1 means each subagent turn carries more context than a main-session turn — the signal that a subagent is being handed a larger prompt than the work needs.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -321,7 +321,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (agent) (rate(claude_jsonl_cache_read_tokens_total[$__rate_interval]))",
+          "expr": "sum by (agent) (increase(claude_jsonl_cache_read_tokens_total[$__rate_interval]))",
           "legendFormat": "cache read {{agent}}",
           "range": true,
           "instant": false,
@@ -333,7 +333,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (agent) (rate(claude_jsonl_cache_creation_tokens_total[$__rate_interval]))",
+          "expr": "sum by (agent) (increase(claude_jsonl_cache_creation_tokens_total[$__rate_interval]))",
           "legendFormat": "cache write {{agent}}",
           "range": true,
           "instant": false,
