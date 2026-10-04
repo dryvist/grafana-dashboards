@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/dryvist/grafana-dashboards/compare/v1.2.0...v1.3.0) (2026-10-04)
+
+
+### Features
+
+* router and Hermes panels, single dashboard source ([#7](https://github.com/dryvist/grafana-dashboards/issues/7)) ([cce2476](https://github.com/dryvist/grafana-dashboards/commit/cce2476f989e766edb8c2ee15646b6a7693cbca7))
+
 ## [1.2.0](https://github.com/dryvist/grafana-dashboards/compare/v1.1.0...v1.2.0) (2026-10-03)
 
 
