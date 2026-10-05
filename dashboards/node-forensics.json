@@ -12,10 +12,10 @@
       "id": 1,
       "type": "table",
       "title": "Configured exporter targets",
-      "description": "Target membership follows the configured Prometheus scrape jobs. The Prometheus up metric remains present with value 0 while a configured target cannot be scraped.",
+      "description": "Target membership follows inventory-derived Prometheus scrape jobs forwarded through Cribl to VictoriaMetrics. The up metric remains present with value 0 while a configured target cannot be scraped.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -52,7 +52,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "up{job=~\"pve_node_exporter|guest_node_exporter\"}",
@@ -73,7 +73,7 @@
       "description": "Age of the latest MemAvailable sample in the last 24 hours. A missing row means no memory sample exists in that window; the configured target remains listed above.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -95,7 +95,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "time() - last_over_time(timestamp(node_memory_MemAvailable_bytes{job=~\"pve_node_exporter|guest_node_exporter\"})[24h:])",
@@ -116,7 +116,7 @@
       "description": "Percent of total RAM not available to the host, from node_exporter MemAvailable and MemTotal.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -147,7 +147,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"pve_node_exporter\"} / node_memory_MemTotal_bytes{job=\"pve_node_exporter\"})",
@@ -178,7 +178,7 @@
       "description": "Per-guest percent of total RAM not available. The guest label is set from the configured guest inventory.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 12,
@@ -209,7 +209,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"guest_node_exporter\"} / node_memory_MemTotal_bytes{job=\"guest_node_exporter\"})",
@@ -240,7 +240,7 @@
       "description": "CPU, memory, I/O and IRQ pressure rates. These exact node_pressure_* fields appear in the pinned Node Exporter Full metric set; the guest scrape retains the node_pressure_* family.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -271,7 +271,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_pressure_cpu_waiting_seconds_total{job=~\"pve_node_exporter|guest_node_exporter\"}[$__rate_interval])",
@@ -283,7 +283,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_pressure_memory_waiting_seconds_total{job=~\"pve_node_exporter|guest_node_exporter\"}[$__rate_interval])",
@@ -295,7 +295,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_pressure_memory_stalled_seconds_total{job=~\"pve_node_exporter|guest_node_exporter\"}[$__rate_interval])",
@@ -307,7 +307,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_pressure_io_waiting_seconds_total{job=~\"pve_node_exporter|guest_node_exporter\"}[$__rate_interval])",
@@ -319,7 +319,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_pressure_io_stalled_seconds_total{job=~\"pve_node_exporter|guest_node_exporter\"}[$__rate_interval])",
@@ -331,7 +331,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_pressure_irq_stalled_seconds_total{job=~\"pve_node_exporter|guest_node_exporter\"}[$__rate_interval])",
@@ -362,7 +362,7 @@
       "description": "Swap is read from the full PVE node_exporter scrape. The guest keep-list does not retain SwapFree or SwapTotal, so this panel is PVE-host-only.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 12,
@@ -393,7 +393,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "100 * (1 - node_memory_SwapFree_bytes{job=\"pve_node_exporter\"} / node_memory_SwapTotal_bytes{job=\"pve_node_exporter\"})",
@@ -424,7 +424,7 @@
       "description": "The PVE scrape exposes node_zfs_arc_c and node_zfs_arc_c_max. The guest node_exporter keep-list does not retain these metrics, so this panel is PVE-host-only.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -455,7 +455,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "node_zfs_arc_c{job=\"pve_node_exporter\"}",
@@ -467,7 +467,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "node_zfs_arc_c_max{job=\"pve_node_exporter\"}",
@@ -498,7 +498,7 @@
       "description": "Filesystem capacity from the configured PVE and guest node_exporter jobs, excluding temporary and overlay filesystems.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -529,7 +529,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "100 * (1 - node_filesystem_avail_bytes{job=~\"pve_node_exporter|guest_node_exporter\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=~\"pve_node_exporter|guest_node_exporter\",fstype!~\"tmpfs|overlay\"})",
@@ -560,7 +560,7 @@
       "description": "Read and write byte rates from the pinned Node Exporter Full metric set.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 0,
@@ -591,7 +591,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_disk_read_bytes_total{job=\"pve_node_exporter\"}[$__rate_interval])",
@@ -603,7 +603,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "rate(node_disk_written_bytes_total{job=\"pve_node_exporter\"}[$__rate_interval])",
@@ -634,7 +634,7 @@
       "description": "Increase of the node_vmstat_oom_kill counter over the selected dashboard time range. The guest keep-list does not retain node_vmstat metrics. This is a counter, not a kernel log stream.",
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 16,
@@ -656,7 +656,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "expr": "increase(node_vmstat_oom_kill{job=\"pve_node_exporter\"}[$__range])",
@@ -669,9 +669,535 @@
       "options": {
         "showHeader": true
       }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "MemAvailable",
+      "description": "Available memory from PVE and guest node exporters, queried from the Cribl-fed VictoriaMetrics datasource.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 54,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_memory_MemAvailable_bytes{job=~\"pve_node_exporter|guest_node_exporter\"}",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "{{host}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Boot timestamp (restart proxy)",
+      "description": "node_boot_time_seconds is the available native restart proxy. Exact boot-ID change events are not yet shipped.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 54,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_boot_time_seconds{job=~\"pve_node_exporter|guest_node_exporter\"}",
+          "instant": true,
+          "range": false,
+          "refId": "A",
+          "format": "table",
+          "legendFormat": "{{host}}"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Boot-time changes in selected range",
+      "description": "A change in node_boot_time_seconds indicates a restart; this is not a substitute for a boot-ID event.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "changes(node_boot_time_seconds{job=~\"pve_node_exporter|guest_node_exporter\"}[$__range])",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "{{host}} restarts"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "GPU power",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 70,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_power_draw_watts",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "{{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "GPU temperature",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 70,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_temperature_celsius",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "{{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "GPU utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 78,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_utilization_gpu_percent",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "GPU {{host}} / {{gpu_name}}"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_utilization_memory_percent",
+          "instant": false,
+          "range": true,
+          "refId": "B",
+          "legendFormat": "Memory {{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "GPU memory",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 78,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_memory_used_bytes",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "Used {{host}} / {{gpu_name}}"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_memory_total_bytes",
+          "instant": false,
+          "range": true,
+          "refId": "B",
+          "legendFormat": "Total {{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "GPU clocks",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 86,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_clocks_gr_mhz",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "Graphics {{host}} / {{gpu_name}}"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_clocks_mem_mhz",
+          "instant": false,
+          "range": true,
+          "refId": "B",
+          "legendFormat": "Memory {{host}} / {{gpu_name}}"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "node_gpu_clocks_sm_mhz",
+          "instant": false,
+          "range": true,
+          "refId": "C",
+          "legendFormat": "SM {{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "GPU throttle reasons",
+      "description": "A value of 1 indicates that the named throttle reason is active; source fields are owned by the telemetry job.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 86,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "{__name__=~\"node_gpu_throttle_.*\"}",
+          "instant": false,
+          "range": true,
+          "refId": "A",
+          "legendFormat": "{{__name__}} {{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "table",
+      "title": "GPU telemetry fields and latest values",
+      "description": "Inventory of GPU metrics from the telemetry-owned source. Use the metric name to identify T.Limit margin, fan, and cumulative throttle-time series as they become available.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 94,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "{__name__=~\"node_gpu_.*\"}",
+          "instant": true,
+          "range": false,
+          "refId": "A",
+          "format": "table",
+          "legendFormat": "{{__name__}} {{host}} / {{gpu_name}}"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      }
     }
   ],
-  "refresh": "1m",
+  "refresh": "30s",
   "schemaVersion": 42,
   "tags": [
     "infrastructure",
@@ -691,5 +1217,5 @@
   "version": 1,
   "weekStart": "",
   "preload": false,
-  "description": "Target inventory follows the configured PVE and guest node_exporter scrape jobs. The guest keep-list excludes swap, ZFS ARC and node_vmstat OOM metrics, so those panels show PVE-host coverage only. The configured datasource does not provide kernel/HA event logs or GPU and power metric fields."
+  "description": "Target inventory follows configured PVE and guest scrape jobs forwarded through Cribl. Memory PSI, swap, ARC, disk and OOM panels are metrics only. GPU panels consume the telemetry-owned metric source. Exact boot-ID events, kernel/HA logs, per-guest RSS/allocation, T.Limit margin, GPU fan and cumulative throttle times, SMART/ZFS events, UPS power and workload results still require source coverage."
 }
