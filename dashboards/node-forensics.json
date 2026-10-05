@@ -421,7 +421,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "PVE host ZFS ARC size and maximum",
-      "description": "The PVE scrape exposes node_zfs_arc_c and node_zfs_arc_c_max. The guest node_exporter keep-list does not retain these metrics, so this panel is PVE-host-only.",
+      "description": "The PVE scrape exposes current ARC size and maximum size. The guest node_exporter keep-list does not retain these metrics, so this panel is PVE-host-only.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -458,7 +458,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "node_zfs_arc_c{job=\"pve_node_exporter\"}",
+      "expr": "node_zfs_arc_size{job=\"pve_node_exporter\"}",
           "legendFormat": "{{instance}} ARC size",
           "range": true,
           "instant": false,
