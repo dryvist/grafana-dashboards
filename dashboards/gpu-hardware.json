@@ -1,0 +1,198 @@
+{
+  "annotations": { "list": [] },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "GPU power draw",
+      "description": "Instantaneous power by GPU. Cribl Edge per-GPU metrics carry gpu_index, gpu_name, and gpu_uuid dimensions.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "min": 0,
+          "noValue": "No GPU power samples received"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{host}} / {{gpu_name}} [{{gpu_index}}]",
+          "expr": "node_gpu_power_draw_watts"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Age of latest power sample",
+      "description": "Age in seconds of the latest power sample for each GPU still inside Prometheus' lookback window.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "noValue": "No GPU power sample in lookback window",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 120 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{host}} / {{gpu_name}} [{{gpu_index}}]",
+          "expr": "time() - timestamp(node_gpu_power_draw_watts)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "GPU temperature",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "celsius" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{host}} / {{gpu_name}}",
+          "expr": "node_gpu_temperature_celsius"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "GPU and memory utilization",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "GPU {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_utilization_gpu_percent"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "Memory {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_utilization_memory_percent"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "GPU memory",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 21, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "Used {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_memory_used_bytes"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "Total {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_memory_total_bytes"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "GPU clocks (MHz)",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 21, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "none", "min": 0 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "Graphics {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_clocks_gr_mhz"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "Memory {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_clocks_mem_mhz"
+        },
+        {
+          "refId": "C",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "SM {{host}} / {{gpu_name}}",
+          "expr": "node_gpu_clocks_sm_mhz"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Throttle reasons",
+      "description": "A value of 1 means that the named GPU throttle reason is active.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 29, "w": 24, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0, "max": 1 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{__name__}} {{host}} / {{gpu_name}}",
+          "expr": "{__name__=~\"node_gpu_throttle_(gpu_idle|applications_clocks_setting|sw_power_cap|hw_thermal_slowdown|hw_power_brake_slowdown|sw_thermal_slowdown|sync_boost|hw_slowdown)\"}"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 42,
+  "tags": ["gpu", "hardware"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timezone": "browser",
+  "title": "GPU Hardware",
+  "uid": "gpu-hardware",
+  "version": 1
+}

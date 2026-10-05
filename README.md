@@ -37,6 +37,7 @@ directory holds an example provider config for the file-based path.
 | `dashboards/hindsight-llm.json` | `hindsight-llm` |
 | `dashboards/hindsight-operations.json` | `hindsight-operations` |
 | `dashboards/github-ci-runners.json` | `github-ci-runners` |
+| `dashboards/gpu-hardware.json` | `gpu-hardware` |
 | `dashboards/litellm-all-prometheus-metrics.json` | `litellm-all-prometheus-metrics` |
 | `dashboards/litellm-genai-otel.json` | `litellm-genai-otel` |
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
