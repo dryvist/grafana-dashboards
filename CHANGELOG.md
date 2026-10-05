@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/dryvist/grafana-dashboards/compare/v1.4.0...v1.5.0) (2026-10-05)
+
+
+### Features
+
+* add GPU hardware dashboard ([#11](https://github.com/dryvist/grafana-dashboards/issues/11)) ([a2e0067](https://github.com/dryvist/grafana-dashboards/commit/a2e0067a33c8618d7094f27c3357a5fd7d9bc049))
+
 ## [1.4.0](https://github.com/dryvist/grafana-dashboards/compare/v1.3.0...v1.4.0) (2026-10-05)
 
 
