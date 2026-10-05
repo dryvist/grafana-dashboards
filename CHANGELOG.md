@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/dryvist/grafana-dashboards/compare/v1.3.0...v1.4.0) (2026-10-05)
+
+
+### Features
+
+* **observability:** add tiered daily token counters ([#9](https://github.com/dryvist/grafana-dashboards/issues/9)) ([6d78a60](https://github.com/dryvist/grafana-dashboards/commit/6d78a609720dcf1c221d8d4a517f270efed63497))
+
 ## [1.3.0](https://github.com/dryvist/grafana-dashboards/compare/v1.2.0...v1.3.0) (2026-10-04)
 
 
