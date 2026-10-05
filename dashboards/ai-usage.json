@@ -21,6 +21,28 @@
         "refresh": 1,
         "query": "label_values(claude_jsonl_cost_usd_total, repo)",
         "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "claude_codex_user",
+        "label": "Claude / Codex identity",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "query": "label_values(claude_code_token_usage_tokens_total, enduser_id)",
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "litellm_user_email",
+        "label": "LiteLLM identity",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "query": "label_values(litellm_input_tokens_metric_total, user_email)",
+        "current": { "text": "All", "value": "$__all" }
       }
     ]
   },
@@ -188,6 +210,55 @@
       ],
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "value" }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Daily tokens by tier and billing class",
+      "description": "Native one-day increases from Claude Code and Codex subscription counters, plus LiteLLM local Qwen and OpenRouter counters. Use the identity variables to filter Claude/Codex and LiteLLM paid series. Claude and Codex series are mapped by model; Codex is selected by ChatGPT auth mode. Local Qwen series are global and have no operator attribution. OpenRouter usage is paid and remains tier=unmapped unless the source model is covered by an explicit mapping. Missing series are gaps, not zero. LiteLLM has no cache-write counter; Codex input includes cached input and its token types remain separate. Claude request counts are unavailable and Codex turn counts are not API requests.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 10 },
+      "timeFrom": "30d",
+      "interval": "1d",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model=\"claude-fable-5-1\"}[1d])), \"tier\", \"T4\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-sonnet-5.*\"}[1d])), \"tier\", \"T2\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-opus-5.*\"}[1d])), \"tier\", \"T3\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\")",
+          "legendFormat": "{{tier}} / {{billing_class}} / {{model}} / {{type}}",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "label_replace(label_replace(sum by (model,token_type) (increase(codex_turn_token_usage_sum{auth_mode=\"Chatgpt\",enduser_id=~\"$claude_codex_user\",model=~\"gpt-5.6-luna|gpt-6-luna\"}[1d])), \"tier\", \"T1\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,token_type) (increase(codex_turn_token_usage_sum{auth_mode=\"Chatgpt\",enduser_id=~\"$claude_codex_user\",model=~\"gpt-5.6-terra\"}[1d])), \"tier\", \"T2\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,token_type) (increase(codex_turn_token_usage_sum{auth_mode=\"Chatgpt\",enduser_id=~\"$claude_codex_user\",model=~\"gpt-5.6-sol|gpt-6-sol|gpt-6.1-sol\"}[1d])), \"tier\", \"T3\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,token_type) (increase(codex_turn_token_usage_sum{auth_mode=\"Chatgpt\",enduser_id=~\"$claude_codex_user\",model=~\"gpt-6-astra\"}[1d])), \"tier\", \"T4\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\")",
+          "legendFormat": "{{tier}} / {{billing_class}} / {{model}} / {{token_type}}",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "label_replace(label_replace(label_replace(sum by (model) (increase(litellm_input_tokens_metric_total{model=~\".*[Qq]wen.*\"}[1d])), \"token_type\", \"input\", \"model\", \".*\"), \"tier\", \"T1\", \"model\", \".*\"), \"billing_class\", \"local\", \"model\", \".*\") or label_replace(label_replace(label_replace(sum by (model) (increase(litellm_output_tokens_metric_total{model=~\".*[Qq]wen.*\"}[1d])), \"token_type\", \"output\", \"model\", \".*\"), \"tier\", \"T1\", \"model\", \".*\"), \"billing_class\", \"local\", \"model\", \".*\") or label_replace(label_replace(label_replace(sum by (model) (increase(litellm_provider_cache_read_input_tokens_metric_total{model=~\".*[Qq]wen.*\"}[1d])), \"token_type\", \"cacheRead\", \"model\", \".*\"), \"tier\", \"T1\", \"model\", \".*\"), \"billing_class\", \"local\", \"model\", \".*\")",
+          "legendFormat": "{{tier}} / {{billing_class}} / {{model}} / {{token_type}}",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "label_replace(label_replace(label_replace(sum by (model) (increase(litellm_input_tokens_metric_total{api_provider=\"openrouter\",user_email=~\"$litellm_user_email\"}[1d])), \"token_type\", \"input\", \"model\", \".*\"), \"tier\", \"unmapped\", \"model\", \".*\"), \"billing_class\", \"paid\", \"model\", \".*\") or label_replace(label_replace(label_replace(sum by (model) (increase(litellm_output_tokens_metric_total{api_provider=\"openrouter\",user_email=~\"$litellm_user_email\"}[1d])), \"token_type\", \"output\", \"model\", \".*\"), \"tier\", \"unmapped\", \"model\", \".*\"), \"billing_class\", \"paid\", \"model\", \".*\") or label_replace(label_replace(label_replace(sum by (model) (increase(litellm_provider_cache_read_input_tokens_metric_total{api_provider=\"openrouter\",user_email=~\"$litellm_user_email\"}[1d])), \"token_type\", \"cacheRead\", \"model\", \".*\"), \"tier\", \"unmapped\", \"model\", \".*\"), \"billing_class\", \"paid\", \"model\", \".*\")",
+          "legendFormat": "{{tier}} / {{billing_class}} / {{model}} / {{token_type}}",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 }, "overrides": [] },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
     }
   ]
 }
