@@ -33,6 +33,7 @@ directory holds an example provider config for the file-based path.
 | `dashboards/claude-context-bloat.json` | `claude-context-bloat` |
 | `dashboards/claude-subagents-tools.json` | `claude-subagents-tools` |
 | `dashboards/claude-subscription-burn.json` | `claude-subscription-burn` |
+| `dashboards/disk-io-top-writers.json` | `disk-io-top-writers` |
 | `dashboards/hindsight-api-service.json` | `hindsight-api-service` |
 | `dashboards/hindsight-llm.json` | `hindsight-llm` |
 | `dashboards/hindsight-operations.json` | `hindsight-operations` |
