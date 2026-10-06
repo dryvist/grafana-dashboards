@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/dryvist/grafana-dashboards/compare/v1.5.0...v1.6.0) (2026-10-06)
+
+
+### Features
+
+* **dashboards:** add top disk writers dashboard ([7679069](https://github.com/dryvist/grafana-dashboards/commit/767906902c7bac67b3fa07bf623968f9e6fc7f32))
+* **dashboards:** add top disk writers dashboard ([22d29d4](https://github.com/dryvist/grafana-dashboards/commit/22d29d4ef69daaaa6b3e6ee79fbc80006b0c834b))
+
 ## [1.5.0](https://github.com/dryvist/grafana-dashboards/compare/v1.4.0...v1.5.0) (2026-10-05)
 
 
