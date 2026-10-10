@@ -16,4 +16,4 @@ jobs:
       actions: write
     uses: dryvist/.github/.github/workflows/_ci-gate.yml@v1
     with:
-      profile: nix
+      profile: docs
