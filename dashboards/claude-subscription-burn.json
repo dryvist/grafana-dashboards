@@ -573,6 +573,159 @@
       }
     },
     {
+      "id": 11,
+      "type": "stat",
+      "title": "Est. cache saving",
+      "description": "Uses input_cost_per_token and cache_read_input_token_cost from LiteLLM model_prices_and_context_window.json on raw.githubusercontent.com.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 13,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (model) (increase(claude_jsonl_cache_read_tokens_total[$__range]))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "litellm-prices"
+          },
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+          "url_options": {
+            "method": "GET",
+            "params": [],
+            "headers": []
+          },
+          "root_selector": "$map($filter($keys($$), function($key) { $substring($key, 0, 7) = \"claude-\" and $type($lookup($lookup($$, $key), \"input_cost_per_token\")) = \"number\" and $type($lookup($lookup($$, $key), \"cache_read_input_token_cost\")) = \"number\" }), function($key) { ($price := $lookup($$, $key); {\"model\": $key, \"input_cost_per_token\": $price.input_cost_per_token, \"cache_read_input_token_cost\": $price.cache_read_input_token_cost}) })"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "model",
+            "mode": "inner"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "tokens"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "timeSeries": false,
+            "alias": "savings_per_token",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "input_cost_per_token"
+                }
+              },
+              "operator": "-",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "cache_read_input_token_cost"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "timeSeries": false,
+            "alias": "Est. cache saving",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tokens"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "savings_per_token"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Est. cache saving"
+              ]
+            }
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {
+            "mode": "reduceFields",
+            "reducers": [
+              "sum"
+            ],
+            "includeTimeField": false
+          }
+        }
+      ]
+    },
+    {
       "id": 12,
       "type": "timeseries",
       "title": "Token volume by type",
