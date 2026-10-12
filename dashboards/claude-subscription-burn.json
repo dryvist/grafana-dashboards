@@ -31,17 +31,6 @@
         "description": "Used only for the break-even ratio."
       },
       {
-        "name": "input_price_per_mtok",
-        "type": "textbox",
-        "label": "Input price per Mtok (USD)",
-        "query": "15",
-        "current": {
-          "text": "15",
-          "value": "15"
-        },
-        "description": "Used only for the cache-saving estimate."
-      },
-      {
         "name": "model",
         "type": "query",
         "datasource": {
@@ -537,8 +526,8 @@
     {
       "id": 10,
       "type": "stat",
-      "title": "Tokens served from cache",
-      "description": "From the session-log ETL. Cache reads bill at a fraction of full input rate, so this is the volume the discount applied to.",
+      "title": "Cache read tokens",
+      "description": "Cache-read token volume from the session-log ETL over the selected dashboard range.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -570,55 +559,6 @@
             "mode": "palette-classic"
           },
           "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "textMode": "auto",
-        "colorMode": "value"
-      }
-    },
-    {
-      "id": 11,
-      "type": "stat",
-      "title": "Est. cache saving",
-      "description": "Cache reads bill at roughly a tenth of full input rate, so the saving is about 90% of what those tokens would otherwise have cost. Set $input_price_per_mtok to the rate for the model you actually run; this is an estimate, and it is the only figure here not taken from a counter.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 13,
-        "w": 6,
-        "h": 8
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "editorMode": "code",
-          "expr": "sum(increase(claude_jsonl_cache_read_tokens_total[$__range])) / 1e6 * $input_price_per_mtok * 0.9",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "color": {
-            "mode": "palette-classic"
-          },
-          "decimals": 2
         },
         "overrides": []
       },
