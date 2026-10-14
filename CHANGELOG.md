@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/dryvist/grafana-dashboards/compare/v1.6.0...v1.7.0) (2026-10-14)
+
+
+### Features
+
+* **grafana:** chart auto router requests and downgrade share ([#22](https://github.com/dryvist/grafana-dashboards/issues/22)) ([c4e0cdf](https://github.com/dryvist/grafana-dashboards/commit/c4e0cdff3ada6db41d39a6dd6ad62962669b5a70))
+
 ## [1.6.0](https://github.com/dryvist/grafana-dashboards/compare/v1.5.0...v1.6.0) (2026-10-06)
 
 
