@@ -13,7 +13,7 @@
       "id": 1,
       "type": "timeseries",
       "title": "Prompt throughput (tok/s)",
-      "description": "llamacpp:prompt_tokens_seconds, scraped directly from llama-server's /metrics (roles/prometheus_stack, job=llama_server).",
+      "description": "llamacpp:prompt_tokens_seconds from the LLM engine metrics endpoint (job=llm_gpu_engine).",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
@@ -23,7 +23,7 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "{{job}}",
-          "expr": "llamacpp:prompt_tokens_seconds{job=\"llama_server\"}"
+          "expr": "llamacpp:prompt_tokens_seconds{job=\"llm_gpu_engine\"}"
         }
       ]
     },
@@ -31,7 +31,7 @@
       "id": 2,
       "type": "timeseries",
       "title": "Generation throughput (tok/s)",
-      "description": "llamacpp:predicted_tokens_seconds — decode-side throughput, scraped directly from llama-server's /metrics (job=llama_server).",
+      "description": "llamacpp:predicted_tokens_seconds — decode-side throughput from the LLM engine metrics endpoint (job=llm_gpu_engine).",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
@@ -41,7 +41,7 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "{{job}}",
-          "expr": "llamacpp:predicted_tokens_seconds{job=\"llama_server\"}"
+          "expr": "llamacpp:predicted_tokens_seconds{job=\"llm_gpu_engine\"}"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "id": 3,
       "type": "timeseries",
       "title": "Requests processing vs deferred",
-      "description": "llamacpp:requests_processing (active) and llamacpp:requests_deferred (queued, waiting for a slot), scraped directly from llama-server's /metrics (job=llama_server).",
+      "description": "llamacpp:requests_processing (active) and llamacpp:requests_deferred (queued, waiting for a slot) from the LLM engine metrics endpoint (job=llm_gpu_engine).",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
@@ -59,14 +59,14 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "processing ({{job}})",
-          "expr": "llamacpp:requests_processing{job=\"llama_server\"}"
+          "expr": "llamacpp:requests_processing{job=\"llm_gpu_engine\"}"
         },
         {
           "refId": "B",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "deferred ({{job}})",
-          "expr": "llamacpp:requests_deferred{job=\"llama_server\"}"
+          "expr": "llamacpp:requests_deferred{job=\"llm_gpu_engine\"}"
         }
       ]
     }
