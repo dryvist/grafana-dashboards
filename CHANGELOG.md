@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/dryvist/grafana-dashboards/compare/v1.7.0...v1.7.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **dashboard:** use unified GPU engine scrape job ([#24](https://github.com/dryvist/grafana-dashboards/issues/24)) ([0bd5e91](https://github.com/dryvist/grafana-dashboards/commit/0bd5e916d04bba546ec7e570db897a014b083740))
+
 ## [1.7.0](https://github.com/dryvist/grafana-dashboards/compare/v1.6.0...v1.7.0) (2026-10-14)
 
 
