@@ -35,7 +35,6 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               # Add your packages here
-              git
               jq
             ];
 
