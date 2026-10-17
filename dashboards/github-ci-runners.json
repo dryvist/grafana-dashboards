@@ -263,25 +263,17 @@
       {
         "name": "org",
         "label": "Organization",
-        "type": "custom",
+        "type": "query",
         "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-        "query": "dryvist,JacobPEvans,jpe-ansible,jpe-cribl,jpe-openbao-plugin-secrets,jpe-private,jpe-splunk,vct-cribl,vct-splunk",
-        "definition": "dryvist,JacobPEvans,jpe-ansible,jpe-cribl,jpe-openbao-plugin-secrets,jpe-private,jpe-splunk,vct-cribl,vct-splunk",
+        "query": { "query": "label_values(github_actions_runs_completed_total, org)", "refId": "org" },
+        "definition": "label_values(github_actions_runs_completed_total, org)",
+        "refresh": 2,
+        "sort": 1,
         "includeAll": true,
         "allValue": ".*",
         "multi": true,
         "current": { "selected": true, "text": "All", "value": "$__all" },
-        "options": [
-          { "selected": false, "text": "dryvist", "value": "dryvist" },
-          { "selected": false, "text": "JacobPEvans", "value": "JacobPEvans" },
-          { "selected": false, "text": "jpe-ansible", "value": "jpe-ansible" },
-          { "selected": false, "text": "jpe-cribl", "value": "jpe-cribl" },
-          { "selected": false, "text": "jpe-openbao-plugin-secrets", "value": "jpe-openbao-plugin-secrets" },
-          { "selected": false, "text": "jpe-private", "value": "jpe-private" },
-          { "selected": false, "text": "jpe-splunk", "value": "jpe-splunk" },
-          { "selected": false, "text": "vct-cribl", "value": "vct-cribl" },
-          { "selected": false, "text": "vct-splunk", "value": "vct-splunk" }
-        ]
+        "options": []
       }
     ]
   },
