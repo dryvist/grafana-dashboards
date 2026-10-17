@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.2](https://github.com/dryvist/grafana-dashboards/compare/v1.8.1...v1.8.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **devshell:** use the system git instead of a pinned git ([83cc5d2](https://github.com/dryvist/grafana-dashboards/commit/83cc5d2f387db7de00f4a1c1406eec77e8a43106))
+* **devshell:** use the system git instead of a pinned git ([#32](https://github.com/dryvist/grafana-dashboards/issues/32)) ([448048b](https://github.com/dryvist/grafana-dashboards/commit/448048bb67a0f1baad6e22de7c9730904657b973))
+
 ## [1.8.1](https://github.com/dryvist/grafana-dashboards/compare/v1.8.0...v1.8.1) (2026-10-17)
 
 
