@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/dryvist/grafana-dashboards/compare/v1.7.1...v1.8.0) (2026-10-17)
+
+
+### Features
+
+* **dashboards:** add CI queue, duration and stalled-PR panels ([#26](https://github.com/dryvist/grafana-dashboards/issues/26)) ([e04361d](https://github.com/dryvist/grafana-dashboards/commit/e04361d5c058d2e5d10d84bcef5f3a46e0c81596))
+
 ## [1.7.1](https://github.com/dryvist/grafana-dashboards/compare/v1.7.0...v1.7.1) (2026-10-16)
 
 
