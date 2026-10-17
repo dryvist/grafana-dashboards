@@ -12,10 +12,10 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "Self-hosted runners online",
-      "description": "github_runner_org_online (roles/github_exporter). Queue-time and job-duration panels are not available yet: the workflow_run/workflow_job collectors need an event source this estate does not deliver yet — see roles/github_exporter/README.md.",
+      "title": "Self-hosted runners online by org",
+      "description": "Online self-hosted runner count from the shared GitHub Actions telemetry metrics.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 4 },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -35,17 +35,18 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "instant": true,
-          "expr": "sum(github_runner_org_online{owner=\"$org\"})"
+          "expr": "sum by (org) (github_actions_runner_online{org=~\"$org\"})",
+          "legendFormat": "{{org}}"
         }
       ]
     },
     {
       "id": 2,
       "type": "stat",
-      "title": "Self-hosted runners busy",
-      "description": "github_runner_org_busy (roles/github_exporter).",
+      "title": "Self-hosted runners busy by org",
+      "description": "Busy self-hosted runner count from the shared GitHub Actions telemetry metrics.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 4 },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -65,43 +66,196 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "instant": true,
-          "expr": "sum(github_runner_org_busy{owner=\"$org\"})"
+          "expr": "sum by (org) (github_actions_runner_busy{org=~\"$org\"})",
+          "legendFormat": "{{org}}"
         }
       ]
     },
     {
       "id": 3,
       "type": "timeseries",
-      "title": "Runner online/busy over time",
+      "title": "Runner online and busy over time by org",
+      "description": "Self-hosted runner counts, grouped by organization.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
       "targets": [
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
-          "legendFormat": "online",
-          "expr": "sum(github_runner_org_online{owner=\"$org\"})"
+          "legendFormat": "{{org}} online",
+          "expr": "sum by (org) (github_actions_runner_online{org=~\"$org\"})"
         },
         {
           "refId": "B",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
-          "legendFormat": "busy",
-          "expr": "sum(github_runner_org_busy{owner=\"$org\"})"
+          "legendFormat": "{{org}} busy",
+          "expr": "sum by (org) (github_actions_runner_busy{org=~\"$org\"})"
         }
       ]
     },
     {
       "id": 4,
-      "type": "text",
-      "title": "Not available yet",
-      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 4 },
+      "type": "timeseries",
+      "title": "Job queue time p50 / p95 by org",
+      "description": "One-hour grouped percentile estimates from completed job samples.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "palette-classic" } }, "overrides": [] },
       "options": {
-        "mode": "markdown",
-        "content": "**Queue time (p50/p95 by repo) and job duration are not on this dashboard.** The `workflow_run`/`workflow_job` collectors that would produce them read only from github_exporter's own database, which only its built-in webhook receiver populates — and this estate has no path for GitHub to deliver a webhook to an internal-only host. Tracked as an open gap in roles/github_exporter/README.md, not fixed by widening a permission."
-      }
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.50, sum by (vmrange, org) (histogram_over_time(github_actions_job_queue_seconds{org=~\"$org\"}[1h])))",
+          "legendFormat": "{{org}} p50"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (vmrange, org) (histogram_over_time(github_actions_job_queue_seconds{org=~\"$org\"}[1h])))",
+          "legendFormat": "{{org}} p95"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Job duration p50 / p90 by runner class",
+      "description": "One-hour grouped percentile estimates from completed job samples.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.50, sum by (vmrange, runner_class) (histogram_over_time(github_actions_job_duration_seconds{org=~\"$org\"}[1h])))",
+          "legendFormat": "{{runner_class}} p50"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.90, sum by (vmrange, runner_class) (histogram_over_time(github_actions_job_duration_seconds{org=~\"$org\"}[1h])))",
+          "legendFormat": "{{runner_class}} p90"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "PR CI health: failure ratio by org",
+      "description": "Failure divided by successful and failed pull-request runs over one hour; shown after at least five completed runs.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.3 }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "(sum by (org) (increase(github_actions_runs_completed_total{org=~\"$org\",event=\"pull_request\",conclusion=\"failure\"}[1h])) / sum by (org) (increase(github_actions_runs_completed_total{org=~\"$org\",event=\"pull_request\",conclusion=~\"success|failure\"}[1h]))) and on (org) (sum by (org) (increase(github_actions_runs_completed_total{org=~\"$org\",event=\"pull_request\"}[1h])) >= 5)",
+          "legendFormat": "{{org}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Stalled pull requests",
+      "description": "Open pull requests with successful checks older than two hours or failing checks at any age.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 10 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "age" },
+            "properties": [
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 7200 }] } },
+              { "id": "unit", "value": "s" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "checks_state" },
+            "properties": [
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              { "id": "mappings", "value": [{ "type": "value", "options": {
+                "success": { "color": "green", "index": 0, "text": "success" },
+                "failure": { "color": "red", "index": 1, "text": "failure" },
+                "pending": { "color": "yellow", "index": 2, "text": "pending" }
+              } }] }
+            ]
+          }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [{ "displayName": "age", "desc": true }] },
+      "transformations": [{
+        "id": "organize",
+        "options": { "excludeByName": { "Time": true, "base_ref": true }, "renameByName": { "Value": "age" } }
+      }],
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "github_pr_open_age_seconds{org=~\"$org\",checks_state=\"success\"} > 7200 or github_pr_open_age_seconds{org=~\"$org\",checks_state=\"failure\"} > 0",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Slowest workflows by PR job p90",
+      "description": "Top ten org/repository/workflow combinations by one-hour p90 pull-request job duration.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "options": { "showHeader": true, "sortBy": [{ "displayName": "p90", "desc": true }] },
+      "transformations": [{
+        "id": "organize",
+        "options": { "excludeByName": { "Time": true }, "renameByName": { "Value": "p90" } }
+      }],
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "expr": "topk(10, histogram_quantile(0.90, sum by (vmrange, org, repo, workflow) (histogram_over_time(github_actions_job_duration_seconds{org=~\"$org\",event=\"pull_request\"}[1h]))))",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ]
     }
   ],
   "templating": {
@@ -109,13 +263,25 @@
       {
         "name": "org",
         "label": "Organization",
-        "type": "query",
+        "type": "custom",
         "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-        "query": "label_values(github_runner_org_online, owner)",
-        "refresh": 2,
-        "includeAll": false,
-        "multi": false,
-        "current": { "text": "dryvist", "value": "dryvist" }
+        "query": "dryvist,JacobPEvans,jpe-ansible,jpe-cribl,jpe-openbao-plugin-secrets,jpe-private,jpe-splunk,vct-cribl,vct-splunk",
+        "definition": "dryvist,JacobPEvans,jpe-ansible,jpe-cribl,jpe-openbao-plugin-secrets,jpe-private,jpe-splunk,vct-cribl,vct-splunk",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "options": [
+          { "selected": false, "text": "dryvist", "value": "dryvist" },
+          { "selected": false, "text": "JacobPEvans", "value": "JacobPEvans" },
+          { "selected": false, "text": "jpe-ansible", "value": "jpe-ansible" },
+          { "selected": false, "text": "jpe-cribl", "value": "jpe-cribl" },
+          { "selected": false, "text": "jpe-openbao-plugin-secrets", "value": "jpe-openbao-plugin-secrets" },
+          { "selected": false, "text": "jpe-private", "value": "jpe-private" },
+          { "selected": false, "text": "jpe-splunk", "value": "jpe-splunk" },
+          { "selected": false, "text": "vct-cribl", "value": "vct-cribl" },
+          { "selected": false, "text": "vct-splunk", "value": "vct-splunk" }
+        ]
       }
     ]
   },
