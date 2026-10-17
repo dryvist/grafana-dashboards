@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/dryvist/grafana-dashboards/compare/v1.8.0...v1.8.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **dashboards:** list GitHub CI organizations from the metric labels ([#28](https://github.com/dryvist/grafana-dashboards/issues/28)) ([53d33be](https://github.com/dryvist/grafana-dashboards/commit/53d33be817d4edf76a86db417970578e6848a917))
+
 ## [1.8.0](https://github.com/dryvist/grafana-dashboards/compare/v1.7.1...v1.8.0) (2026-10-17)
 
 
