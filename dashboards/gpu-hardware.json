@@ -184,6 +184,78 @@
           "expr": "{__name__=~\"node_gpu_throttle_(gpu_idle|applications_clocks_setting|sw_power_cap|hw_thermal_slowdown|hw_power_brake_slowdown|sw_thermal_slowdown|sync_boost|hw_slowdown)\"}"
         }
       ]
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Busy %",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 37, "w": 24, "h": 1 },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Five-minute busy %",
+      "description": "Five-minute average compute utilization by accelerator.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 38, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{accelerator}}",
+          "expr": "accelerator:busy_percent:avg5m"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "7-day median busy %",
+      "description": "Median of the recorded five-minute busy-percent samples over the previous seven days.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 38, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No busy metrics in 7d",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{accelerator}}",
+          "expr": "quantile_over_time(0.5, accelerator:busy_percent:avg5m[7d])"
+        }
+      ]
     }
   ],
   "refresh": "30s",
