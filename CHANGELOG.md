@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/dryvist/grafana-dashboards/compare/v1.8.2...v1.9.0) (2026-10-24)
+
+
+### Features
+
+* **dashboards:** add a Busy % row to GPU hardware ([#34](https://github.com/dryvist/grafana-dashboards/issues/34)) ([a20a32e](https://github.com/dryvist/grafana-dashboards/commit/a20a32e0ad55411dcf7845ba7adfb1bf48e12334))
+
 ## [1.8.2](https://github.com/dryvist/grafana-dashboards/compare/v1.8.1...v1.8.2) (2026-10-17)
 
 
