@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/dryvist/grafana-dashboards/compare/v1.9.0...v1.10.0) (2026-10-25)
+
+
+### Features
+
+* **gpu-hardware:** add 7-day accelerator utilization and interactive TTFT ([#36](https://github.com/dryvist/grafana-dashboards/issues/36)) ([03c13bb](https://github.com/dryvist/grafana-dashboards/commit/03c13bb249d7d24b2d975ab20f378721a3feac2f))
+
 ## [1.9.0](https://github.com/dryvist/grafana-dashboards/compare/v1.8.2...v1.9.0) (2026-10-24)
 
 
