@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/dryvist/grafana-dashboards/compare/v1.10.0...v1.11.0) (2026-10-27)
+
+
+### Features
+
+* **dashboards:** add storage capacity and homelab overview dashboards ([#38](https://github.com/dryvist/grafana-dashboards/issues/38)) ([f2c40b6](https://github.com/dryvist/grafana-dashboards/commit/f2c40b634f44a40dc614ff7e5d482cb173e9fdaa))
+
 ## [1.10.0](https://github.com/dryvist/grafana-dashboards/compare/v1.9.0...v1.10.0) (2026-10-25)
 
 
