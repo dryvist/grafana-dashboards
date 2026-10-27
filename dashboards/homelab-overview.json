@@ -1,0 +1,472 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Cluster totals",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Nodes reporting",
+      "description": "Nodes that export CPU metrics for the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 1, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "short", "noValue": "No node samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "count(count by (instance) (node_cpu_seconds_total{instance=~\"$node(:.*)?\"}))"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Cluster CPU busy %",
+      "description": "Average CPU busy share across every core of the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 4, "y": 1, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No CPU samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{instance=~\"$node(:.*)?\",mode=\"idle\"}[$__rate_interval])))"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Cluster memory used %",
+      "description": "Memory in use across the selected nodes, from MemAvailable.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 8, "y": 1, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No memory samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * (1 - sum(node_memory_MemAvailable_bytes{instance=~\"$node(:.*)?\"}) / sum(node_memory_MemTotal_bytes{instance=~\"$node(:.*)?\"}))"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Total memory",
+      "description": "Installed memory across the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 1, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "bytes", "noValue": "No memory samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "sum(node_memory_MemTotal_bytes{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Cluster network in",
+      "description": "Receive rate summed over every non-loopback interface.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 16, "y": 1, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "Bps", "noValue": "No network samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "sum(rate(node_network_receive_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Cluster network out",
+      "description": "Transmit rate summed over every non-loopback interface.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 20, "y": 1, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "Bps", "noValue": "No network samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "sum(rate(node_network_transmit_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "GPUs reporting",
+      "description": "GPU series present for the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 5, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "short", "noValue": "No GPU series", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "count(node_gpu_utilization_gpu_percent{host=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Cluster GPU VRAM used %",
+      "description": "VRAM in use across every GPU of the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 4, "y": 5, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No GPU memory samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 80}, {"color": "red", "value": 95}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * sum(node_gpu_memory_used_bytes{host=~\"$node(:.*)?\"}) / sum(node_gpu_memory_total_bytes{host=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Highest pool fill %",
+      "description": "Fullest ZFS pool across the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 8, "y": 5, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No pool samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "max(pve_zpool_cap_percent{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Highest root FS %",
+      "description": "Fullest root filesystem across the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 5, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No filesystem samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "max(100 * (1 - node_filesystem_avail_bytes{instance=~\"$node(:.*)?\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{instance=~\"$node(:.*)?\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"}))"}
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Total pool capacity",
+      "description": "Summed size of every ZFS pool on the selected nodes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 16, "y": 5, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "bytes", "noValue": "No pool samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "sum(pve_zpool_size_bytes{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Failing SMART drives",
+      "description": "Drives whose SMART health flag reads failed on the selected nodes. Detail lives on the storage dashboard.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 20, "y": 5, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "short", "noValue": "No SMART samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "count(smartmon_device_smart_healthy{instance=~\"$node(:.*)?\"} == 0) or vector(0)"}
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "CPU busy % by node",
+      "description": "Busy share of CPU time for each node in the selection.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 9, "w": 8, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No CPU samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}}", "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{instance=~\"$node(:.*)?\",mode=\"idle\"}[$__rate_interval])))"}
+      ]
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Memory used % by node",
+      "description": "Memory in use for each node, from MemAvailable.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 8, "y": 9, "w": 8, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No memory samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}}", "expr": "100 * (1 - node_memory_MemAvailable_bytes{instance=~\"$node(:.*)?\"} / node_memory_MemTotal_bytes{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Network throughput by node",
+      "description": "Receive and transmit rate for each node, summed over non-loopback interfaces.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 16, "y": 9, "w": 8, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "Bps", "min": 0, "noValue": "No network samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "rx {{instance}}", "expr": "sum by (instance) (rate(node_network_receive_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "tx {{instance}}", "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"}
+      ]
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "Node $node",
+      "repeat": "node",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 17, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "CPU busy %",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 18, "w": 3, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No CPU samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{instance=~\"$node(:.*)?\",mode=\"idle\"}[$__rate_interval])))"}
+      ]
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Memory used %",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 3, "y": 18, "w": 3, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No memory samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * (1 - node_memory_MemAvailable_bytes{instance=~\"$node(:.*)?\"} / node_memory_MemTotal_bytes{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Load (1m)",
+      "description": "One-minute load average. Compare against the core count in the CPU panel.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 6, "y": 18, "w": 2, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 2, "noValue": "No load samples", "color": {"mode": "fixed", "fixedColor": "blue"}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "node_load1{instance=~\"$node(:.*)?\"}"}
+      ]
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Root FS used %",
+      "description": "Share of the root filesystem in use, from available bytes.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 8, "y": 18, "w": 3, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No filesystem samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * (1 - node_filesystem_avail_bytes{instance=~\"$node(:.*)?\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{instance=~\"$node(:.*)?\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"})"}
+      ]
+    },
+    {
+      "id": 22,
+      "type": "stat",
+      "title": "Network in",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 11, "y": 18, "w": 3, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "Bps", "noValue": "No network samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "sum(rate(node_network_receive_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"}
+      ]
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "Network out",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 14, "y": 18, "w": 3, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "Bps", "noValue": "No network samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "sum(rate(node_network_transmit_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"}
+      ]
+    },
+    {
+      "id": 24,
+      "type": "stat",
+      "title": "GPU utilization",
+      "description": "Average GPU busy share on this node. Empty when the node has no GPU series.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 17, "y": 18, "w": 3, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No GPU on this node", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "avg(node_gpu_utilization_gpu_percent{host=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 25,
+      "type": "stat",
+      "title": "GPU VRAM used %",
+      "description": "VRAM in use across this node's GPUs.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 20, "y": 18, "w": 2, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No GPU on this node", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 80}, {"color": "red", "value": 95}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "100 * sum(node_gpu_memory_used_bytes{host=~\"$node(:.*)?\"}) / sum(node_gpu_memory_total_bytes{host=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 26,
+      "type": "stat",
+      "title": "Pool fill % (max)",
+      "description": "Fullest ZFS pool on this node.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 22, "y": 18, "w": 2, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No pool on this node", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "", "expr": "max(pve_zpool_cap_percent{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 27,
+      "type": "timeseries",
+      "title": "CPU busy, iowait, and load",
+      "description": "CPU busy and iowait shares on the left axis; one-minute load on the right.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 22, "w": 8, "h": 7},
+      "fieldConfig": {
+        "defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No CPU samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "load 1m"}, "properties": [{"id": "unit", "value": "short"}, {"id": "min", "value": 0}, {"id": "max", "value": null}, {"id": "custom.axisPlacement", "value": "right"}]}
+        ]
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "busy", "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{instance=~\"$node(:.*)?\",mode=\"idle\"}[$__rate_interval])))"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "iowait", "expr": "100 * avg(rate(node_cpu_seconds_total{instance=~\"$node(:.*)?\",mode=\"iowait\"}[$__rate_interval]))"},
+        {"refId": "C", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "load 1m", "expr": "node_load1{instance=~\"$node(:.*)?\"}"}
+      ]
+    },
+    {
+      "id": 28,
+      "type": "timeseries",
+      "title": "Memory and swap used %",
+      "description": "Memory and swap in use on this node.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 8, "y": 22, "w": 8, "h": 7},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No memory samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "memory", "expr": "100 * (1 - node_memory_MemAvailable_bytes{instance=~\"$node(:.*)?\"} / node_memory_MemTotal_bytes{instance=~\"$node(:.*)?\"})"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "swap", "expr": "100 * (1 - node_memory_SwapFree_bytes{instance=~\"$node(:.*)?\"} / node_memory_SwapTotal_bytes{instance=~\"$node(:.*)?\"})"}
+      ]
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "Network rx and tx by interface",
+      "description": "Receive and transmit rate for each non-loopback interface on this node.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 16, "y": 22, "w": 8, "h": 7},
+      "fieldConfig": {"defaults": {"unit": "Bps", "min": 0, "noValue": "No network samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "rx {{device}}", "expr": "sum by (device) (rate(node_network_receive_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "tx {{device}}", "expr": "sum by (device) (rate(node_network_transmit_bytes_total{instance=~\"$node(:.*)?\",device!~\"lo\"}[$__rate_interval]))"}
+      ]
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "GPU utilization and VRAM used %",
+      "description": "Busy share and VRAM in use for each GPU on this node.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 29, "w": 6, "h": 7},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No GPU on this node", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "busy {{gpu_name}} [{{gpu_index}}]", "expr": "node_gpu_utilization_gpu_percent{host=~\"$node(:.*)?\"}"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "VRAM {{gpu_name}} [{{gpu_index}}]", "expr": "100 * node_gpu_memory_used_bytes{host=~\"$node(:.*)?\"} / node_gpu_memory_total_bytes{host=~\"$node(:.*)?\"}"}
+      ]
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "GPU power and temperature",
+      "description": "Power draw in watts on the left axis; temperature in degrees Celsius on the right.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 6, "y": 29, "w": 6, "h": 7},
+      "fieldConfig": {
+        "defaults": {"unit": "watt", "min": 0, "noValue": "No GPU on this node", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}},
+        "overrides": [
+          {"matcher": {"id": "byRegexp", "options": "temp.*"}, "properties": [{"id": "unit", "value": "celsius"}, {"id": "custom.axisPlacement", "value": "right"}]}
+        ]
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "power {{gpu_name}} [{{gpu_index}}]", "expr": "node_gpu_power_draw_watts{host=~\"$node(:.*)?\"}"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "temp {{gpu_name}} [{{gpu_index}}]", "expr": "node_gpu_temperature_celsius{host=~\"$node(:.*)?\"}"}
+      ]
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Pool fill % by pool",
+      "description": "Fill percentage of each ZFS pool on this node. Dashed lines mark the 70, 80 and 90 percent thresholds.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 29, "w": 6, "h": 7},
+      "fieldConfig": {
+        "defaults": {"unit": "percent", "min": 0, "max": 100, "noValue": "No pool on this node", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false, "thresholdsStyle": {"mode": "dashed"}}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}},
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{pool}}", "expr": "pve_zpool_cap_percent{instance=~\"$node(:.*)?\"}"}
+      ]
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Disk throughput by device",
+      "description": "Bytes read and written per block device on this node.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 18, "y": 29, "w": 6, "h": 7},
+      "fieldConfig": {"defaults": {"unit": "Bps", "min": 0, "noValue": "No disk samples received", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}}, "overrides": []},
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "read {{device}}", "expr": "sum by (device) (rate(node_disk_read_bytes_total{instance=~\"$node(:.*)?\"}[$__rate_interval]))"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "write {{device}}", "expr": "sum by (device) (rate(node_disk_written_bytes_total{instance=~\"$node(:.*)?\"}[$__rate_interval]))"}
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 42,
+  "tags": ["homelab", "overview", "node"],
+  "templating": {
+    "list": [
+      {
+        "name": "node",
+        "label": "Node",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+        "query": "label_values(node_cpu_seconds_total, instance)",
+        "regex": "/^([^:]+)/",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timezone": "browser",
+  "title": "Homelab Node Overview",
+  "uid": "homelab-overview",
+  "version": 1
+}

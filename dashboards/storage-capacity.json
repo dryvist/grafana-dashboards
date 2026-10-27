@@ -1,0 +1,616 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Pool capacity",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "$pool fill %",
+      "description": "Share of each pool in use, per node. Colors follow the fill thresholds.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "repeat": "pool",
+      "repeatDirection": "h",
+      "maxPerRow": 6,
+      "gridPos": {"x": 0, "y": 1, "w": 6, "h": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No pool samples",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}}", "expr": "pve_zpool_cap_percent{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "$pool fill gauge",
+      "description": "Same fill percentage as the stat, shown as a gauge.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "repeat": "pool",
+      "repeatDirection": "h",
+      "maxPerRow": 6,
+      "gridPos": {"x": 0, "y": 5, "w": 6, "h": 6},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No pool samples",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}
+        },
+        "overrides": []
+      },
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}}", "expr": "pve_zpool_cap_percent{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Pool fill % over time",
+      "description": "Fill percentage over the dashboard time range. Dashed lines mark the 70, 80 and 90 percent thresholds.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 11, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No pool samples received",
+          "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": false, "thresholdsStyle": {"mode": "dashed"}},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 70}, {"color": "orange", "value": 80}, {"color": "red", "value": 90}]}
+        },
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}} {{pool}}", "expr": "pve_zpool_cap_percent{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Days to full (7-day trend)",
+      "description": "Free bytes divided by the 7-day shrink rate. Shows growing/flat when free space is not shrinking.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 11, "w": 6, "h": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "min": 0,
+          "noValue": "growing/flat",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 30}, {"color": "yellow", "value": 90}, {"color": "green", "value": 365}]}
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}} {{pool}}", "expr": "pve_zpool_free_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"} / (-deriv(pve_zpool_free_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"}[7d]) > 0) / 86400"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Free bytes in 7 days (predict_linear)",
+      "description": "Linear forecast of free bytes one week ahead, fitted over the last 7 days.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 18, "y": 11, "w": 6, "h": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "No pool samples received",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 0}]}
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}} {{pool}}", "expr": "predict_linear(pve_zpool_free_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"}[7d], 604800)"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Pool size, health, and scrub",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 19, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Pool size, used, and free",
+      "description": "Pool size in bytes. Used is allocated space; free is what remains.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {"unit": "bytes", "noValue": "No pool samples received", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": []
+      },
+      "options": {"showHeader": true, "cellHeight": "sm", "footer": {"show": false, "reducer": ["sum"], "fields": "", "countRows": false}},
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "indexByName": {}, "renameByName": {"instance": "Node", "pool": "Pool", "Value #A": "Size", "Value #B": "Used", "Value #C": "Free"}}}
+      ],
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_size_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_alloc_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "C", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_free_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Pool health state",
+      "description": "Health state from the textfile collector and from node_exporter. Two rows for one pool mean the sources disagree.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {"noValue": "No pool health samples", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "state"},
+            "properties": [
+              {"id": "mappings", "value": [{"type": "value", "options": {"ONLINE": {"text": "ONLINE", "color": "green", "index": 0}, "DEGRADED": {"text": "DEGRADED", "color": "orange", "index": 1}, "FAULTED": {"text": "FAULTED", "color": "red", "index": 2}, "UNAVAIL": {"text": "UNAVAIL", "color": "red", "index": 3}, "REMOVED": {"text": "REMOVED", "color": "orange", "index": 4}, "SUSPENDED": {"text": "SUSPENDED", "color": "red", "index": 5}}}]},
+              {"id": "custom.cellOptions", "value": {"type": "color-text"}}
+            ]
+          }
+        ]
+      },
+      "options": {"showHeader": true, "cellHeight": "sm", "footer": {"show": false, "reducer": ["sum"], "fields": "", "countRows": false}},
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "Value #A": true, "Value #B": true}, "indexByName": {}, "renameByName": {"instance": "Node", "pool": "Pool", "state": "state"}}}
+      ],
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "pve_zpool_health{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "label_replace(label_replace(node_zfs_zpool_state{instance=~\"$node(:.*)?\",zpool=~\"$pool\"}, \"pool\", \"$1\", \"zpool\", \"(.*)\"), \"zpool\", \"\", \"zpool\", \".*\")"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Scrub, scan errors, and fragmentation",
+      "description": "Latest scan state, progress, errors and end time per pool, with fragmentation.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 28, "w": 24, "h": 8},
+      "fieldConfig": {
+        "defaults": {"noValue": "No scan or fragmentation samples", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Last scan end"}, "properties": [{"id": "unit", "value": "dateTimeAsLocal"}]},
+          {"matcher": {"id": "byName", "options": "Fragmentation %"}, "properties": [{"id": "unit", "value": "percent"}, {"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 75}]}}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}]},
+          {"matcher": {"id": "byName", "options": "Scan errors"}, "properties": [{"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}]},
+          {"matcher": {"id": "byName", "options": "Scan %"}, "properties": [{"id": "unit", "value": "percent"}]}
+        ]
+      },
+      "options": {"showHeader": true, "cellHeight": "sm", "footer": {"show": false, "reducer": ["sum"], "fields": "", "countRows": false}},
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "indexByName": {}, "renameByName": {"instance": "Node", "pool": "Pool", "Value #A": "Scan state", "Value #B": "Scan %", "Value #C": "Scan errors", "Value #D": "Last scan end", "Value #E": "Fragmentation %"}}}
+      ],
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_scan_state{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_scan_pct{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "C", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_scan_errors{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "D", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_scan_end_time_seconds{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "E", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool) (pve_zpool_frag_percent{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"}
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Time since last scrub or scan",
+      "description": "Age of the most recent completed scan. Shows no scan when none has finished.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 36, "w": 6, "h": 5},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdhms",
+          "noValue": "No completed scan recorded",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1209600}, {"color": "red", "value": 2592000}]}
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}} {{pool}}", "expr": "(time() - pve_zpool_scan_end_time_seconds{instance=~\"$node(:.*)?\",pool=~\"$pool\"}) and (pve_zpool_scan_end_time_seconds{instance=~\"$node(:.*)?\",pool=~\"$pool\"} > 0)"}
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Errors on last scan",
+      "description": "Errors that the most recent scrub or resilver reported.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 6, "y": 36, "w": 6, "h": 5},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No scan samples",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}} {{pool}}", "expr": "pve_zpool_scan_errors{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 13,
+      "type": "gauge",
+      "title": "Scrub progress",
+      "description": "Percent of the current scan that is done. Zero when no scan runs.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 36, "w": 6, "h": 5},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No scan samples",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}
+        },
+        "overrides": []
+      },
+      "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": false},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}} {{pool}}", "expr": "pve_zpool_scan_pct{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Scan state",
+      "description": "Scan state from zpool status: none, scanning, finished, or canceled or paused.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 18, "y": 36, "w": 6, "h": 5},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No scan samples",
+          "color": {"mode": "thresholds"},
+          "mappings": [{"type": "value", "options": {"0": {"text": "none", "color": "text", "index": 0}, "1": {"text": "scanning", "color": "blue", "index": 1}, "2": {"text": "finished", "color": "green", "index": 2}, "3": {"text": "canceled or paused", "color": "orange", "index": 3}}}],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "{{instance}} {{pool}}", "expr": "pve_zpool_scan_state{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "title": "I/O throughput",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 41, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Pool read and write throughput",
+      "description": "Bytes per second read from and written to each pool.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 42, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {"unit": "Bps", "min": 0, "noValue": "No pool I/O samples", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "showPoints": "never", "spanNulls": false}},
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "read {{instance}} {{pool}}", "expr": "pve_zpool_read_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "write {{instance}} {{pool}}", "expr": "pve_zpool_write_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Pool read and write operations",
+      "description": "Read and write operations per second for each pool.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 42, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {"unit": "ops", "min": 0, "noValue": "No pool I/O samples", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "showPoints": "never", "spanNulls": false}},
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "read {{instance}} {{pool}}", "expr": "pve_zpool_read_ops{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "write {{instance}} {{pool}}", "expr": "pve_zpool_write_ops{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "ZFS I/O wait by operation and kind",
+      "description": "Wait time per operation and wait kind (total, disk, sync queue, async queue) from zpool iostat.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 50, "w": 24, "h": 8},
+      "fieldConfig": {
+        "defaults": {"unit": "s", "min": 0, "noValue": "No I/O wait samples", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 5, "showPoints": "never", "spanNulls": false}},
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}} {{pool}} {{op}} {{kind}}", "expr": "pve_zpool_wait_seconds{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
+      "id": 19,
+      "type": "row",
+      "title": "Datasets",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 58, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 20,
+      "type": "table",
+      "title": "Dataset used and available",
+      "description": "Per-dataset used and available bytes. Needs the pve_zfs_dataset_* series, which some nodes do not export.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 59, "w": 18, "h": 10},
+      "fieldConfig": {
+        "defaults": {"unit": "bytes", "noValue": "No dataset metrics on this node (pve_zfs_dataset_* not exported)", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": []
+      },
+      "options": {"showHeader": true, "cellHeight": "sm", "footer": {"show": false, "reducer": ["sum"], "fields": "", "countRows": false}},
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "indexByName": {}, "renameByName": {"instance": "Node", "pool": "Pool", "dataset": "Dataset", "Value #A": "Used", "Value #B": "Available"}}}
+      ],
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool, dataset) (pve_zfs_dataset_used_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, pool, dataset) (pve_zfs_dataset_available_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"}
+      ]
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Datasets reporting",
+      "description": "Count of datasets with dataset metrics. Zero when the textfile collector exports none.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 18, "y": 59, "w": 6, "h": 5},
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "No dataset metrics on this node", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "count(pve_zfs_dataset_used_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"}) or vector(0)"}
+      ]
+    },
+    {
+      "id": 22,
+      "type": "stat",
+      "title": "Lowest dataset free space",
+      "description": "Smallest available bytes across the reporting datasets.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 18, "y": 64, "w": 6, "h": 5},
+      "fieldConfig": {
+        "defaults": {"unit": "bytes", "noValue": "No dataset metrics on this node", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 10737418240}, {"color": "green", "value": 107374182400}]}},
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "min(pve_zfs_dataset_available_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"})"}
+      ]
+    },
+    {
+      "id": 23,
+      "type": "row",
+      "title": "SMART drive health",
+      "collapsed": false,
+      "gridPos": {"x": 0, "y": 69, "w": 24, "h": 1},
+      "panels": []
+    },
+    {
+      "id": 24,
+      "type": "table",
+      "title": "SMART summary per drive",
+      "description": "Per node and drive: healthy flag, temperature, power-on hours, and the pending, reallocated and offline-uncorrectable sector counts. Non-zero sector counts turn red.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 70, "w": 24, "h": 10},
+      "fieldConfig": {
+        "defaults": {"noValue": "No SMART samples", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Healthy"}, "properties": [{"id": "mappings", "value": [{"type": "value", "options": {"0": {"text": "FAILED", "color": "red", "index": 0}, "1": {"text": "PASSED", "color": "green", "index": 1}}}]}, {"id": "custom.cellOptions", "value": {"type": "color-text"}}]},
+          {"matcher": {"id": "byName", "options": "Temp (C)"}, "properties": [{"id": "unit", "value": "celsius"}, {"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 45}, {"color": "orange", "value": 50}, {"color": "red", "value": 55}]}}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}]},
+          {"matcher": {"id": "byName", "options": "Power-on hours"}, "properties": [{"id": "unit", "value": "h"}]},
+          {"matcher": {"id": "byName", "options": "Pending sectors"}, "properties": [{"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}]},
+          {"matcher": {"id": "byName", "options": "Reallocated"}, "properties": [{"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}]},
+          {"matcher": {"id": "byName", "options": "Offline uncorrectable"}, "properties": [{"id": "thresholds", "value": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, {"id": "custom.cellOptions", "value": {"type": "color-background"}}]}
+        ]
+      },
+      "options": {"showHeader": true, "cellHeight": "sm", "footer": {"show": false, "reducer": ["sum"], "fields": "", "countRows": false}},
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true}, "indexByName": {}, "renameByName": {"instance": "Node", "disk": "Drive", "Value #A": "Healthy", "Value #B": "Temp (C)", "Value #C": "Power-on hours", "Value #D": "Pending sectors", "Value #E": "Reallocated", "Value #F": "Offline uncorrectable"}}}
+      ],
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type) (smartmon_device_smart_healthy{instance=~\"$node(:.*)?\",disk=~\"$device\"})"},
+        {"refId": "B", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type) (smartmon_temperature_celsius_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"})"},
+        {"refId": "C", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type) (smartmon_power_on_hours_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"})"},
+        {"refId": "D", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type) (smartmon_current_pending_sector_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"})"},
+        {"refId": "E", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type) (smartmon_reallocated_sector_ct_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"})"},
+        {"refId": "F", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type) (smartmon_offline_uncorrectable_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"})"}
+      ]
+    },
+    {
+      "id": 25,
+      "type": "table",
+      "title": "Drive inventory",
+      "description": "Model and serial number per drive, from the smartmon device info series.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 80, "w": 12, "h": 7},
+      "fieldConfig": {
+        "defaults": {"noValue": "No SMART device info", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": []
+      },
+      "options": {"showHeader": true, "cellHeight": "sm", "footer": {"show": false, "reducer": ["sum"], "fields": "", "countRows": false}},
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "Value": true}, "indexByName": {}, "renameByName": {"instance": "Node", "disk": "Drive", "device_model": "Model", "serial_number": "Serial"}}}
+      ],
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "format": "table", "legendFormat": "", "expr": "max by (instance, disk, type, device_model, serial_number) (smartmon_device_info{instance=~\"$node(:.*)?\",disk=~\"$device\"})"}
+      ]
+    },
+    {
+      "id": 26,
+      "type": "stat",
+      "title": "Drives failing SMART",
+      "description": "Drives whose SMART health flag reads failed.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 80, "w": 4, "h": 7},
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "No SMART samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}},
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "count(smartmon_device_smart_healthy{instance=~\"$node(:.*)?\",disk=~\"$device\"} == 0) or vector(0)"}
+      ]
+    },
+    {
+      "id": 27,
+      "type": "stat",
+      "title": "Hottest drive",
+      "description": "Highest drive temperature across the selected nodes and drives.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 16, "y": 80, "w": 4, "h": 7},
+      "fieldConfig": {
+        "defaults": {"unit": "celsius", "noValue": "No temperature samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 45}, {"color": "orange", "value": 50}, {"color": "red", "value": 55}]}},
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "max(smartmon_temperature_celsius_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"})"}
+      ]
+    },
+    {
+      "id": 28,
+      "type": "stat",
+      "title": "Drives reporting",
+      "description": "Drives that the smartmon collector reports as active.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 20, "y": 80, "w": 4, "h": 7},
+      "fieldConfig": {
+        "defaults": {"unit": "short", "noValue": "No SMART samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": true, "range": false, "legendFormat": "", "expr": "count(smartmon_device_active{instance=~\"$node(:.*)?\",disk=~\"$device\"}) or vector(0)"}
+      ]
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "Drive temperature",
+      "description": "Drive temperature over the dashboard time range.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 87, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {"unit": "celsius", "min": 0, "noValue": "No temperature samples", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 5, "showPoints": "never", "spanNulls": false, "thresholdsStyle": {"mode": "dashed"}}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 50}, {"color": "red", "value": 55}]}},
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}} {{disk}} {{type}}", "expr": "smartmon_temperature_celsius_raw_value{instance=~\"$node(:.*)?\",disk=~\"$device\"}"}
+      ]
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Pending, reallocated, and offline-uncorrectable sectors",
+      "description": "Raw sector counts per drive. Any rise means the drive is losing sectors.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 12, "y": 87, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {"unit": "short", "min": 0, "noValue": "No sector samples", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 5, "showPoints": "auto", "spanNulls": false}},
+        "overrides": []
+      },
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}} {{disk}} {{type}} {{__name__}}", "expr": "{__name__=~\"smartmon_(current_pending_sector|reallocated_sector_ct|offline_uncorrectable)_raw_value\",instance=~\"$node(:.*)?\",disk=~\"$device\"}"}
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 42,
+  "tags": ["storage", "zfs", "smart"],
+  "templating": {
+    "list": [
+      {
+        "name": "node",
+        "label": "Node",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+        "query": "label_values(node_cpu_seconds_total, instance)",
+        "regex": "/^([^:]+)/",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {"text": "All", "value": "$__all"}
+      },
+      {
+        "name": "pool",
+        "label": "Pool",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+        "query": "label_values(pve_zpool_cap_percent{instance=~\"$node(:.*)?\"}, pool)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {"text": "All", "value": "$__all"}
+      },
+      {
+        "name": "device",
+        "label": "Drive",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+        "query": "label_values(smartmon_device_active{instance=~\"$node(:.*)?\"}, disk)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timezone": "browser",
+  "title": "Storage Capacity and Health",
+  "uid": "storage-capacity",
+  "version": 1
+}
