@@ -45,6 +45,7 @@ directory holds an example provider config for the file-based path.
 | `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
 | `dashboards/homelab-overview.json` | `homelab-overview` |
 | `dashboards/storage-capacity.json` | `storage-capacity` |
+| `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
 grafana.com by ID and revision inside the Ansible role. They do not live here.
