@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/dryvist/grafana-dashboards/compare/v1.11.0...v1.12.0) (2026-10-28)
+
+
+### Features
+
+* add macOS UI stall dashboard ([#40](https://github.com/dryvist/grafana-dashboards/issues/40)) ([c9aa57a](https://github.com/dryvist/grafana-dashboards/commit/c9aa57a4f7b9e75e3474026e4eba4d71798de537))
+
 ## [1.11.0](https://github.com/dryvist/grafana-dashboards/compare/v1.10.0...v1.11.0) (2026-10-27)
 
 
