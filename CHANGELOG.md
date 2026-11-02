@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/dryvist/grafana-dashboards/compare/v1.12.0...v1.13.0) (2026-11-02)
+
+
+### Features
+
+* **macos-ui-stalls:** add hardware headroom panels ([#42](https://github.com/dryvist/grafana-dashboards/issues/42)) ([eb51c47](https://github.com/dryvist/grafana-dashboards/commit/eb51c47d8869c06a91c5e74afb54cde540fc73f7))
+
 ## [1.12.0](https://github.com/dryvist/grafana-dashboards/compare/v1.11.0...v1.12.0) (2026-10-28)
 
 
