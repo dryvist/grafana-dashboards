@@ -22,6 +22,10 @@ Load a file from `dashboards/` into Grafana's file-based dashboard
 provisioner, or import it through Grafana's UI/HTTP API. The `provisioning/`
 directory holds an example provider config for the file-based path.
 
+Alert rules live in `provisioning/alerting/` as Grafana unified-alerting
+provisioning files. A consumer copies those files into Grafana's
+`provisioning/alerting` directory from the same pinned release.
+
 ## Dashboards
 
 | File | `uid` (must equal the filename stem) |
