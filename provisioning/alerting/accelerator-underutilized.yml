@@ -1,0 +1,49 @@
+# Grafana file-provisioned alert rule (unified alerting). Fires when the
+# 4-hour average busy percent of a model-serving accelerator stays below 50%.
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: accelerator-busy
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: accelerator-underutilized
+        title: Model-serving busy percent below 50% over 4 hours
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 14400
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: >-
+                avg_over_time(accelerator:busy_percent:avg5m{accelerator=~"gpu-primary|gpu-secondary|mac-primary"}[4h])
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 50
+              refId: B
+        for: 0s
+        noDataState: Alerting
+        execErrState: Error
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Model-serving busy percent 4-hour average is below 50%
+          description: >-
+            The 4-hour average busy percent of a model-serving accelerator has been below 50%.
