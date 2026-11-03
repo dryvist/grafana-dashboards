@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/dryvist/grafana-dashboards/compare/v1.13.0...v1.14.0) (2026-11-03)
+
+
+### Features
+
+* **alerting:** add accelerator under-utilization alert as a provisioning file ([#44](https://github.com/dryvist/grafana-dashboards/issues/44)) ([73480d0](https://github.com/dryvist/grafana-dashboards/commit/73480d06b075c8e1b8404cd89025b9b88678ec36))
+
 ## [1.13.0](https://github.com/dryvist/grafana-dashboards/compare/v1.12.0...v1.13.0) (2026-11-02)
 
 
