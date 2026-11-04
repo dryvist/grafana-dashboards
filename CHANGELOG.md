@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/dryvist/grafana-dashboards/compare/v1.14.0...v1.15.0) (2026-11-04)
+
+
+### Features
+
+* **alerting:** add critical Slack contact point and policy file ([#47](https://github.com/dryvist/grafana-dashboards/issues/47)) ([c6644db](https://github.com/dryvist/grafana-dashboards/commit/c6644dba74f5cf4b389a51604175e225fa8d387a))
+
 ## [1.14.0](https://github.com/dryvist/grafana-dashboards/compare/v1.13.0...v1.14.0) (2026-11-03)
 
 
