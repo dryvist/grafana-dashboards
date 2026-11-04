@@ -1,0 +1,14 @@
+# Grafana file-provisioned contact point (unified alerting). Slack receiver for
+# severity=critical alerts. Token and recipient come from environment variables
+# at Grafana startup; no secret value is committed here.
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: critical-slack
+    receivers:
+      - uid: critical-slack
+        type: slack
+        settings:
+          token: ${GRAFANA_ALERT_SLACK_BOT_TOKEN}
+          recipient: ${GRAFANA_ALERT_SLACK_CRITICAL_CHANNEL_ID}
