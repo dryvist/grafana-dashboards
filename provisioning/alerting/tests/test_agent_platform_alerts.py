@@ -80,6 +80,7 @@ def test_router_uses_dashboard_status_label_and_native_threshold_input(rules):
     expression = query["model"]["expr"]
     assert expression == (
         'sum(rate(litellm_proxy_total_requests_metric_total{status_code="429"}[5m]))'
+        ' or (0 * sum(rate(litellm_proxy_total_requests_metric_total[5m])))'
     )
     dashboard = (ALERTING.parents[1] / "dashboards" / "litellm-all-prometheus-metrics.json").read_text()
     assert "litellm_proxy_total_requests_metric_total" in dashboard

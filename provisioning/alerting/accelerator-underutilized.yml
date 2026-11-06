@@ -112,6 +112,7 @@ groups:
               # Source: dashboards/litellm-all-prometheus-metrics.json, proxy traffic.
               expr: >-
                 sum(rate(litellm_proxy_total_requests_metric_total{status_code="429"}[5m]))
+                or (0 * sum(rate(litellm_proxy_total_requests_metric_total[5m])))
               instant: true
               refId: A
           - <<: *positive-result
