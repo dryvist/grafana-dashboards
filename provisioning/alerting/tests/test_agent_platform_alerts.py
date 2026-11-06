@@ -12,17 +12,24 @@ import pytest
 ALERTING = Path(__file__).resolve().parents[1]
 
 
-@pytest.fixture(scope="module")
-def rules():
-    document = json.loads(subprocess.check_output(
-        [os.environ.get("YQ", "yq"), ".", str(ALERTING / "accelerator-underutilized.yml")],
+def load_provisioning(filename):
+    return json.loads(subprocess.check_output(
+        [os.environ.get("YQ", "yq"), ".", str(ALERTING / filename)],
         text=True,
     ))
-    return {
-        rule["uid"]: rule
+
+
+@pytest.fixture(scope="module")
+def rules():
+    document = load_provisioning("accelerator-underutilized.yml")
+    provisioned = [
+        rule
         for group in document["groups"]
         for rule in group["rules"]
-    }
+    ]
+    indexed = {rule["uid"]: rule for rule in provisioned}
+    assert len(indexed) == len(provisioned), "Alert rule UIDs must be unique"
+    return indexed
 
 
 def test_gpu_underuse_window_threshold_and_delivery(rules):
@@ -106,3 +113,12 @@ def test_queue_sums_engine_waiters_and_includes_the_120_boundary(rules):
     assert threshold["model"]["expression"] == "$A >= 120"
     assert rule["for"] == "0s"
     assert rule["noDataState"] == "NoData"
+
+
+def test_notification_receivers_reference_existing_contact_points(rules):
+    document = load_provisioning("critical-slack-contact-point.yml")
+    contact_points = {point["name"] for point in document["contactPoints"]}
+    assert all(
+        rule["notification_settings"]["receiver"] in contact_points
+        for rule in rules.values()
+    )
