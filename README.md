@@ -30,6 +30,7 @@ provisioning files. A consumer copies those files into Grafana's
 
 | File | `uid` (must equal the filename stem) |
 | --- | --- |
+| `dashboards/ai-cents-meter.json` | `ai-cents-meter` |
 | `dashboards/ai-token-offload.json` | `ai-token-offload` |
 | `dashboards/ai-usage.json` | `ai-usage` |
 | `dashboards/claude-code-metrics.json` | `claude-code-metrics` |
