@@ -113,7 +113,6 @@ def test_queue_sums_engine_waiters_and_includes_the_120_boundary(rules):
     assert threshold["model"]["type"] == "math"
     assert threshold["model"]["expression"] == "$A >= 120"
     assert rule["for"] == "0s"
-    assert rule["noDataState"] == "NoData"
 
 
 def test_queue_growth_requires_increase_and_no_drain_over_15_minutes(rules):
@@ -128,8 +127,15 @@ def test_queue_growth_requires_increase_and_no_drain_over_15_minutes(rules):
         "type": "gt", "params": [0],
     }
     assert rule["for"] == "0s"
-    assert rule["noDataState"] == "NoData"
     assert "while all serving slots are busy" in rule["annotations"]["description"]
+
+
+@pytest.mark.parametrize("uid", ["serving-queue-growing", "serving-queue-waiting-high"])
+def test_empty_queue_results_stay_ok_for_flat_or_drained_queues(rules, uid):
+    """Filtered flat/drained growth results and absent waiters take Grafana's OK path."""
+    rule = rules[uid]
+    assert rule["noDataState"] == "OK"
+    assert rule["execErrState"] == "Error"
 
 
 def test_notification_receivers_reference_existing_contact_points(rules):
