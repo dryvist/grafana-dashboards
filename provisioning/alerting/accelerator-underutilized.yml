@@ -130,3 +130,29 @@ groups:
           summary: Router HTTP 429 responses exceed the configured rate threshold
           description: >-
             The 5-minute HTTP 429 response rate exceeds the threshold input in data.B.model.conditions[0].evaluator.params[0].
+  - orgId: 1
+    name: serving-queue
+    folder: Alerting
+    interval: 1m
+    rules:
+      - <<: *critical-alert
+        uid: serving-queue-waiting-high
+        title: Serving lanes have at least 120 waiting requests
+        data:
+          - <<: *serving-query
+            model:
+              # Source: dashboards/llm-serving-4080.json, requests processing vs deferred.
+              expr: >-
+                sum(llamacpp:requests_deferred{job="llm_gpu_engine"})
+              instant: true
+              refId: A
+          - <<: *positive-result
+            model:
+              type: math
+              expression: $A >= 120
+              refId: B
+        noDataState: NoData
+        annotations:
+          summary: Total waiting requests across instrumented serving lanes is at least 120
+          description: >-
+            The sum of llama.cpp deferred requests across serving lanes has reached 120.

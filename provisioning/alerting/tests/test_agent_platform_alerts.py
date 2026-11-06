@@ -91,3 +91,17 @@ def test_router_uses_dashboard_status_label_and_native_threshold_input(rules):
     assert evaluator["params"][0] >= 0
     assert "${" not in expression
     assert rule["noDataState"] == "NoData"
+
+
+def test_queue_sums_engine_waiters_and_includes_the_120_boundary(rules):
+    rule = rules["serving-queue-waiting-high"]
+    query, threshold = rule["data"]
+    assert query["model"]["expr"] == (
+        'sum(llamacpp:requests_deferred{job="llm_gpu_engine"})'
+    )
+    dashboard = (ALERTING.parents[1] / "dashboards" / "llm-serving-4080.json").read_text()
+    assert "llamacpp:requests_deferred" in dashboard
+    assert threshold["model"]["type"] == "math"
+    assert threshold["model"]["expression"] == "$A >= 120"
+    assert rule["for"] == "0s"
+    assert rule["noDataState"] == "NoData"
