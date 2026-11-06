@@ -47,3 +47,10 @@ groups:
             Model-serving busy percent 4-hour average is below 50%
           description: >-
             The 4-hour average busy percent of a model-serving accelerator has been below 50%.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - accelerator
+          repeat_interval: 4h
