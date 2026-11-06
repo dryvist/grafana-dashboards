@@ -1,0 +1,1353 @@
+{
+  "uid": "llm-serving-benchmarks",
+  "title": "LLM Serving Benchmarks (beta)",
+  "description": "Beta serving telemetry, not controlled benchmark runs. Board is arranged for a 1920x1080 kiosk slide; detailed sections follow below. Rates and distributions use the interval variable. The vLLM model selector scopes vLLM engine panels only; router models are unfiltered. Missing measurements remain No data. Direct-engine totals exclude router observations to avoid double counting; router rows exclude hosted_vllm and the health-check team. MLX is visible only in the router section. No synthetic values or capacity estimates. llama.cpp is grouped by guest and is not filtered by the model selector. In-flight requests are router-wide, including local traffic and health checks.",
+  "schemaVersion": 42,
+  "version": 1,
+  "editable": true,
+  "tags": [
+    "llm",
+    "serving",
+    "benchmarks",
+    "beta"
+  ],
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "model",
+        "label": "vLLM model",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "query": "query_result(count by (model) (label_replace(vllm:num_requests_running{job=\"llm_gpu_engine\"}, \"model\", \"$1\", \"model_name\", \"(.+)\")))",
+        "regex": "/model=\"([^\"]+)\"/",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [],
+        "description": "Scopes vLLM engine panels only; router and llama.cpp panels are unfiltered."
+      },
+      {
+        "name": "interval",
+        "label": "Rate / distribution window",
+        "type": "interval",
+        "query": "1m,5m,15m,1h",
+        "auto": false,
+        "current": {
+          "text": "5m",
+          "value": "5m"
+        },
+        "options": [
+          {
+            "text": "1m",
+            "value": "1m",
+            "selected": false
+          },
+          {
+            "text": "5m",
+            "value": "5m",
+            "selected": true
+          },
+          {
+            "text": "15m",
+            "value": "15m",
+            "selected": false
+          },
+          {
+            "text": "1h",
+            "value": "1h",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Board",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total decode tok/s · direct engines",
+      "description": "vLLM plus llama.cpp generated tokens. Router observations overlap these engines and are excluded; MLX has no direct engine metric in the inventory.",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]) or rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval]))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: tok/s",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "In-flight · direct engines",
+      "description": "Current running vLLM requests plus processing llama.cpp requests; excludes waiting requests and router duplication.",
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(vllm:num_requests_running{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"} or llamacpp:requests_processing{job=\"llm_gpu_engine\"})",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "TTFT p95 · vLLM",
+      "description": "Time to first token, pooled over selected vLLM models and accelerators. Histogram bucket estimate. Router percentiles appear in the table and router section; llama.cpp has no latency histogram in the inventory.",
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "noValue": "No data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Serving board · per model / engine · $interval",
+      "description": "Live rates, not benchmark-run scores. Only rows with positive total token rate over the selected interval are shown. Router rows exclude hosted_vllm and the health-check team; MLX remains visible through router metrics. TTFT = time to first token; TPOT = mean time per output token reported by router only; ITL = inter-token latency; E2E = total request latency. All latency columns are seconds. vLLM lacks per-request TPOT; llama.cpp lacks completed-request and latency counters. Missing cells are No data. Peak is the maximum simultaneous aggregate running/processing requests within interval, sampled every 15 s. TTFT goodput is the share of vLLM TTFT observations <= 2.5 s, not a success-rate or multi-SLO goodput. Percentiles use standard histogram buckets pooled by model across replicas and accelerators. Router TTFT and TPOT means use clean sum/count series. Completed req/s counts completed E2E observations for vLLM and total-latency histogram observations for router. Router token counter reset behavior requires separate verification; the histogram migration does not establish their accuracy. llama.cpp rows identify guests rather than models and ignore the model selector. Router per-model peaks are unavailable; see the router-wide in-flight panel.",
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 19,
+        "h": 20
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\",le=\"+Inf\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_request_total_latency_metric_bucket{le=\"+Inf\",api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "B",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval])), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "C",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) + sum by (model_name) (rate(vllm:prompt_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval])) + sum by (guest) (rate(llamacpp:prompt_tokens_total{job=\"llm_gpu_engine\"}[$interval])), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_total_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "D",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(sum by (model) (rate(litellm_llm_api_time_to_first_token_metric_sum{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])) / (sum by (model) (rate(litellm_llm_api_time_to_first_token_metric_count{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])) > 0), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "E",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.5, sum by (model_name, le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.5, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "F",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.99, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "G",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(sum by (model) (rate(litellm_deployment_latency_per_output_token_sum{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])) / (sum by (model) (rate(litellm_deployment_latency_per_output_token_count{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])) > 0), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "H",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.5, sum by (model_name, le) (rate(vllm:inter_token_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "I",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:inter_token_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "J",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.99, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "K",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(max_over_time((sum by (model_name) (vllm:num_requests_running{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}))[$interval:15s]), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(max_over_time((sum by (guest) (llamacpp:requests_processing{job=\"llm_gpu_engine\"}))[$interval:15s]), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\"))",
+          "range": false
+        },
+        {
+          "refId": "L",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (serving_model) (label_replace(100 * sum by (model_name) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\",le=\"2.5\"}[$interval])) / (sum by (model_name) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\",le=\"+Inf\"}[$interval])) > 0), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\"))",
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "serving_model",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "Value #C",
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "serving_model",
+                "Value #A",
+                "Value #B",
+                "Value #C",
+                "Value #D",
+                "Value #E",
+                "Value #F",
+                "Value #G",
+                "Value #H",
+                "Value #I",
+                "Value #J",
+                "Value #K",
+                "Value #L"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "serving_model": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5,
+              "Value #F": 6,
+              "Value #G": 7,
+              "Value #H": 8,
+              "Value #I": 9,
+              "Value #J": 10,
+              "Value #K": 11,
+              "Value #L": 12
+            },
+            "renameByName": {
+              "serving_model": "Model / engine",
+              "Value #A": "completed req/s",
+              "Value #B": "Out tok/s",
+              "Value #C": "Total tok/s",
+              "Value #D": "Router TTFT avg (s)",
+              "Value #E": "TTFT p50 (s)",
+              "Value #F": "TTFT p99 (s)",
+              "Value #G": "TPOT avg (s)",
+              "Value #H": "ITL p50 (s)",
+              "Value #I": "ITL p99 (s)",
+              "Value #J": "E2E p99 (s)",
+              "Value #K": "Peak running",
+              "Value #L": "TTFT goodput %"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 3,
+          "noValue": "No data",
+          "custom": {
+            "align": "right",
+            "minWidth": 85,
+            "width": 93,
+            "filterable": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model / engine"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 290
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(completed req/s|Out tok/s|Total tok/s)$"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Peak running"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TTFT goodput %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Out tok/s",
+            "desc": true
+          }
+        ],
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "xychart",
+      "pluginVersion": "13.2.4",
+      "title": "Throughput vs concurrency",
+      "description": "Observed Pareto view, pooled direct engines. X = concurrent running/processing requests at each sample; Y = generated tok/s over interval at the same timestamp. Table frames are joined by Time and renamed before manual XY mapping. These are workload observations, not a controlled concurrency sweep or a measured capacity frontier. Empty engine data stays empty.",
+      "gridPos": {
+        "x": 19,
+        "y": 5,
+        "w": 5,
+        "h": 20
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "interval": "15s",
+      "maxDataPoints": 240,
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(vllm:num_requests_running{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"} or llamacpp:requests_processing{job=\"llm_gpu_engine\"})",
+          "legendFormat": "Concurrency",
+          "format": "table",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]) or rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval]))",
+          "legendFormat": "Decode tok/s",
+          "format": "table",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "inner"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Value #A",
+                "Value #B"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Value #A": 0,
+              "Value #B": 1
+            },
+            "renameByName": {
+              "Value #A": "Concurrency",
+              "Value #B": "Decode tok/s"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "custom": {
+            "show": "points",
+            "pointSize": {
+              "fixed": 4
+            },
+            "axisLabel": "Output tok/s",
+            "axisMin": 0
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Concurrency"
+            },
+            "properties": [
+              {
+                "id": "custom.axisLabel",
+                "value": "Running requests"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "mapping": "manual",
+        "series": [
+          {
+            "name": {
+              "fixed": "Direct engines"
+            },
+            "frame": {
+              "matcher": {
+                "id": "byIndex",
+                "options": 0
+              }
+            },
+            "x": {
+              "matcher": {
+                "id": "byName",
+                "options": "Concurrency"
+              }
+            },
+            "y": {
+              "matcher": {
+                "id": "byName",
+                "options": "Decode tok/s"
+              }
+            }
+          }
+        ],
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "title": "vLLM · latency distributions",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 11,
+      "type": "heatmap",
+      "title": "TTFT · histogram observations/s",
+      "description": "Pooled selected models and accelerators. Standard _bucket histogram with le. Prometheus heatmap format converts cumulative buckets into disjoint bins; Y is seconds. Color is observations/s over interval.",
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))",
+          "format": "heatmap",
+          "legendFormat": "{{le}}",
+          "range": true
+        }
+      ],
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": {
+          "mode": "scheme",
+          "scheme": "Oranges",
+          "steps": 64
+        },
+        "yAxis": {
+          "unit": "s",
+          "axisPlacement": "left"
+        },
+        "legend": {
+          "show": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 12,
+      "type": "heatmap",
+      "title": "ITL · histogram observations/s",
+      "description": "Pooled selected models and accelerators. Standard _bucket histogram with le. Color counts inter-token observations/s, not requests/s. Prometheus heatmap format de-cumulates buckets; Y is seconds.",
+      "gridPos": {
+        "x": 8,
+        "y": 26,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (le) (rate(vllm:inter_token_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))",
+          "format": "heatmap",
+          "legendFormat": "{{le}}",
+          "range": true
+        }
+      ],
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": {
+          "mode": "scheme",
+          "scheme": "Blues",
+          "steps": 64
+        },
+        "yAxis": {
+          "unit": "s",
+          "axisPlacement": "left"
+        },
+        "legend": {
+          "show": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 13,
+      "type": "heatmap",
+      "title": "E2E · histogram observations/s",
+      "description": "Pooled selected models and accelerators. Standard _bucket histogram with le. Prometheus heatmap format de-cumulates buckets; Y is seconds. Color is completed-request observations/s.",
+      "gridPos": {
+        "x": 16,
+        "y": 26,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))",
+          "format": "heatmap",
+          "legendFormat": "{{le}}",
+          "range": true
+        }
+      ],
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": {
+          "mode": "scheme",
+          "scheme": "Purples",
+          "steps": 64
+        },
+        "yAxis": {
+          "unit": "s",
+          "axisPlacement": "left"
+        },
+        "legend": {
+          "show": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "title": "vLLM · cache, speculation and scheduling",
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "KV cache usage %",
+      "description": "Average replica occupancy by model; exporter gauge is a fraction from 0 to 1.",
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * avg by (model_name) (vllm:kv_cache_usage_perc{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"})",
+          "legendFormat": "{{model_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Prefix-cache hit %",
+      "description": "Rate of cache hits divided by rate of cache queries. Idle or absent counters remain No data.",
+      "gridPos": {
+        "x": 8,
+        "y": 36,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (model_name) (rate(vllm:prefix_cache_hits_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) / (sum by (model_name) (rate(vllm:prefix_cache_queries_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) > 0)",
+          "legendFormat": "{{model_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Spec-decode acceptance · overall %",
+      "description": "Accepted draft tokens / proposed draft tokens. A zero or missing draft rate yields No data.",
+      "gridPos": {
+        "x": 16,
+        "y": 36,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (model_name) (rate(vllm:spec_decode_num_accepted_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) / (sum by (model_name) (rate(vllm:spec_decode_num_draft_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) > 0)",
+          "legendFormat": "{{model_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Spec-decode acceptance · per position / draft %",
+      "description": "Accepted tokens at position / total draft rounds. This is unconditional acceptance per draft at that position, not conditional acceptance given that the position was proposed; the inventory has no per-position proposal counter.",
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (model_name, position) (rate(vllm:spec_decode_num_accepted_tokens_per_pos_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) / on (model_name) group_left() (sum by (model_name) (rate(vllm:spec_decode_num_drafts_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) > 0)",
+          "legendFormat": "{{model_name}} · position {{position}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Preemptions/s",
+      "gridPos": {
+        "x": 8,
+        "y": 44,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (model_name) (rate(vllm:num_preemptions_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))",
+          "legendFormat": "{{model_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Queue time · p50 and p99",
+      "description": "Queue-time p50 and p99 from standard _bucket histograms with le, pooled across replicas and accelerators within each model.",
+      "gridPos": {
+        "x": 16,
+        "y": 44,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (model_name, le) (rate(vllm:request_queue_time_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])))",
+          "legendFormat": "{{model_name}} · p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:request_queue_time_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])))",
+          "legendFormat": "{{model_name}} · p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 30,
+      "type": "row",
+      "title": "llama.cpp · measured engine telemetry",
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "llama.cpp · prompt and decode tok/s",
+      "description": "Wall-clock token throughput from counters. This differs from the exporter's processing-speed gauges. No completed-request counter or latency histograms are available.",
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (guest) (rate(llamacpp:prompt_tokens_total{job=\"llm_gpu_engine\"}[$interval]))",
+          "legendFormat": "{{guest}} · prompt"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval]))",
+          "legendFormat": "{{guest}} · decode"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: tok/s",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "llama.cpp · processing and deferred",
+      "gridPos": {
+        "x": 8,
+        "y": 53,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (guest) (llamacpp:requests_processing{job=\"llm_gpu_engine\"})",
+          "legendFormat": "{{guest}} · processing"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (guest) (llamacpp:requests_deferred{job=\"llm_gpu_engine\"})",
+          "legendFormat": "{{guest}} · deferred"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "llama.cpp · spec-decode acceptance %",
+      "description": "Accepted draft tokens / proposed draft tokens. No per-position proposal or acceptance series is available for llama.cpp.",
+      "gridPos": {
+        "x": 16,
+        "y": 53,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (guest) (rate(llamacpp:spec_decode_num_accepted_tokens_total{job=\"llm_gpu_engine\"}[$interval])) / (sum by (guest) (rate(llamacpp:spec_decode_num_draft_tokens_total{job=\"llm_gpu_engine\"}[$interval])) > 0)",
+          "legendFormat": "{{guest}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 40,
+      "type": "row",
+      "title": "Router · LiteLLM latency percentiles · includes MLX",
+      "gridPos": {
+        "x": 0,
+        "y": 61,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 41,
+      "type": "timeseries",
+      "title": "Router · input and output tok/s",
+      "description": "Router model aliases include MLX, subscriptions and token-priced services; hosted_vllm and the health-check team are excluded. Aggregation removes provider, key, team, accelerator and endpoint labels. Token counter reset behavior has not been reverified after the latency histogram migration.",
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (model) (rate(litellm_input_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))",
+          "legendFormat": "{{model}} · input"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (model) (rate(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))",
+          "legendFormat": "{{model}} · output"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: tok/s",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 42,
+      "type": "timeseries",
+      "title": "Router · requests and failures/s",
+      "description": "Proxy request and failure counter rates by provider, excluding hosted_vllm and the health-check team. These counters have no model label and ignore the model selector. These counters are separate from the repaired latency histogram families; their reset behavior has not been reverified.",
+      "gridPos": {
+        "x": 8,
+        "y": 62,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (api_provider) (rate(litellm_proxy_total_requests_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[$interval]))",
+          "legendFormat": "{{api_provider}} · requests"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (api_provider) (rate(litellm_proxy_failed_requests_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[$interval]))",
+          "legendFormat": "{{api_provider}} · failures"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 43,
+      "type": "timeseries",
+      "title": "Router · in-flight requests · router-wide",
+      "description": "Current in-flight requests across the whole router. Only instance and job labels exist, so model selection and provider or team exclusions do not apply. Includes local traffic and health checks. Gauge values do not depend on counter resets.",
+      "gridPos": {
+        "x": 16,
+        "y": 62,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(litellm_in_flight_requests{job=\"llm_router\"})",
+          "legendFormat": "Router-wide"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 44,
+      "type": "timeseries",
+      "title": "Router · TTFT · p50 / p95 / p99",
+      "description": "Time to first token from LiteLLM histogram buckets, pooled by model across providers, replicas and accelerators. Excludes hosted_vllm and the health-check team. Percentiles are bucket estimates; absent or idle observations remain No data.",
+      "gridPos": {
+        "x": 0,
+        "y": 70,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p95"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "noValue": "no remote router traffic in window"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 45,
+      "type": "timeseries",
+      "title": "Router · E2E · p50 / p99",
+      "description": "Total router request latency from litellm_request_total_latency_metric_bucket, pooled by model across providers, replicas and accelerators. Includes router overhead as well as the upstream call. Excludes hosted_vllm and the health-check team. Percentiles are bucket estimates; absent or idle observations remain No data.",
+      "gridPos": {
+        "x": 8,
+        "y": 70,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "noValue": "no remote router traffic in window"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 46,
+      "type": "timeseries",
+      "title": "Router · output-token latency · p50 / p95 / p99",
+      "description": "LiteLLM reported latency per output token from histogram buckets, pooled by model across providers, replicas and accelerators. This distribution differs from inter-token latency and total request latency. Excludes hosted_vllm and the health-check team. Percentiles are bucket estimates; absent or idle observations remain No data.",
+      "gridPos": {
+        "x": 16,
+        "y": 70,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p95"
+        },
+        {
+          "refId": "C",
+          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "legendFormat": "{{model}} · p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "noValue": "no remote router traffic in window"
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
