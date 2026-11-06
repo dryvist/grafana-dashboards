@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/dryvist/grafana-dashboards/compare/v1.20.0...v1.21.0) (2026-11-06)
+
+
+### Features
+
+* **alerting:** provision native agent platform alerts ([#58](https://github.com/dryvist/grafana-dashboards/issues/58)) ([c197af3](https://github.com/dryvist/grafana-dashboards/commit/c197af376479c31b811e956976280b376e6e0a9a))
+
 ## [1.20.0](https://github.com/dryvist/grafana-dashboards/compare/v1.19.1...v1.20.0) (2026-11-06)
 
 
