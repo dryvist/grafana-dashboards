@@ -30,6 +30,7 @@ provisioning files. A consumer copies those files into Grafana's
 
 | File | `uid` (must equal the filename stem) |
 | --- | --- |
+| `dashboards/ai-agent-traffic.json` | `ai-agent-traffic` |
 | `dashboards/ai-token-offload.json` | `ai-token-offload` |
 | `dashboards/ai-usage.json` | `ai-usage` |
 | `dashboards/claude-code-metrics.json` | `claude-code-metrics` |
@@ -43,7 +44,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/hindsight-operations.json` | `hindsight-operations` |
 | `dashboards/github-ci-runners.json` | `github-ci-runners` |
 | `dashboards/gpu-hardware.json` | `gpu-hardware` |
-| `dashboards/litellm-all-prometheus-metrics.json` | `litellm-all-prometheus-metrics` |
+| [LiteLLM metrics][all-metrics] | `litellm-all-prometheus-metrics` |
 | `dashboards/litellm-genai-otel.json` | `litellm-genai-otel` |
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
 | `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
@@ -51,6 +52,8 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/storage-capacity.json` | `storage-capacity` |
 | `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
 | `dashboards/telemetry-health.json` | `telemetry-health` |
+
+[all-metrics]: dashboards/litellm-all-prometheus-metrics.json
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
 grafana.com by ID and revision inside the Ansible role. They do not live here.

@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.18.0](https://github.com/dryvist/grafana-dashboards/compare/v1.17.0...v1.18.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add AI agent traffic dashboard ([#55](https://github.com/dryvist/grafana-dashboards/issues/55)) ([b512e23](https://github.com/dryvist/grafana-dashboards/commit/b512e23f7a3a54dd62fb392a26937e6440f27cdc))
+
+## [1.17.0](https://github.com/dryvist/grafana-dashboards/compare/v1.16.0...v1.17.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add Codex and executor tier row to subagents dashboard ([#51](https://github.com/dryvist/grafana-dashboards/issues/51)) ([0bf409d](https://github.com/dryvist/grafana-dashboards/commit/0bf409d2efdcb390d8e39653eb73cf32318f61dc))
+
+## [1.16.0](https://github.com/dryvist/grafana-dashboards/compare/v1.15.0...v1.16.0) (2026-11-06)
+
+
+### Features
+
+* **alerting:** add pay-per-token month-to-date spend alerts ([#56](https://github.com/dryvist/grafana-dashboards/issues/56)) ([68ce100](https://github.com/dryvist/grafana-dashboards/commit/68ce1004bff15b286c9ad3d78c6c76a72338aadb))
+
 ## [1.15.0](https://github.com/dryvist/grafana-dashboards/compare/v1.14.0...v1.15.0) (2026-11-04)
 
 

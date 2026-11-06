@@ -1,0 +1,472 @@
+{
+  "uid": "ai-agent-traffic",
+  "title": "AI Agent Traffic (beta)",
+  "description": "Router switchboard and trace rate, errors, and duration from cumulative counters and histogram buckets. Beta; live histogram bucket naming needs verification.",
+  "tags": [
+    "ai-observability",
+    "traffic",
+    "beta"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "editable": true,
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Coverage and interpretation",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Beta.** The router graph uses measured total token rates over 5 minutes. A caller is an API key alias, otherwise a team, otherwise unattributed; it is not proof of agent identity. The same tokens appear on both graph hops: do not sum edges across hops. Provider labels do not distinguish subscriptions from pay-per-token billing or identify every local engine. Trace RED tables use Cribl cumulative span counters. Duration queries assume Prometheus-style llm_span_duration_seconds_bucket series with le labels; verify the live export before interpreting percentiles. No service-graph series exists. Missing data stays missing; no sample values are included."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Local vs remote token share: provider coverage",
+      "description": "Measured share of total router tokens over 5 minutes. hosted_vllm identifies the known local provider. Other providers have unresolved locality (including MLX) and billing class; this is not a complete physical local/remote split. No zero fill; absent series and zero traffic remain unavailable.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "noValue": "No token samples",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Known local: hosted_vllm",
+          "expr": "100 * sum(rate(litellm_total_tokens_metric_total{api_provider=\"hosted_vllm\"}[5m])) / (sum(rate(litellm_total_tokens_metric_total[5m])) > 0)"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Other providers: locality unresolved",
+          "expr": "100 * sum(rate(litellm_total_tokens_metric_total{api_provider!=\"hosted_vllm\"}[5m])) / (sum(rate(litellm_total_tokens_metric_total[5m])) > 0)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "nodeGraph",
+      "title": "Router switchboard: caller → model → provider",
+      "description": "Existing LiteLLM total-token counter only, input plus output tokens/s over 5 minutes. Key alias takes priority over team. Namespaced IDs keep callers, models, and providers distinct. Node stats are tokens/s for that entity. Both hops count the same traffic. Unknown model/provider labels remain explicit unknown nodes. Provider is the observed API provider, not a billing category or a physical backend. MLX and individual GPU engines cannot be resolved from this graph alone.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: tok/s",
+          "decimals": 1,
+          "noValue": "Unavailable"
+        },
+        "overrides": []
+      },
+      "options": {
+        "nodes": {
+          "mainStatUnit": "suffix: tok/s"
+        },
+        "edges": {
+          "mainStatUnit": "suffix: tok/s"
+        },
+        "zoomMode": "cooperative"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "label_replace((label_replace(label_join(sum by (source, target) (label_replace(label_replace(label_replace(label_replace(label_replace(sum by (api_key_alias, team, model) (rate(litellm_total_tokens_metric_total[5m])), \"source\", \"caller:unattributed\", \"\", \"\"), \"source\", \"team:$1\", \"team\", \"(.+)\"), \"source\", \"key:$1\", \"api_key_alias\", \"(.+)\"), \"target\", \"model:unknown\", \"\", \"\"), \"target\", \"model:$1\", \"model\", \"(.+)\")), \"id\", \" → \", \"source\", \"target\"), \"frame\", \"edges\", \"\", \"\") or label_replace(label_join(sum by (source, target) (label_replace(label_replace(label_replace(label_replace(sum by (model, api_provider) (rate(litellm_total_tokens_metric_total[5m])), \"source\", \"model:unknown\", \"\", \"\"), \"source\", \"model:$1\", \"model\", \"(.+)\"), \"target\", \"provider:unknown\", \"\", \"\"), \"target\", \"provider:$1\", \"api_provider\", \"(.+)\")), \"id\", \" → \", \"source\", \"target\"), \"frame\", \"edges\", \"\", \"\") or label_replace(sum by (id) (label_replace(label_replace(label_replace(sum by (api_key_alias, team) (rate(litellm_total_tokens_metric_total[5m])), \"id\", \"caller:unattributed\", \"\", \"\"), \"id\", \"team:$1\", \"team\", \"(.+)\"), \"id\", \"key:$1\", \"api_key_alias\", \"(.+)\")), \"frame\", \"nodes\", \"\", \"\") or label_replace(sum by (id) (label_replace(label_replace(sum by (model) (rate(litellm_total_tokens_metric_total[5m])), \"id\", \"model:unknown\", \"\", \"\"), \"id\", \"model:$1\", \"model\", \"(.+)\")), \"frame\", \"nodes\", \"\", \"\") or label_replace(sum by (id) (label_replace(label_replace(sum by (api_provider) (rate(litellm_total_tokens_metric_total[5m])), \"id\", \"provider:unknown\", \"\", \"\"), \"id\", \"provider:$1\", \"api_provider\", \"(.+)\")), \"frame\", \"nodes\", \"\", \"\")), \"title\", \"$1\", \"id\", \"(.+)\")"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value": "mainstat"
+            }
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "frame"
+            ],
+            "keepFields": false,
+            "naming": {
+              "asLabels": false
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "filter": {
+            "id": "byRefId",
+            "options": "/.*-nodes$/"
+          },
+          "options": {
+            "excludeByName": {
+              "source": true,
+              "target": true
+            },
+            "indexByName": {},
+            "renameByName": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Trace RED: per service",
+      "description": "Cribl cumulative span counters, rated over 5 minutes. Rate counts spans/s, not necessarily external requests. Error is llm_span_errors as a percentage of llm_span_calls. Duration quantiles aggregate classic histogram buckets by le over 5 minutes. The llm_span_duration_seconds_bucket export name is unverified in metrics mode and needs a live check. Missing errors or histograms stay unavailable; no inferred zeros or router percentiles.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "noValue": "Unavailable"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Spans/s"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ops"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p(50|95|99)$"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Spans/s",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "sum by (service_name) (rate(llm_span_calls[5m]))"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "100 * sum by (service_name) (rate(llm_span_errors[5m])) / (sum by (service_name) (rate(llm_span_calls[5m])) > 0)"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "histogram_quantile(0.50, sum by (service_name, le) (rate(llm_span_duration_seconds_bucket[5m])))"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(llm_span_duration_seconds_bucket[5m])))"
+        },
+        {
+          "refId": "E",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "histogram_quantile(0.99, sum by (service_name, le) (rate(llm_span_duration_seconds_bucket[5m])))"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "service_name": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5
+            },
+            "renameByName": {
+              "service_name": "Service",
+              "Value #A": "Spans/s",
+              "Value #B": "Error %",
+              "Value #C": "p50",
+              "Value #D": "p95",
+              "Value #E": "p99"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Trace RED: per service and model",
+      "description": "Only spans carrying a nonempty model label are included. General service spans remain in the service table. Error and histogram semantics match that table, including the live check needed for llm_span_duration_seconds_bucket naming. Missing series stay unavailable.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "noValue": "Unavailable"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Spans/s"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ops"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^p(50|95|99)$"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Spans/s",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "sum by (service_name, model) (rate(llm_span_calls{model!=\"\"}[5m]))"
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "100 * sum by (service_name, model) (rate(llm_span_errors{model!=\"\"}[5m])) / (sum by (service_name, model) (rate(llm_span_calls{model!=\"\"}[5m])) > 0)"
+        },
+        {
+          "refId": "C",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "histogram_quantile(0.50, sum by (service_name, model, le) (rate(llm_span_duration_seconds_bucket{model!=\"\"}[5m])))"
+        },
+        {
+          "refId": "D",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "histogram_quantile(0.95, sum by (service_name, model, le) (rate(llm_span_duration_seconds_bucket{model!=\"\"}[5m])))"
+        },
+        {
+          "refId": "E",
+          "editorMode": "code",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "expr": "histogram_quantile(0.99, sum by (service_name, model, le) (rate(llm_span_duration_seconds_bucket{model!=\"\"}[5m])))"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "service_name": 0,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5,
+              "Value #E": 6,
+              "model": 1
+            },
+            "renameByName": {
+              "service_name": "Service",
+              "Value #A": "Spans/s",
+              "Value #B": "Error %",
+              "Value #C": "p50",
+              "Value #D": "p95",
+              "Value #E": "p99",
+              "model": "Model"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
