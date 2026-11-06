@@ -1,5 +1,4 @@
-# Grafana file-provisioned alert rule (unified alerting). Fires when the
-# 4-hour average busy percent of a model-serving accelerator stays below 50%.
+# Grafana file-provisioned model-serving alert rules (unified alerting).
 # ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
 apiVersion: 1
 groups:
@@ -8,7 +7,8 @@ groups:
     folder: Alerting
     interval: 1m
     rules:
-      - uid: accelerator-underutilized
+      - &critical-alert
+        uid: accelerator-underutilized
         title: Model-serving busy percent below 50% over 4 hours
         condition: B
         data:
@@ -54,3 +54,47 @@ groups:
             - alertname
             - accelerator
           repeat_interval: 4h
+  - orgId: 1
+    name: accelerator-token-kpi
+    folder: Alerting
+    interval: 1m
+    rules:
+      - <<: *critical-alert
+        uid: accelerator-token-kpi-missing
+        title: Serving lane token utilization KPI absent for 30 minutes
+        data:
+          - &serving-query
+            refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Source: dryvist/prometheus-homelab-rules, rules/accelerator_tokens.yml (PR #11).
+              expr: >-
+                absent_over_time(accelerator:token_utilization:ratio{accelerator="gpu-primary"}[30m])
+                or absent_over_time(accelerator:token_utilization:ratio{accelerator="gpu-secondary"}[30m])
+                or absent_over_time(accelerator:token_utilization:ratio{accelerator="mac-primary"}[30m])
+              instant: true
+              refId: A
+          - &positive-result
+            refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        noDataState: OK
+        annotations:
+          summary: >-
+            {{ $labels.accelerator }} token utilization KPI is absent for 30 minutes
+          description: >-
+            The serving lane has no accelerator:token_utilization:ratio samples in the last 30 minutes.

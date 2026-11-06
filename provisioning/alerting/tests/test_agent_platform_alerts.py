@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 
 import pytest
@@ -39,3 +40,35 @@ def test_gpu_underuse_window_threshold_and_delivery(rules):
     assert rule["notification_settings"]["receiver"] == "critical-slack"
     assert rule["notification_settings"]["repeat_interval"] == "4h"
     assert "accelerator" in rule["notification_settings"]["group_by"]
+
+
+def test_token_absence_is_independent_for_each_serving_lane(rules):
+    rule = rules["accelerator-token-kpi-missing"]
+    expression = rule["data"][0]["model"]["expr"]
+    lanes = re.findall(
+        r'absent_over_time\(accelerator:token_utilization:ratio'
+        r'\{accelerator="([^"]+)"\}\[30m\]\)',
+        expression,
+    )
+    assert set(lanes) == {"gpu-primary", "gpu-secondary", "mac-primary"}
+    assert len(lanes) == 3
+    assert " or " in expression
+    assert rule["for"] == "0s"
+    assert rule["noDataState"] == "OK"
+    assert rule["data"][1]["model"]["conditions"][0]["evaluator"] == {
+        "type": "gt", "params": [0],
+    }
+
+
+def test_shared_critical_delivery_and_condition_references(rules):
+    for rule in rules.values():
+        assert rule["labels"] == rules["accelerator-underutilized"]["labels"]
+        assert rule["notification_settings"] == (
+            rules["accelerator-underutilized"]["notification_settings"]
+        )
+        assert rule["execErrState"] == "Error"
+        queries = {query["refId"]: query for query in rule["data"]}
+        assert rule["condition"] in queries
+        assert len(queries) == len(rule["data"])
+        assert queries["A"]["model"]["instant"] is True
+        assert queries["B"]["model"]["expression"] in ("A", "$A >= 120")
