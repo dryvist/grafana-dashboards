@@ -98,3 +98,35 @@ groups:
             {{ $labels.accelerator }} token utilization KPI is absent for 30 minutes
           description: >-
             The serving lane has no accelerator:token_utilization:ratio samples in the last 30 minutes.
+  - orgId: 1
+    name: router-saturation
+    folder: Alerting
+    interval: 1m
+    rules:
+      - <<: *critical-alert
+        uid: router-429-rate-high
+        title: Router HTTP 429 rate exceeds configured threshold
+        data:
+          - <<: *serving-query
+            model:
+              # Source: dashboards/litellm-all-prometheus-metrics.json, proxy traffic.
+              expr: >-
+                sum(rate(litellm_proxy_total_requests_metric_total{status_code="429"}[5m]))
+              instant: true
+              refId: A
+          - <<: *positive-result
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    # Provisioning input: HTTP 429 responses per second (5-minute rate).
+                    params:
+                      - 1
+              refId: B
+        noDataState: NoData
+        annotations:
+          summary: Router HTTP 429 responses exceed the configured rate threshold
+          description: >-
+            The 5-minute HTTP 429 response rate exceeds the threshold input in data.B.model.conditions[0].evaluator.params[0].

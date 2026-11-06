@@ -72,3 +72,22 @@ def test_shared_critical_delivery_and_condition_references(rules):
         assert len(queries) == len(rule["data"])
         assert queries["A"]["model"]["instant"] is True
         assert queries["B"]["model"]["expression"] in ("A", "$A >= 120")
+
+
+def test_router_uses_dashboard_status_label_and_native_threshold_input(rules):
+    rule = rules["router-429-rate-high"]
+    query, threshold = rule["data"]
+    expression = query["model"]["expr"]
+    assert expression == (
+        'sum(rate(litellm_proxy_total_requests_metric_total{status_code="429"}[5m]))'
+    )
+    dashboard = (ALERTING.parents[1] / "dashboards" / "litellm-all-prometheus-metrics.json").read_text()
+    assert "litellm_proxy_total_requests_metric_total" in dashboard
+    assert "by (status_code)" in dashboard
+    evaluator = threshold["model"]["conditions"][0]["evaluator"]
+    assert evaluator["type"] == "gt"
+    assert len(evaluator["params"]) == 1
+    assert isinstance(evaluator["params"][0], (int, float))
+    assert evaluator["params"][0] >= 0
+    assert "${" not in expression
+    assert rule["noDataState"] == "NoData"
