@@ -50,6 +50,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/homelab-overview.json` | `homelab-overview` |
 | `dashboards/storage-capacity.json` | `storage-capacity` |
 | `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
+| `dashboards/telemetry-health.json` | `telemetry-health` |
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
 grafana.com by ID and revision inside the Ansible role. They do not live here.
