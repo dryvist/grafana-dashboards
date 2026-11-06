@@ -142,9 +142,10 @@ groups:
         data:
           - <<: *serving-query
             model:
-              # Source: dashboards/llm-serving-4080.json, requests processing vs deferred.
+              # Sources: dashboards/llm-serving-4080.json and
+              # dryvist/prometheus-homelab-rules, rules/llm_serving_state.yml.
               expr: >-
-                sum(llamacpp:requests_deferred{job="llm_gpu_engine"})
+                sum({__name__=~"llamacpp:requests_deferred|vllm:num_requests_waiting",job="llm_gpu_engine"})
               instant: true
               refId: A
           - <<: *positive-result
@@ -156,4 +157,4 @@ groups:
         annotations:
           summary: Total waiting requests across instrumented serving lanes is at least 120
           description: >-
-            The sum of llama.cpp deferred requests across serving lanes has reached 120.
+            The sum of llama.cpp deferred and vLLM waiting requests across serving lanes has reached 120.

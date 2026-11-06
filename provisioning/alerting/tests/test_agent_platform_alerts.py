@@ -105,7 +105,8 @@ def test_queue_sums_engine_waiters_and_includes_the_120_boundary(rules):
     rule = rules["serving-queue-waiting-high"]
     query, threshold = rule["data"]
     assert query["model"]["expr"] == (
-        'sum(llamacpp:requests_deferred{job="llm_gpu_engine"})'
+        'sum({__name__=~"llamacpp:requests_deferred|vllm:num_requests_waiting",'
+        'job="llm_gpu_engine"})'
     )
     dashboard = (ALERTING.parents[1] / "dashboards" / "llm-serving-4080.json").read_text()
     assert "llamacpp:requests_deferred" in dashboard
