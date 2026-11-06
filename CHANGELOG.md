@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/dryvist/grafana-dashboards/compare/v1.16.0...v1.17.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add Codex and executor tier row to subagents dashboard ([#51](https://github.com/dryvist/grafana-dashboards/issues/51)) ([0bf409d](https://github.com/dryvist/grafana-dashboards/commit/0bf409d2efdcb390d8e39653eb73cf32318f61dc))
+
 ## [1.16.0](https://github.com/dryvist/grafana-dashboards/compare/v1.15.0...v1.16.0) (2026-11-06)
 
 
