@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.1](https://github.com/dryvist/grafana-dashboards/compare/v1.19.0...v1.19.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **dashboards:** update daily spend, trace RED and spend alert queries ([#64](https://github.com/dryvist/grafana-dashboards/issues/64)) ([2491c5d](https://github.com/dryvist/grafana-dashboards/commit/2491c5deed5fbf3e0ad332ba278486e51d2005fa))
+
 ## [1.19.0](https://github.com/dryvist/grafana-dashboards/compare/v1.18.0...v1.19.0) (2026-11-06)
 
 
