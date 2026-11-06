@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/dryvist/grafana-dashboards/compare/v1.19.1...v1.20.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add LLM serving benchmarks dashboard ([#66](https://github.com/dryvist/grafana-dashboards/issues/66)) ([02f234a](https://github.com/dryvist/grafana-dashboards/commit/02f234afc95adeb3d604ee84cc7bd889206ee25d))
+
 ## [1.19.1](https://github.com/dryvist/grafana-dashboards/compare/v1.19.0...v1.19.1) (2026-11-06)
 
 
