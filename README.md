@@ -43,13 +43,17 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/hindsight-operations.json` | `hindsight-operations` |
 | `dashboards/github-ci-runners.json` | `github-ci-runners` |
 | `dashboards/gpu-hardware.json` | `gpu-hardware` |
-| `dashboards/litellm-all-prometheus-metrics.json` | `litellm-all-prometheus-metrics` |
+| [LiteLLM metrics][litellm] | `litellm-all-prometheus-metrics` |
 | `dashboards/litellm-genai-otel.json` | `litellm-genai-otel` |
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
 | `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
+| [llm-serving-benchmarks.json][bench] | `llm-serving-benchmarks` |
 | `dashboards/homelab-overview.json` | `homelab-overview` |
 | `dashboards/storage-capacity.json` | `storage-capacity` |
 | `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
+
+[bench]: dashboards/llm-serving-benchmarks.json
+[litellm]: dashboards/litellm-all-prometheus-metrics.json
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
 grafana.com by ID and revision inside the Ansible role. They do not live here.
