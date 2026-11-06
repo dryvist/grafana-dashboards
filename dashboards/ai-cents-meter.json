@@ -1,0 +1,854 @@
+{
+  "uid": "ai-cents-meter",
+  "title": "AI Cents Meter (beta)",
+  "description": "Classified pay-per-token spend and remaining budgets in cents, local token market equivalent, subscription burn, and billing classification gaps. Calendar totals use UTC. Missing data remains unknown.",
+  "tags": [
+    "ai-observability",
+    "cost",
+    "beta"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "market_model",
+        "label": "Local workload market comparator",
+        "type": "textbox",
+        "query": "gpt-6-luna",
+        "current": {
+          "text": "gpt-6-luna",
+          "value": "gpt-6-luna"
+        },
+        "description": "Exact LiteLLM price catalog key for a hypothetical paid alternative. No estimate is shown when that key has no numeric input and output prices. This is a workload valuation, not measured cash savings."
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Cents meter",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "Billing coverage and calendar windows",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "All money is displayed in **cents**. Today starts at UTC midnight; month-to-date starts on the first of the UTC month. Calendar spend subtracts each series maximum at the UTC boundary from its current maximum, using 2d lookbacks for today and 31d for month-to-date, with a zero baseline for new series. Token-based panels still use scrape-based counter increases and panel time overrides; keep the time picker relative and ending at now for those panels.\n\n**Classified pay-per-token** includes OpenRouter (except free models), DashScope, Gemini, and the OpenAI-compatible `codex-api` / `codex-api-model` routes. It excludes `hosted_vllm`, ChatGPT subscriptions, OpenCode Go routes, and local model routes. Provider `openai` alone does not identify billing: upstream names such as `gpt-6-luna` or `glm-5.3` remain unclassified until their billing route is confirmed. Check **Unclassified router spend** before treating the classified subtotal as total paid spend. Missing telemetry is not zero.\n\nBoth spend gauges mark a hard threshold at **100 cents**; the rolling spend chart also draws a dashed threshold line at 100 cents. Remaining budgets are configured router budgets, not provider subscription quotas. Local market equivalent values observed input and output tokens at the selected comparator's current catalog prices; it does not measure avoided invoices or subtract operating costs."
+      }
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Pay-per-token today (classified, cents)",
+      "description": "Classified spend in cents uses each series maximum over 2d minus its maximum at UTC midnight, with a zero baseline for new series and a fixed 100-cent threshold.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 6,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum((max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[2d]) - (max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[2d] @ (time() - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[2d]) * 0)) or (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[2d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[2d] @ (time() - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[2d]) * 0)))",
+          "legendFormat": "Classified spend",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "min": 0,
+          "max": 200,
+          "noValue": "No classified spend data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "gauge",
+      "title": "Pay-per-token month-to-date (classified, cents)",
+      "description": "Classified spend in cents uses each series maximum over 31d minus its maximum at UTC month start, with a zero baseline for new series and a fixed 100-cent threshold.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 7,
+        "w": 6,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum((max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d]) * 0)) or (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d]) * 0)))",
+          "legendFormat": "Classified spend",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "min": 0,
+          "max": 200,
+          "noValue": "No classified spend data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Pay-per-token by model (month-to-date, cents)",
+      "description": "Classified spend in cents uses each series maximum over 31d minus its maximum at UTC month start, with a zero baseline for new series, summed by model.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum by (model) ((max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d]) * 0)) or (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d]) * 0)))",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Spend (cents)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Spend (cents)",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "$ saved by local (market equivalent, cents MTD)",
+      "description": "Hypothetical market value, not measured cash savings. Observed local router input tokens times the comparator's standard input price plus output tokens times its output price, converted to cents. Includes hosted_vllm and recognized local OpenAI-compatible model IDs. All input is valued at the standard rate, without hypothetical cache or volume discounts. Unrecognized local routes are excluded. Missing token sides or missing catalog prices leave the estimate unavailable. Router internal health-check traffic is excluded, matching the accelerator token rule.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 7
+      },
+      "timeFrom": "now/M",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(sum(increase(litellm_input_tokens_metric_total{team!=\"litellm-internal-health-check\",api_provider=\"hosted_vllm\"}[${__range_s}s]) or increase(litellm_input_tokens_metric_total{team!=\"litellm-internal-health-check\",api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\"}[${__range_s}s])), \"model\", \"local-workload\", \"\", \".*\")",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(sum(increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\",api_provider=\"hosted_vllm\"}[${__range_s}s]) or increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\",api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\"}[${__range_s}s])), \"model\", \"local-workload\", \"\", \".*\")",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "litellm-prices"
+          },
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+          "url_options": {
+            "method": "GET",
+            "params": [],
+            "headers": []
+          },
+          "root_selector": "$map($filter($keys($$), function($key) { $key = ${market_model:doublequote} and $type($lookup($lookup($$, $key), \"input_cost_per_token\")) = \"number\" and $type($lookup($lookup($$, $key), \"output_cost_per_token\")) = \"number\" }), function($key) { ($price := $lookup($$, $key); {\"model\": \"local-workload\", \"input_cents_per_token\": 100 * $price.input_cost_per_token, \"output_cents_per_token\": 100 * $price.output_cost_per_token}) })"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          },
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "input_tokens"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "output_tokens"
+            }
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "model",
+            "mode": "inner"
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "timeSeries": false,
+            "alias": "input_cents",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "input_tokens"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "input_cents_per_token"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "timeSeries": false,
+            "alias": "output_cents",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "output_tokens"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "output_cents_per_token"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "timeSeries": false,
+            "alias": "Market equivalent (cents)",
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "input_cents"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "output_cents"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Market equivalent (cents)"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "noValue": "Missing local tokens or comparator prices"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Unclassified router spend (month-to-date, cents)",
+      "description": "Spend with unconfirmed billing routes uses each series maximum over 31d minus its maximum at UTC month start, with a zero baseline for new series, converted to cents and summed by model and provider; missing data does not prove classification is complete.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum by (model, api_provider) ((max_over_time(litellm_spend_metric_total{api_provider!~\"hosted_vllm|chatgpt|openrouter|dashscope|gemini\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider!~\"hosted_vllm|chatgpt|openrouter|dashscope|gemini\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider!~\"hosted_vllm|chatgpt|openrouter|dashscope|gemini\"}[31d]) * 0)) unless (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model|go-.*|opencode/.*|codex-subscription.*|codex-ci.*|mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model|go-.*|opencode/.*|codex-subscription.*|codex-ci.*|mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model|go-.*|opencode/.*|codex-subscription.*|codex-ci.*|mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\"}[31d]) * 0)))",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Unclassified (cents)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Remaining key budgets (cents)",
+      "description": "Current router-configured key budgets, converted from USD to cents. Minimum across duplicate reports, never summed. Negative balances remain visible. Missing budgets remain unknown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * min by (api_key_alias) (litellm_remaining_api_key_budget_metric)",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Remaining (cents)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Remaining team budgets (cents)",
+      "description": "Current router-configured team budgets, converted from USD to cents. Retains both team and team_alias labels because exporters differ; minimum across duplicate reports, never summed. Not a provider subscription balance.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 21,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * min by (team, team_alias) (litellm_remaining_team_budget_metric)",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Remaining (cents)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Remaining key tokens by model",
+      "description": "Current router token allowances per key and model. These are router rate-limit tokens, not provider subscription quotas. Minimum across duplicate reports.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 21,
+        "w": 8,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "min by (api_key_alias, model) (litellm_remaining_api_key_tokens_for_model)",
+          "format": "table",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Remaining tokens"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "Unknown"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Claude subscription burn today (API-equivalent cents)",
+      "description": "Subscription API-equivalent usage in cents uses each series maximum over 2d minus its maximum at UTC midnight, with a zero baseline for new series; this is not an invoice or provider quota.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 8,
+        "h": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum((max_over_time(claude_code_cost_usage_USD_total[2d]) - (max_over_time(claude_code_cost_usage_USD_total[2d] @ (time() - time() % 86400)) or max_over_time(claude_code_cost_usage_USD_total[2d]) * 0)))",
+          "legendFormat": "API-equivalent cents",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "noValue": "No subscription cost telemetry"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Codex subscription tokens today",
+      "description": "Observed total tokens under ChatGPT authentication. Total already includes cached and reasoning subsets; they are not added again. Token consumption is not a percentage of a provider quota.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 28,
+        "w": 8,
+        "h": 6
+      },
+      "timeFrom": "now/d",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(codex_turn_token_usage_sum{auth_mode=\"Chatgpt\",token_type=\"total\"}[${__range_s}s]))",
+          "legendFormat": "Subscription tokens",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No subscription token telemetry"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 13,
+      "type": "text",
+      "title": "Subscription quota telemetry gap",
+      "gridPos": {
+        "x": 16,
+        "y": 28,
+        "w": 8,
+        "h": 6
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**No verified Claude or Codex subscription quota series is available.** Existing dashboards contain token and API-equivalent cost counters, not provider quota limits, remaining quota, or reset times.\n\nThe supplied metric inventory does not establish a quota series. Router budgets and remaining key tokens cannot substitute for a provider quota. Quota gauges need an actual remaining/limit series with a documented unit and reset window. Until then, quota percentage and time-to-exhaustion are unknown."
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Pay-per-token trailing 24h (classified, cents)",
+      "description": "Classified spend in cents uses the counter increase over a rolling 24 h at each timestamp, with a fixed dashed 100-cent threshold.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 7
+      },
+      "timeFrom": "1d",
+      "interval": "15m",
+      "maxDataPoints": 96,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum(increase(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[1d]) or increase(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[1d]))",
+          "legendFormat": "Classified spend in preceding 24h",
+          "range": true,
+          "instant": false,
+          "refId": "A",
+          "interval": "15m"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: cents",
+          "decimals": 2,
+          "min": 0,
+          "noValue": "No classified spend data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    }
+  ]
+}
