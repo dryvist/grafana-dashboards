@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.0](https://github.com/dryvist/grafana-dashboards/compare/v1.18.0...v1.19.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add AI cents meter dashboard ([#61](https://github.com/dryvist/grafana-dashboards/issues/61)) ([9e12e17](https://github.com/dryvist/grafana-dashboards/commit/9e12e177907653b97d3e5a8366b366d5bec2970a))
+* **dashboards:** add model quality, speed and cost dashboard ([#62](https://github.com/dryvist/grafana-dashboards/issues/62)) ([f8986c0](https://github.com/dryvist/grafana-dashboards/commit/f8986c04e926869bba979e5ee878798ffea353c9))
+
 ## [1.18.0](https://github.com/dryvist/grafana-dashboards/compare/v1.17.0...v1.18.0) (2026-11-06)
 
 
