@@ -116,6 +116,22 @@ def test_queue_sums_engine_waiters_and_includes_the_120_boundary(rules):
     assert rule["noDataState"] == "NoData"
 
 
+def test_queue_growth_requires_increase_and_no_drain_over_15_minutes(rules):
+    rule = rules["serving-queue-growing"]
+    query, threshold = rule["data"]
+    assert query["model"]["expr"] == (
+        "delta(sum(vllm:num_requests_waiting)[15m:1m]) > 0"
+        " and min_over_time(sum(vllm:num_requests_waiting)[15m:1m]) > 0"
+    )
+    assert query["relativeTimeRange"]["from"] >= 900
+    assert threshold["model"]["conditions"][0]["evaluator"] == {
+        "type": "gt", "params": [0],
+    }
+    assert rule["for"] == "0s"
+    assert rule["noDataState"] == "NoData"
+    assert "while all serving slots are busy" in rule["annotations"]["description"]
+
+
 def test_notification_receivers_reference_existing_contact_points(rules):
     document = load_provisioning("critical-slack-contact-point.yml")
     contact_points = {point["name"] for point in document["contactPoints"]}
