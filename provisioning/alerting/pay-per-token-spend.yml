@@ -1,0 +1,149 @@
+---
+# Grafana unified alerting; alert only, with no spending cap.
+# MetricsQL @ selects the counter at UTC month start. Requires the supplied
+# reset-free counter and a retained month-start sample; missing data is NoData.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: pay-per-token-spend
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: pay-per-token-spend-warning
+        title: Pay-per-token month-to-date spend at least 50 cents
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 2678400
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Per series: month high minus its value at the UTC month
+              # start (0 when born this month). Range functions, because
+              # LiteLLM exports a spend series only while it is active.
+              expr: >-
+                sum(
+                  max_over_time(
+                    litellm_spend_metric_total{api_provider="openrouter"}[31d])
+                  - (
+                    max_over_time(
+                      litellm_spend_metric_total{api_provider="openrouter"}[31d]
+                      @ (time() - (scalar(day_of_month()) - 1) * 86400
+                         - time() % 86400))
+                    or max_over_time(
+                      litellm_spend_metric_total{api_provider="openrouter"}[31d])
+                    * 0))
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $A >= 0.50
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $A * 100
+              refId: C
+        for: 0s
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Pay-per-token spend is {{ printf "%.2f" $values.C.Value }} cents
+            this UTC month (50-cent warning).
+          description: >-
+            OpenRouter spend since UTC month start is
+            {{ printf "%.2f" $values.C.Value }} cents.
+            The threshold is 50 cents (0.50 USD); this alert applies no cap.
+            Counter subtraction assumes no resets and a retained
+            month-start sample.
+            See /d/ai-cents-meter.
+          __dashboardUid__: ai-cents-meter
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+          repeat_interval: 24h
+      - uid: pay-per-token-spend-critical
+        title: Pay-per-token month-to-date spend at least 100 cents
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 2678400
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Per series: month high minus its value at the UTC month
+              # start (0 when born this month). Range functions, because
+              # LiteLLM exports a spend series only while it is active.
+              expr: >-
+                sum(
+                  max_over_time(
+                    litellm_spend_metric_total{api_provider="openrouter"}[31d])
+                  - (
+                    max_over_time(
+                      litellm_spend_metric_total{api_provider="openrouter"}[31d]
+                      @ (time() - (scalar(day_of_month()) - 1) * 86400
+                         - time() % 86400))
+                    or max_over_time(
+                      litellm_spend_metric_total{api_provider="openrouter"}[31d])
+                    * 0))
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $A >= 1.00
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $A * 100
+              refId: C
+        for: 0s
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Pay-per-token spend is {{ printf "%.2f" $values.C.Value }} cents
+            this UTC month (100-cent critical).
+          description: >-
+            OpenRouter spend since UTC month start is
+            {{ printf "%.2f" $values.C.Value }} cents.
+            The threshold is 100 cents (1.00 USD); this alert applies no cap.
+            Counter subtraction assumes no resets and a retained
+            month-start sample.
+            See /d/ai-cents-meter.
+          __dashboardUid__: ai-cents-meter
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+          repeat_interval: 24h
