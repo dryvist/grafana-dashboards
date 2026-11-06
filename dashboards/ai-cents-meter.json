@@ -65,7 +65,7 @@
       "id": 3,
       "type": "gauge",
       "title": "Pay-per-token today (classified, cents)",
-      "description": "Classified spend in cents uses each series maximum over 2d minus its maximum at UTC midnight, with a zero baseline for new series and a fixed 100-cent threshold.",
+      "description": "Classified spend in cents uses each series maximum over 31d minus its maximum at UTC midnight, with a zero baseline for new series and a fixed 100-cent threshold.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -83,7 +83,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "100 * sum((max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[2d]) - (max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[2d] @ (time() - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[2d]) * 0)) or (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[2d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[2d] @ (time() - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[2d]) * 0)))",
+          "expr": "100 * sum((max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d] @ (time() - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=~\"openrouter|dashscope|gemini\",model!~\".*:free|hermes-cloud-free\"}[31d]) * 0)) or (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d] @ (time() - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openai\",model=~\"codex-api|codex-api-model\"}[31d]) * 0)))",
           "legendFormat": "Classified spend",
           "range": false,
           "instant": true,

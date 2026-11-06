@@ -185,8 +185,8 @@
     {
       "id": 5,
       "type": "table",
-      "title": "Trace RED: per service",
-      "description": "Cribl cumulative span counters, rated over 5 minutes. Rate counts spans/s, not necessarily external requests. Error is llm_span_errors as a percentage of llm_span_calls. Duration quantiles aggregate classic histogram buckets by le over 5 minutes. The llm_span_duration_seconds_bucket export name is unverified in metrics mode and needs a live check. Missing errors or histograms stay unavailable; no inferred zeros or router percentiles.",
+      "title": "Trace RED · all services (per-service labels pending)",
+      "description": "Cumulative span counters across all services, rated over 5 minutes. Calls/s counts spans, not necessarily external requests. Error is llm_span_errors as a percentage of llm_span_calls. Per-service labels are pending. Span durations are pending because the upstream duration buckets are all zero; quantiles remain unavailable.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -236,6 +236,14 @@
               {
                 "id": "unit",
                 "value": "s"
+              },
+              {
+                "id": "noValue",
+                "value": "span durations pending"
+              },
+              {
+                "id": "description",
+                "value": "Span durations are pending because the upstream duration buckets are all zero."
               }
             ]
           }
@@ -258,7 +266,7 @@
           "format": "table",
           "instant": true,
           "range": false,
-          "expr": "sum by (service_name) (rate(llm_span_calls[5m]))"
+          "expr": "sum (rate(llm_span_calls[5m]))"
         },
         {
           "refId": "B",
@@ -266,7 +274,7 @@
           "format": "table",
           "instant": true,
           "range": false,
-          "expr": "100 * sum by (service_name) (rate(llm_span_errors[5m])) / (sum by (service_name) (rate(llm_span_calls[5m])) > 0)"
+          "expr": "100 * sum (rate(llm_span_errors[5m])) / (sum (rate(llm_span_calls[5m])) > 0)"
         },
         {
           "refId": "C",
@@ -274,7 +282,7 @@
           "format": "table",
           "instant": true,
           "range": false,
-          "expr": "histogram_quantile(0.50, sum by (service_name, le) (rate(llm_span_duration_seconds_bucket[5m])))"
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(llm_span_duration_seconds_bucket[5m])))"
         },
         {
           "refId": "D",
@@ -282,7 +290,7 @@
           "format": "table",
           "instant": true,
           "range": false,
-          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(llm_span_duration_seconds_bucket[5m])))"
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(llm_span_duration_seconds_bucket[5m])))"
         },
         {
           "refId": "E",
@@ -290,7 +298,7 @@
           "format": "table",
           "instant": true,
           "range": false,
-          "expr": "histogram_quantile(0.99, sum by (service_name, le) (rate(llm_span_duration_seconds_bucket[5m])))"
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(llm_span_duration_seconds_bucket[5m])))"
         }
       ],
       "transformations": [
@@ -305,7 +313,6 @@
               "Time": true
             },
             "indexByName": {
-              "service_name": 0,
               "Value #A": 1,
               "Value #B": 2,
               "Value #C": 3,
@@ -313,7 +320,6 @@
               "Value #E": 5
             },
             "renameByName": {
-              "service_name": "Service",
               "Value #A": "Spans/s",
               "Value #B": "Error %",
               "Value #C": "p50",
@@ -328,7 +334,7 @@
       "id": 6,
       "type": "table",
       "title": "Trace RED: per service and model",
-      "description": "Only spans carrying a nonempty model label are included. General service spans remain in the service table. Error and histogram semantics match that table, including the live check needed for llm_span_duration_seconds_bucket naming. Missing series stay unavailable.",
+      "description": "Span model labels are pending. Only spans carrying a nonempty model label are included; the current span series have no service or model labels. Queries will populate when labels arrive. Span durations are also pending because the upstream duration buckets are all zero.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -342,7 +348,7 @@
       "fieldConfig": {
         "defaults": {
           "decimals": 3,
-          "noValue": "Unavailable"
+          "noValue": "span model labels pending"
         },
         "overrides": [
           {
