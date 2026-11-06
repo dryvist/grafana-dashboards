@@ -52,7 +52,9 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/homelab-overview.json` | `homelab-overview` |
 | `dashboards/storage-capacity.json` | `storage-capacity` |
 | `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
+| [Model picker][model-picker] | `model-quality-speed-cost` |
 
+[model-picker]: dashboards/model-quality-speed-cost.json
 [all-metrics]: dashboards/litellm-all-prometheus-metrics.json
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
