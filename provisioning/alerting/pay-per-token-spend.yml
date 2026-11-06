@@ -10,7 +10,7 @@ groups:
     interval: 5m
     rules:
       - uid: pay-per-token-spend-warning
-        title: Pay-per-token month-to-date spend at least 50 cents
+        title: OpenRouter month-to-date spend at least 50 cents
         condition: B
         data:
           - refId: A
@@ -62,7 +62,7 @@ groups:
           ntfy: "true"
         annotations:
           summary: >-
-            Pay-per-token spend is {{ printf "%.2f" $values.C.Value }} cents
+            OpenRouter spend is {{ printf "%.2f" $values.C.Value }} cents
             this UTC month (50-cent warning).
           description: >-
             OpenRouter spend since UTC month start is
@@ -72,14 +72,8 @@ groups:
             month-start sample.
             See /d/ai-cents-meter.
           __dashboardUid__: ai-cents-meter
-        notification_settings:
-          receiver: critical-slack
-          group_by:
-            - grafana_folder
-            - alertname
-          repeat_interval: 24h
       - uid: pay-per-token-spend-critical
-        title: Pay-per-token month-to-date spend at least 100 cents
+        title: OpenRouter month-to-date spend at least 100 cents
         condition: B
         data:
           - refId: A
@@ -131,7 +125,7 @@ groups:
           ntfy: "true"
         annotations:
           summary: >-
-            Pay-per-token spend is {{ printf "%.2f" $values.C.Value }} cents
+            OpenRouter spend is {{ printf "%.2f" $values.C.Value }} cents
             this UTC month (100-cent critical).
           description: >-
             OpenRouter spend since UTC month start is
@@ -141,9 +135,3 @@ groups:
             month-start sample.
             See /d/ai-cents-meter.
           __dashboardUid__: ai-cents-meter
-        notification_settings:
-          receiver: critical-slack
-          group_by:
-            - grafana_folder
-            - alertname
-          repeat_interval: 24h
