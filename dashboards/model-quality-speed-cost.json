@@ -1,0 +1,180 @@
+{
+  "uid": "model-quality-speed-cost",
+  "title": "Model Quality, Speed and Cost (Beta)",
+  "description": "Model picker using observed router speed and published token prices. Quality awaits a ClickHouse datasource and an evaluation contract. Missing prices and scores remain unknown.",
+  "tags": ["ai-observability", "model-selection", "beta"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {"from": "now-6h", "to": "now"},
+  "editable": true,
+  "graphTooltip": 1,
+  "templating": {"list": []},
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Compare observed speed and list price",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 5},
+      "options": {
+        "mode": "markdown",
+        "content": "**Beta.** Speed is the inverse of mean router seconds per output token over the selected range, weighted by request observations. It is not aggregate engine throughput or a percentile. Workload, output length and concurrency affect comparisons. Prices are LiteLLM catalog USD per million input/output tokens, not billed spend, subscription cost or local operating cost. Exact catalog keys must match the router's `model` label; aliases and local models without a catalog entry retain unknown prices. The table includes models with latency observations, including idle models with zero observations in this range. The XY chart includes only models with positive measured latency and a known output price. Quality is unavailable until ClickHouse and a comparable evaluation contract are configured; expand the quality row for requirements."
+      }
+    },
+    {
+      "id": 2,
+      "type": "xychart",
+      "title": "Observed speed vs output list price",
+      "description": "Each point is a model with both measured speed and an exact catalog price match. Lower output price and higher speed are preferable. Use the table for model names and missing prices. No invented zero prices for local or subscription models.",
+      "datasource": {"type": "datasource", "uid": "-- Mixed --"},
+      "gridPos": {"x": 0, "y": 5, "w": 12, "h": 13},
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+          "editorMode": "code",
+          "expr": "sum by (model) (rate(litellm_deployment_latency_per_output_token_count{model!=\"\"}[$__range])) / (sum by (model) (rate(litellm_deployment_latency_per_output_token_sum{model!=\"\"}[$__range])) > 0)",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "datasource": {"type": "yesoreyeram-infinity-datasource", "uid": "litellm-prices"},
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+          "url_options": {"method": "GET", "params": [], "headers": []},
+          "root_selector": "$map($filter($keys($$), function($key) { $type($lookup($lookup($$, $key), \"output_cost_per_token\")) = \"number\" }), function($key) { ($price := $lookup($$, $key); {\"model\": $key, \"output_usd_per_million\": $price.output_cost_per_token * 1000000}) })",
+          "columns": [
+            {"selector": "model", "text": "model", "type": "string"},
+            {"selector": "output_usd_per_million", "text": "output_usd_per_million", "type": "number"}
+          ]
+        }
+      ],
+      "transformations": [
+        {"id": "renameByRegex", "filter": {"id": "byRefId", "options": "A"}, "options": {"regex": "^Value$", "renamePattern": "speed_tokens_per_second"}},
+        {"id": "joinByField", "options": {"byField": "model", "mode": "inner"}},
+        {"id": "filterFieldsByName", "options": {"include": {"names": ["model", "output_usd_per_million", "speed_tokens_per_second"]}}},
+        {"id": "organize", "options": {"indexByName": {"model": 0, "output_usd_per_million": 1, "speed_tokens_per_second": 2}}}
+      ],
+      "fieldConfig": {
+        "defaults": {"min": 0, "decimals": 2, "color": {"mode": "palette-classic"}, "custom": {"show": "points", "pointSize": {"fixed": 8}}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "output_usd_per_million"}, "properties": [{"id": "unit", "value": "currencyUSD"}, {"id": "custom.axisLabel", "value": "Output list price (USD / 1M tokens)"}]},
+          {"matcher": {"id": "byName", "options": "speed_tokens_per_second"}, "properties": [{"id": "unit", "value": "suffix:tok/s"}, {"id": "custom.axisLabel", "value": "Observed speed (tok/s)"}]}
+        ]
+      },
+      "options": {
+        "seriesMapping": "manual",
+        "series": [{"name": {"fixed": "Models"}, "frame": {"matcher": {"id": "byIndex", "options": 0}}, "x": {"matcher": {"id": "byName", "options": "output_usd_per_million"}}, "y": {"matcher": {"id": "byName", "options": "speed_tokens_per_second"}}}],
+        "legend": {"showLegend": false},
+        "tooltip": {"mode": "single"}
+      }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Model picker: speed, input price and output price",
+      "description": "Observations count latency samples in the selected range, not tokens. Idle models remain listed when their latency count series is present. Missing telemetry, prices and quality are not zero. Catalog-only models are excluded. Speed is request-weighted inverse mean output-token latency.",
+      "datasource": {"type": "datasource", "uid": "-- Mixed --"},
+      "gridPos": {"x": 12, "y": 5, "w": 12, "h": 13},
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+          "editorMode": "code",
+          "expr": "sum by (model) (rate(litellm_deployment_latency_per_output_token_count{model!=\"\"}[$__range])) / (sum by (model) (rate(litellm_deployment_latency_per_output_token_sum{model!=\"\"}[$__range])) > 0)",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "datasource": {"type": "yesoreyeram-infinity-datasource", "uid": "litellm-prices"},
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+          "url_options": {"method": "GET", "params": [], "headers": []},
+          "root_selector": "$map($filter($keys($$), function($key) { $type($lookup($lookup($$, $key), \"input_cost_per_token\")) = \"number\" or $type($lookup($lookup($$, $key), \"output_cost_per_token\")) = \"number\" }), function($key) { ($price := $lookup($$, $key); {\"model\": $key, \"input_usd_per_million\": $type($price.input_cost_per_token) = \"number\" ? $price.input_cost_per_token * 1000000 : null, \"output_usd_per_million\": $type($price.output_cost_per_token) = \"number\" ? $price.output_cost_per_token * 1000000 : null}) })",
+          "columns": [
+            {"selector": "model", "text": "model", "type": "string"},
+            {"selector": "input_usd_per_million", "text": "input_usd_per_million", "type": "number"},
+            {"selector": "output_usd_per_million", "text": "output_usd_per_million", "type": "number"}
+          ]
+        },
+        {
+          "refId": "C",
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+          "editorMode": "code",
+          "expr": "sum by (model) (increase(litellm_deployment_latency_per_output_token_count{model!=\"\"}[$__range]))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {"id": "renameByRegex", "filter": {"id": "byRefId", "options": "A"}, "options": {"regex": "^Value$", "renamePattern": "speed_tokens_per_second"}},
+        {"id": "renameByRegex", "filter": {"id": "byRefId", "options": "C"}, "options": {"regex": "^Value$", "renamePattern": "observations"}},
+        {"id": "joinByField", "options": {"byField": "model", "mode": "outerTabular"}},
+        {"id": "filterByValue", "options": {"type": "include", "match": "all", "filters": [{"fieldName": "observations", "config": {"id": "isNotNull", "options": {}}}]}},
+        {"id": "filterFieldsByName", "options": {"include": {"names": ["model", "speed_tokens_per_second", "input_usd_per_million", "output_usd_per_million", "observations"]}}},
+        {"id": "organize", "options": {"indexByName": {"model": 0, "speed_tokens_per_second": 1, "input_usd_per_million": 2, "output_usd_per_million": 3, "observations": 4}, "renameByName": {"model": "Model", "speed_tokens_per_second": "Speed (tok/s)", "input_usd_per_million": "Input USD / 1M tokens", "output_usd_per_million": "Output USD / 1M tokens", "observations": "Latency observations"}}}
+      ],
+      "fieldConfig": {
+        "defaults": {"min": 0, "decimals": 2, "noValue": "Unknown", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Model"}, "properties": [{"id": "custom.width", "value": 240}]},
+          {"matcher": {"id": "byName", "options": "Speed (tok/s)"}, "properties": [{"id": "unit", "value": "suffix:tok/s"}]},
+          {"matcher": {"id": "byName", "options": "Input USD / 1M tokens"}, "properties": [{"id": "unit", "value": "currencyUSD"}]},
+          {"matcher": {"id": "byName", "options": "Output USD / 1M tokens"}, "properties": [{"id": "unit", "value": "currencyUSD"}]},
+          {"matcher": {"id": "byName", "options": "Latency observations"}, "properties": [{"id": "unit", "value": "short"}, {"id": "decimals", "value": 0}]}
+        ]
+      },
+      "options": {"showHeader": true, "cellHeight": "md", "sortBy": [{"displayName": "Speed (tok/s)", "desc": true}], "footer": {"show": false}}
+    },
+    {
+      "id": 4,
+      "type": "row",
+      "title": "Quality (needs ClickHouse datasource)",
+      "collapsed": true,
+      "gridPos": {"x": 0, "y": 18, "w": 24, "h": 1},
+      "panels": [
+        {
+          "id": 5,
+          "type": "text",
+          "title": "Quality data is not configured",
+          "gridPos": {"x": 0, "y": 19, "w": 24, "h": 4},
+          "options": {"mode": "markdown", "content": "The deployment role must install `grafana-clickhouse-datasource` and provision datasource UID `clickhouse` with read-only access to Langfuse evaluation data. These panels intentionally have no SQL until the score schema, model join key, evaluator, dataset, score scale and time attribution are confirmed. Compare only the same evaluation cohort and show its sample count. Unknown quality stays unknown; no benchmark scores are inferred from speed or price."}
+        },
+        {
+          "id": 6,
+          "type": "xychart",
+          "title": "Quality vs speed, sized by output price (unavailable)",
+          "description": "Awaiting ClickHouse datasource and a confirmed Langfuse evaluation contract. No query or synthetic quality values are configured.",
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "gridPos": {"x": 0, "y": 23, "w": 12, "h": 12},
+          "targets": [],
+          "fieldConfig": {"defaults": {"noValue": "Quality unavailable"}, "overrides": []},
+          "options": {"seriesMapping": "auto", "series": [], "legend": {"showLegend": false}, "tooltip": {"mode": "single"}}
+        },
+        {
+          "id": 7,
+          "type": "table",
+          "title": "Evaluation scores by model (unavailable)",
+          "description": "Awaiting a confirmed score schema, comparable evaluation cohort, sample counts and router-model mapping. Empty targets avoid inventing a Langfuse table or score scale.",
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "gridPos": {"x": 12, "y": 23, "w": 12, "h": 12},
+          "targets": [],
+          "fieldConfig": {"defaults": {"noValue": "Quality unavailable"}, "overrides": []},
+          "options": {"showHeader": true, "cellHeight": "md", "footer": {"show": false}}
+        }
+      ]
+    }
+  ]
+}
