@@ -30,7 +30,7 @@
         "includeAll": true,
         "multi": true,
         "refresh": 1,
-        "query": "label_values(claude_code_token_usage_tokens_total, enduser_id)",
+        "query": "label_values(claude_code_token_usage_total, enduser_id)",
         "current": { "text": "All", "value": "$__all" }
       },
       {
@@ -235,7 +235,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-fable-5-1\"}[1d])), \"tier\", \"T4\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-sonnet-5.*\"}[1d])), \"tier\", \"T2\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-opus-5.*\"}[1d])), \"tier\", \"T3\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_tokens_total{enduser_id=~\"$claude_codex_user\",model!~\"claude-fable-5-1|claude-sonnet-5.*|claude-opus-5.*\"}[1d])), \"tier\", \"unmapped\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\")",
+          "expr": "label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-fable-5-1\"}[1d])), \"tier\", \"T4\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-sonnet-5.*\"}[1d])), \"tier\", \"T2\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_total{enduser_id=~\"$claude_codex_user\",model=~\"claude-opus-5.*\"}[1d])), \"tier\", \"T3\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\") or label_replace(label_replace(sum by (model,type) (increase(claude_code_token_usage_total{enduser_id=~\"$claude_codex_user\",model!~\"claude-fable-5-1|claude-sonnet-5.*|claude-opus-5.*\"}[1d])), \"tier\", \"unmapped\", \"model\", \".*\"), \"billing_class\", \"subscription\", \"model\", \".*\")",
           "legendFormat": "{{tier}} / {{billing_class}} / {{model}} / {{type}}",
           "range": true,
           "refId": "A"

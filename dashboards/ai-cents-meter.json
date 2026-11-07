@@ -686,7 +686,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "100 * sum((max_over_time(claude_code_cost_usage_USD_total[2d]) - (max_over_time(claude_code_cost_usage_USD_total[2d] @ (time() - time() % 86400)) or max_over_time(claude_code_cost_usage_USD_total[2d]) * 0)))",
+          "expr": "100 * sum(clamp_min(max_over_time(claude_code_cost_usage_total[2d]) - (max_over_time(claude_code_cost_usage_total[2d] @ (time() - time() % 86400)) or max_over_time(claude_code_cost_usage_total[2d]) * 0), 0))",
           "legendFormat": "API-equivalent cents",
           "range": false,
           "instant": true,

@@ -59,7 +59,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_token_usage_tokens_total[1d]))",
+          "expr": "sum(increase(claude_code_token_usage_total[1d]))",
           "legendFormat": "Claude Code",
           "range": true,
           "instant": false,
@@ -264,7 +264,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)) / (sum(increase(claude_code_token_usage_tokens_total[1d])) + sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[1d])) + sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)))",
+          "expr": "sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)) / (sum(increase(claude_code_token_usage_total[1d])) + sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[1d])) + sum(max_over_time(agent_dispatch_tokens{tool=\"zcode\",token_type=\"total\"}[1d] offset 1ms)))",
           "legendFormat": "Reported ZCode share",
           "range": true,
           "instant": false,
@@ -476,7 +476,7 @@
       "id": 9,
       "type": "stat",
       "title": "Pre-offload snapshot: 2026-10-03 UTC (partial day)",
-      "description": "Frozen snapshot: 2026-10-03 00:00:00 through 20:06:04 UTC (72,364 seconds; 20h 06m 04s). Captured with sum(increase(claude_code_token_usage_tokens_total[72364s])) and sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[72364s])) evaluated at time=1791057964. Claude telemetry covered the laptop only; Codex includes some unattributed series. No ZCode series were observed at capture. This is an observed partial-day baseline, not a full-day or both-device total; compare only matching duration and telemetry coverage.",
+      "description": "Frozen snapshot: 2026-10-03 00:00:00 through 20:06:04 UTC (72,364 seconds; 20h 06m 04s). Captured with sum(increase(claude_code_token_usage_total[72364s])) and sum(increase(codex_turn_token_usage_sum{token_type=\"total\"}[72364s])) evaluated at time=1791057964. Claude telemetry covered the laptop only; Codex includes some unattributed series. No ZCode series were observed at capture. This is an observed partial-day baseline, not a full-day or both-device total; compare only matching duration and telemetry coverage.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
