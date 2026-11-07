@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.2](https://github.com/dryvist/grafana-dashboards/compare/v1.26.1...v1.26.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* **dashboards:** read Claude Code cost and token metrics by their live names ([#82](https://github.com/dryvist/grafana-dashboards/issues/82)) ([9da9501](https://github.com/dryvist/grafana-dashboards/commit/9da9501fdcfb29d727172c00787b26811f9f3e5a))
+
 ## [1.26.1](https://github.com/dryvist/grafana-dashboards/compare/v1.26.0...v1.26.1) (2026-11-07)
 
 
