@@ -1,0 +1,259 @@
+{
+  "uid": "ai-token-flow",
+  "title": "AI token and cents flow",
+  "description": "Beta. Output tokens per second averaged over the selected range, grouped by caller team, billing tags, provider, and model. Health-check traffic is excluded. OpenRouter spend is router-reported USD converted to cents for the current UTC month at the range end; it is not an invoice.",
+  "tags": [
+    "ai-observability",
+    "beta"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "marcusolsson-dynamictext-panel",
+      "pluginVersion": "6.3.1",
+      "title": "Total output",
+      "description": "Selected-range average; internal health checks excluded.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\"}[$__range])) / $__range_s",
+          "legendFormat": "",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "renderMode": "everyRow",
+        "editors": [
+          "styles"
+        ],
+        "editor": {
+          "language": "html",
+          "format": "auto"
+        },
+        "wrap": false,
+        "content": "<div class=\"metric-card\"><strong>{{#if (or Value (eq Value 0))}}{{toFixed Value 2}} <small>tok/s</small>{{else}}No data{{/if}}</strong><span>Total output</span></div>",
+        "defaultContent": "<div class=\"metric-card\"><strong>No data</strong><span>Total output</span></div>",
+        "styles": ".metric-card { display: flex; flex-direction: column; gap: 10px; padding: 24px; color: #e8edf5; background: #111827; border-top: 3px solid #60a5fa; height: 100%; box-sizing: border-box; }\n.metric-card strong { font-size: clamp(24px, 3vw, 44px); font-weight: 600; }\n.metric-card small, .metric-card span { font-size: 16px; color: #b7c6d9; }",
+        "helpers": "",
+        "afterRender": "",
+        "externalStyles": [],
+        "contentPartials": [],
+        "status": ""
+      }
+    },
+    {
+      "id": 2,
+      "type": "marcusolsson-dynamictext-panel",
+      "pluginVersion": "6.3.1",
+      "title": "Local output share",
+      "description": "Share tagged local over the selected range. An empty local cohort is zero; no output leaves the share unknown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * ((sum(increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\",tag_telemetry_billing_class_local=\"true\"}[$__range])) or sum(increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\"}[$__range])) * 0) / (sum(increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\"}[$__range])) > 0))",
+          "legendFormat": "",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "renderMode": "everyRow",
+        "editors": [
+          "styles"
+        ],
+        "editor": {
+          "language": "html",
+          "format": "auto"
+        },
+        "wrap": false,
+        "content": "<div class=\"metric-card\"><strong>{{#if (or Value (eq Value 0))}}{{toFixed Value 2}} <small>%</small>{{else}}No data{{/if}}</strong><span>Local output share</span></div>",
+        "defaultContent": "<div class=\"metric-card\"><strong>No data</strong><span>Local output share</span></div>",
+        "styles": ".metric-card { display: flex; flex-direction: column; gap: 10px; padding: 24px; color: #e8edf5; background: #111827; border-top: 3px solid #60a5fa; height: 100%; box-sizing: border-box; }\n.metric-card strong { font-size: clamp(24px, 3vw, 44px); font-weight: 600; }\n.metric-card small, .metric-card span { font-size: 16px; color: #b7c6d9; }",
+        "helpers": "",
+        "afterRender": "",
+        "externalStyles": [],
+        "contentPartials": [],
+        "status": ""
+      }
+    },
+    {
+      "id": 3,
+      "type": "marcusolsson-dynamictext-panel",
+      "pluginVersion": "6.3.1",
+      "title": "OpenRouter month to date",
+      "description": "Current UTC month at the range end. Exact max-over-time counter subtraction; new series start at zero baseline. Counter resets can undercount spend.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(max_over_time(litellm_spend_metric_total{api_provider=\"openrouter\"}[31d]) - (max_over_time(litellm_spend_metric_total{api_provider=\"openrouter\"}[31d] @ (time() - (scalar(day_of_month()) - 1) * 86400 - time() % 86400)) or max_over_time(litellm_spend_metric_total{api_provider=\"openrouter\"}[31d]) * 0)) * 100",
+          "legendFormat": "",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "renderMode": "everyRow",
+        "editors": [
+          "styles"
+        ],
+        "editor": {
+          "language": "html",
+          "format": "auto"
+        },
+        "wrap": false,
+        "content": "<div class=\"metric-card\"><strong>{{#if (or Value (eq Value 0))}}{{toFixed Value 2}} <small>cents</small>{{else}}No data{{/if}}</strong><span>OpenRouter month to date</span></div>",
+        "defaultContent": "<div class=\"metric-card\"><strong>No data</strong><span>OpenRouter month to date</span></div>",
+        "styles": ".metric-card { display: flex; flex-direction: column; gap: 10px; padding: 24px; color: #e8edf5; background: #111827; border-top: 3px solid #60a5fa; height: 100%; box-sizing: border-box; }\n.metric-card strong { font-size: clamp(24px, 3vw, 44px); font-weight: 600; }\n.metric-card small, .metric-card span { font-size: 16px; color: #b7c6d9; }",
+        "helpers": "",
+        "afterRender": "",
+        "externalStyles": [],
+        "contentPartials": [],
+        "status": ""
+      }
+    },
+    {
+      "id": 4,
+      "type": "volkovlabs-echarts-panel",
+      "pluginVersion": "7.3.0",
+      "title": "Caller → billing class → provider → model",
+      "description": "Link width is increase(output tokens) / selected seconds, not an instantaneous rate. Missing or all-false billing tags are unclassified. Multiple true tags share one combined class so tokens are counted once. Caller means team; unavailable labels remain explicit.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 19
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (team, api_provider, model, tag_telemetry_billing_class_free, tag_telemetry_billing_class_local, tag_telemetry_billing_class_paid, tag_telemetry_billing_class_subscription) (increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\"}[$__range])) / $__range_s",
+          "legendFormat": "",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "code",
+        "getOption": "const nodes = new Map();\nconst links = new Map();\nlet observed = false;\nfor (const frame of context.panel.data.series) {\n  for (const field of frame.fields.filter((f) => f.type === \"number\")) {\n    const value = field.values[field.values.length - 1];\n    if (!Number.isFinite(value) || value < 0) continue;\n    observed = true;\n    if (value === 0) continue;\n    const labels = field.labels || {};\n    const billing = [\"free\", \"local\", \"paid\", \"subscription\"].filter(\n      (name) => labels[\"tag_telemetry_billing_class_\" + name] === \"true\"\n    );\n    const path = [\n      labels.team || \"unattributed caller\",\n      billing.length ? billing.join(\" + \") : \"unclassified\",\n      labels.api_provider || \"unknown provider\",\n      labels.model || \"unknown model\",\n    ].map((displayName, depth) => {\n      const name = JSON.stringify([depth, displayName]);\n      nodes.set(name, { name, displayName, depth });\n      return name;\n    });\n    for (let i = 0; i < path.length - 1; i++) {\n      const source = path[i], target = path[i + 1];\n      const key = JSON.stringify([source, target]);\n      const link = links.get(key) || { source, target, value: 0 };\n      link.value += value;\n      links.set(key, link);\n    }\n  }\n}\nreturn {\n  backgroundColor: \"#0b1220\",\n  color: [\"#60a5fa\", \"#34d399\", \"#fbbf24\", \"#a78bfa\", \"#fb7185\"],\n  title: {\n    text: links.size ? \"\" : observed ? \"No output tokens in selected range\" : \"No output-token telemetry in selected range\",\n    left: \"center\", top: \"middle\", textStyle: { color: \"#cbd5e1\", fontSize: 18 },\n  },\n  tooltip: {\n    trigger: \"item\", renderMode: \"richText\",\n    formatter: (p) => p.dataType === \"edge\"\n      ? nodes.get(p.data.source).displayName + \" → \" + nodes.get(p.data.target).displayName + \": \" + p.data.value.toFixed(2) + \" tok/s\"\n      : p.data.displayName,\n  },\n  series: [{\n    type: \"sankey\", left: \"3%\", right: \"25%\", top: 30, bottom: 30,\n    nodeWidth: 18, nodeGap: 14, nodeAlign: \"justify\",\n    data: [...nodes.values()], links: [...links.values()],\n    label: { color: \"#e8edf5\", fontSize: 14, formatter: (p) => p.data.displayName },\n    lineStyle: { color: \"gradient\", opacity: 0.45, curveness: 0.5 },\n    emphasis: { focus: \"adjacency\" },\n  }],\n};",
+        "renderer": "svg",
+        "map": "none",
+        "themeEditor": {
+          "name": "default",
+          "config": "{}"
+        },
+        "editor": {
+          "format": "auto"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "text",
+      "title": "Beta · reading this flow",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Output tok/s:** selected-range average. **Caller:** router team. **Billing class:** telemetry tags; combined tags stay together, and missing or all-false tags are unclassified. **OpenRouter cents:** current UTC month at the range end, independent of the selected duration; counter resets can undercount. Missing data stays unknown."
+      }
+    }
+  ]
+}
