@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.4](https://github.com/dryvist/grafana-dashboards/compare/v1.26.3...v1.26.4) (2026-11-07)
+
+
+### Bug Fixes
+
+* **dashboards:** exclude the router health check from per-model queries ([#87](https://github.com/dryvist/grafana-dashboards/issues/87)) ([1461e5d](https://github.com/dryvist/grafana-dashboards/commit/1461e5da02da066122980a9efdad31d525988ef2))
+
 ## [1.26.3](https://github.com/dryvist/grafana-dashboards/compare/v1.26.2...v1.26.3) (2026-11-07)
 
 
