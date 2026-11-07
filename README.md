@@ -46,6 +46,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/hindsight-operations.json` | `hindsight-operations` |
 | `dashboards/github-ci-runners.json` | `github-ci-runners` |
 | `dashboards/gpu-hardware.json` | `gpu-hardware` |
+| `dashboards/gpu-wall-polystat.json` | `gpu-wall-polystat` |
 | [LiteLLM metrics][all-metrics] | `litellm-all-prometheus-metrics` |
 | `dashboards/litellm-genai-otel.json` | `litellm-genai-otel` |
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
