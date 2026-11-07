@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/dryvist/grafana-dashboards/compare/v1.24.0...v1.25.0) (2026-11-07)
+
+
+### Features
+
+* **dashboards:** add the five-tag agent run view ([#74](https://github.com/dryvist/grafana-dashboards/issues/74)) ([0282bc3](https://github.com/dryvist/grafana-dashboards/commit/0282bc3e3232aaa5ffed972c1906fcfb86c29f13))
+
 ## [1.24.0](https://github.com/dryvist/grafana-dashboards/compare/v1.23.0...v1.24.0) (2026-11-07)
 
 
