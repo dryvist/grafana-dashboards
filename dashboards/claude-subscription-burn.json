@@ -316,7 +316,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_active_time_seconds_total[$__range]))",
+          "expr": "sum(increase(claude_code_active_time_total[$__range]))",
           "legendFormat": "",
           "range": false,
           "instant": true,

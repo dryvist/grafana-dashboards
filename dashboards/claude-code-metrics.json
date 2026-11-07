@@ -672,7 +672,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_active_time_seconds_total{organization_id=~\"$organization\", user_email=~\"$user\"}[$__range])) by (type)",
+          "expr": "sum(increase(claude_code_active_time_total{organization_id=~\"$organization\", user_email=~\"$user\"}[$__range])) by (type)",
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
@@ -2165,7 +2165,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_active_time_seconds_total{organization_id=~\"$organization\", user_email=~\"$user\"}[$__rate_interval])) by (type) * 3600",
+          "expr": "sum(rate(claude_code_active_time_total{organization_id=~\"$organization\", user_email=~\"$user\"}[$__rate_interval])) by (type) * 3600",
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
