@@ -101,38 +101,33 @@ def test_router_uses_dashboard_status_label_and_native_threshold_input(rules):
     assert rule["noDataState"] == "NoData"
 
 
-def test_queue_sums_engine_waiters_and_includes_the_120_boundary(rules):
+def test_queue_sums_recorded_lane_waiters_and_includes_the_120_boundary(rules):
     rule = rules["serving-queue-waiting-high"]
     query, threshold = rule["data"]
-    assert query["model"]["expr"] == (
-        'sum({__name__=~"llamacpp:requests_deferred|vllm:num_requests_waiting",'
-        'job="llm_gpu_engine"})'
-    )
-    dashboard = (ALERTING.parents[1] / "dashboards" / "llm-serving-4080.json").read_text()
-    assert "llamacpp:requests_deferred" in dashboard
+    assert query["model"]["expr"] == "sum(llm:requests_waiting)"
+    assert query["datasourceUid"] == "victoriametrics"
     assert threshold["model"]["type"] == "math"
     assert threshold["model"]["expression"] == "$A >= 120"
     assert rule["for"] == "0s"
 
 
-def test_queue_growth_requires_increase_and_no_drain_over_15_minutes(rules):
+def test_queue_growth_requires_positive_total_slope_held_for_15_minutes(rules):
     rule = rules["serving-queue-growing"]
     query, threshold = rule["data"]
     assert query["model"]["expr"] == (
-        "delta(sum(vllm:num_requests_waiting)[15m:1m]) > 0"
-        " and min_over_time(sum(vllm:num_requests_waiting)[15m:1m]) > 0"
+        "deriv(sum(llm:requests_waiting)[5m:1m])"
     )
-    assert query["relativeTimeRange"]["from"] >= 900
+    assert query["datasourceUid"] == "victoriametrics"
+    assert query["relativeTimeRange"]["from"] >= 300
     assert threshold["model"]["conditions"][0]["evaluator"] == {
         "type": "gt", "params": [0],
     }
-    assert rule["for"] == "0s"
-    assert "while all serving slots are busy" in rule["annotations"]["description"]
+    assert rule["for"] == "15m"
 
 
 @pytest.mark.parametrize("uid", ["serving-queue-growing", "serving-queue-waiting-high"])
 def test_empty_queue_results_stay_ok_for_flat_or_drained_queues(rules, uid):
-    """Filtered flat/drained growth results and absent waiters take Grafana's OK path."""
+    """Absent waiters take Grafana's OK path; query errors remain visible."""
     rule = rules[uid]
     assert rule["noDataState"] == "OK"
     assert rule["execErrState"] == "Error"

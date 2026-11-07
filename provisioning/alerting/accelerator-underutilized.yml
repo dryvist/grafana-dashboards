@@ -142,10 +142,9 @@ groups:
         data:
           - <<: *serving-query
             model:
-              # Sources: dashboards/llm-serving-4080.json and
-              # dryvist/prometheus-homelab-rules, rules/llm_serving_state.yml.
+              # Source: dryvist/prometheus-homelab-rules, rules/llm_serving_state.yml.
               expr: >-
-                sum({__name__=~"llamacpp:requests_deferred|vllm:num_requests_waiting",job="llm_gpu_engine"})
+                sum(llm:requests_waiting)
               instant: true
               refId: A
           - <<: *positive-result
@@ -157,21 +156,22 @@ groups:
         annotations:
           summary: Total waiting requests across instrumented serving lanes is at least 120
           description: >-
-            The sum of llama.cpp deferred and vLLM waiting requests across serving lanes has reached 120.
+            Total llm:requests_waiting across all serving lanes has reached 120.
       - <<: *critical-alert
         uid: serving-queue-growing
         title: Serving queue arrivals outpace completions over 15 minutes
         data:
           - <<: *serving-query
             model:
+              # Sustained positive queue slope tracks net arrivals without a completion counter pair.
               expr: >-
-                delta(sum(vllm:num_requests_waiting)[15m:1m]) > 0
-                and min_over_time(sum(vllm:num_requests_waiting)[15m:1m]) > 0
+                deriv(sum(llm:requests_waiting)[5m:1m])
               instant: true
               refId: A
           - *positive-result
+        for: 15m
         noDataState: OK
         annotations:
-          summary: Serving queue grows without draining over 15 minutes
+          summary: Total serving queue grows for 15 minutes
           description: >-
-            A waiting queue that grows without draining over 15 minutes signals arrivals outpacing completions while all serving slots are busy.
+            The 5-minute slope of total llm:requests_waiting across all serving lanes stays positive for 15 minutes.
