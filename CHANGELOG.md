@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.3](https://github.com/dryvist/grafana-dashboards/compare/v1.26.2...v1.26.3) (2026-11-07)
+
+
+### Bug Fixes
+
+* **dashboards:** query claude_code_active_time_total for active time ([#85](https://github.com/dryvist/grafana-dashboards/issues/85)) ([de28dfa](https://github.com/dryvist/grafana-dashboards/commit/de28dfa439ed49e2a2e15454b9b5e6470421f22c))
+* **dashboards:** read Claude Code active time by its live name ([de28dfa](https://github.com/dryvist/grafana-dashboards/commit/de28dfa439ed49e2a2e15454b9b5e6470421f22c))
+
 ## [1.26.2](https://github.com/dryvist/grafana-dashboards/compare/v1.26.1...v1.26.2) (2026-11-07)
 
 
