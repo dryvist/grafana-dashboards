@@ -24,7 +24,7 @@ groups:
               # LiteLLM exports a spend series only while it is active.
               expr: >-
                 sum(
-                  max_over_time(
+                  clamp_min(max_over_time(
                     litellm_spend_metric_total{api_provider="openrouter"}[31d])
                   - (
                     max_over_time(
@@ -33,7 +33,7 @@ groups:
                          - time() % 86400))
                     or max_over_time(
                       litellm_spend_metric_total{api_provider="openrouter"}[31d])
-                    * 0))
+                    * 0), 0))
               instant: true
               refId: A
           - refId: B
@@ -87,7 +87,7 @@ groups:
               # LiteLLM exports a spend series only while it is active.
               expr: >-
                 sum(
-                  max_over_time(
+                  clamp_min(max_over_time(
                     litellm_spend_metric_total{api_provider="openrouter"}[31d])
                   - (
                     max_over_time(
@@ -96,7 +96,7 @@ groups:
                          - time() % 86400))
                     or max_over_time(
                       litellm_spend_metric_total{api_provider="openrouter"}[31d])
-                    * 0))
+                    * 0), 0))
               instant: true
               refId: A
           - refId: B
