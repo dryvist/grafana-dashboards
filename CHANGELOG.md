@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/dryvist/grafana-dashboards/compare/v1.25.0...v1.26.0) (2026-11-07)
+
+
+### Features
+
+* **alerting:** alert on serving-lane queue depth and growth ([#76](https://github.com/dryvist/grafana-dashboards/issues/76)) ([c729c23](https://github.com/dryvist/grafana-dashboards/commit/c729c239c695a65ccd397f99e465cfa3825f6a2d))
+
 ## [1.25.0](https://github.com/dryvist/grafana-dashboards/compare/v1.24.0...v1.25.0) (2026-11-07)
 
 
