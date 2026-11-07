@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/dryvist/grafana-dashboards/compare/v1.22.0...v1.23.0) (2026-11-07)
+
+
+### Features
+
+* **dashboards:** add honesty row to GPU hardware dashboard ([#52](https://github.com/dryvist/grafana-dashboards/issues/52)) ([9370d8f](https://github.com/dryvist/grafana-dashboards/commit/9370d8f8cc2b5cea64bc9ed1330a575dcd9e5854))
+
 ## [1.22.0](https://github.com/dryvist/grafana-dashboards/compare/v1.21.0...v1.22.0) (2026-11-07)
 
 
