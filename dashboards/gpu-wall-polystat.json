@@ -1,0 +1,1348 @@
+{
+  "uid": "gpu-wall-polystat",
+  "title": "GPU wall",
+  "description": "Beta. Accelerator composites cycle through available busy, power, decode, and sample-age values. Their color always reflects the worst member state. Busy below the operator's 50% target is amber; sample age above 2 minutes is red. Missing telemetry is unknown. Each accelerator has a fixed panel so an absent entity remains visible as no data.",
+  "tags": [
+    "ai-observability",
+    "beta"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "grafana-polystat-panel",
+      "pluginVersion": "2.1.16",
+      "title": "gpu-primary",
+      "description": "Green: busy ≥50% and available telemetry ≤2 minutes old. Amber: busy <50%. Red: any rule, hardware, power, or engine source sample >2 minutes old. MetricsQL tlast_over_time reads raw timestamps over 24 hours; older or never-seen series are absent, not zero. Known telemetry gaps are listed below.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:busy_percent:avg5m{accelerator=\"gpu-primary\"}",
+          "legendFormat": "gpu-primary busy",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(accelerator:busy_percent:avg5m{accelerator=\"gpu-primary\"}[24h]))",
+          "legendFormat": "gpu-primary rule age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(DCGM_FI_DEV_GPU_UTIL{job=\"dcgm_exporter\",accelerator=\"gpu-primary\"}[24h]))",
+          "legendFormat": "gpu-primary hardware age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (accelerator) (label_replace(DCGM_FI_DEV_POWER_USAGE{job=\"dcgm_exporter\",accelerator=\"gpu-primary\"}, \"accelerator\", \"gpu-primary\", \"accelerator\", \"^$\"))",
+          "legendFormat": "gpu-primary power",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(DCGM_FI_DEV_POWER_USAGE{job=\"dcgm_exporter\",accelerator=\"gpu-primary\"}[24h]))",
+          "legendFormat": "gpu-primary power age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (accelerator) (label_replace(rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",accelerator=\"gpu-primary\"}[5m]), \"accelerator\", \"gpu-primary\", \"accelerator\", \"^$\"))",
+          "legendFormat": "gpu-primary decode",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "G",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(max by (guest) (tlast_over_time(vllm:generation_tokens_total{job=\"llm_gpu_engine\",accelerator=\"gpu-primary\"}[24h])))",
+          "legendFormat": "gpu-primary engine age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "autoSizeColumns": false,
+        "autoSizePolygons": true,
+        "autoSizeRows": false,
+        "compositeConfig": {
+          "enabled": true,
+          "animationSpeed": "3000",
+          "composites": [
+            {
+              "name": "gpu-primary",
+              "label": "Composite-0",
+              "order": 0,
+              "isTemplated": false,
+              "displayMode": "all",
+              "enabled": true,
+              "showName": true,
+              "showValue": true,
+              "showComposite": true,
+              "showMembers": false,
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "metrics": [
+                {
+                  "seriesMatch": "^gpu-primary (.*)$",
+                  "alias": "$1",
+                  "order": 0
+                }
+              ],
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": ""
+            }
+          ]
+        },
+        "compositeGlobalAliasingEnabled": false,
+        "ellipseCharacters": 18,
+        "ellipseEnabled": false,
+        "globalAutoScaleFonts": false,
+        "globalClickthrough": "",
+        "globalClickthroughCustomTarget": "",
+        "globalClickthroughCustomTargetEnabled": false,
+        "globalClickthroughNewTabEnabled": true,
+        "globalClickthroughSanitizedEnabled": true,
+        "globalDecimals": 1,
+        "globalDisplayMode": "all",
+        "globalDisplayTextTriggeredEmpty": "OK",
+        "globalFillColor": "#111827",
+        "globalGradientsEnabled": false,
+        "globalOperator": "last",
+        "globalPolygonBorderColor": "#111827",
+        "globalPolygonBorderSize": 2,
+        "globalPolygonSize": "25",
+        "globalRegexPattern": "",
+        "globalShape": "hexagon_pointed_top",
+        "globalShowTimestampEnabled": false,
+        "globalShowTimestampFontSize": 12,
+        "globalShowTimestampFormat": "YYYY-MM-DD HH:mm:ss",
+        "globalShowTimestampPosition": "below_value",
+        "globalShowTimestampYOffset": 0,
+        "globalShowTooltipColumnHeadersEnabled": true,
+        "globalShowValueEnabled": true,
+        "globalTextFontAutoColorEnabled": false,
+        "globalTextFontColor": "#ffffff",
+        "globalTextFontFamily": "Inter",
+        "globalThresholdsConfig": [
+          {
+            "color": "#299c46",
+            "state": 0,
+            "value": 0
+          }
+        ],
+        "globalTooltipsEnabled": true,
+        "globalTooltipsFontFamily": "Inter",
+        "globalTooltipsShowTimestampEnabled": true,
+        "globalTooltipsShowValueEnabled": true,
+        "globalUnitFormat": "short",
+        "layoutDisplayLimit": 1,
+        "layoutNumColumns": 1,
+        "layoutNumRows": 1,
+        "overrideConfig": {
+          "overrides": [
+            {
+              "label": "Override-0",
+              "metricName": " busy$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#fbbf24",
+                  "state": 1,
+                  "value": 0
+                },
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 50
+                }
+              ],
+              "colors": [],
+              "unitFormat": "percent",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 0
+            },
+            {
+              "label": "Override-1",
+              "metricName": " power$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "watt",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 1
+            },
+            {
+              "label": "Override-2",
+              "metricName": " decode$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "suffix:tok/s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 2
+            },
+            {
+              "label": "Override-3",
+              "metricName": " age$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                },
+                {
+                  "color": "#f53636",
+                  "state": 2,
+                  "value": 120.001
+                }
+              ],
+              "colors": [],
+              "unitFormat": "s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 3
+            }
+          ]
+        },
+        "sortByDirection": 1,
+        "sortByField": "name",
+        "tooltipDisplayMode": "all",
+        "tooltipDisplayTextTriggeredEmpty": "OK",
+        "tooltipPrimarySortByField": "thresholdLevel",
+        "tooltipPrimarySortDirection": 1,
+        "tooltipSecondarySortByField": "value",
+        "tooltipSecondarySortDirection": 1,
+        "globalLabelFontSize": 30,
+        "globalValueFontSize": 30,
+        "globalCompositeValueFontSize": 26
+      }
+    },
+    {
+      "id": 2,
+      "type": "grafana-polystat-panel",
+      "pluginVersion": "2.1.16",
+      "title": "gpu-secondary",
+      "description": "Green: busy ≥50% and available telemetry ≤2 minutes old. Amber: busy <50%. Red: any rule, hardware, power, or engine source sample >2 minutes old. MetricsQL tlast_over_time reads raw timestamps over 24 hours; older or never-seen series are absent, not zero. Known telemetry gaps are listed below.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:busy_percent:avg5m{accelerator=\"gpu-secondary\"}",
+          "legendFormat": "gpu-secondary busy",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(accelerator:busy_percent:avg5m{accelerator=\"gpu-secondary\"}[24h]))",
+          "legendFormat": "gpu-secondary rule age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(DCGM_FI_DEV_GPU_UTIL{job=\"dcgm_exporter\",accelerator=\"gpu-secondary\"}[24h]))",
+          "legendFormat": "gpu-secondary hardware age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (accelerator) (label_replace(DCGM_FI_DEV_POWER_USAGE{job=\"dcgm_exporter\",accelerator=\"gpu-secondary\"}, \"accelerator\", \"gpu-secondary\", \"accelerator\", \"^$\"))",
+          "legendFormat": "gpu-secondary power",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(DCGM_FI_DEV_POWER_USAGE{job=\"dcgm_exporter\",accelerator=\"gpu-secondary\"}[24h]))",
+          "legendFormat": "gpu-secondary power age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (accelerator) (label_replace(rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\",accelerator=\"gpu-secondary\"}[5m]), \"accelerator\", \"gpu-secondary\", \"accelerator\", \"^$\"))",
+          "legendFormat": "gpu-secondary decode",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "G",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(max by (guest) (tlast_over_time(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\",accelerator=\"gpu-secondary\"}[24h])))",
+          "legendFormat": "gpu-secondary engine age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "autoSizeColumns": false,
+        "autoSizePolygons": true,
+        "autoSizeRows": false,
+        "compositeConfig": {
+          "enabled": true,
+          "animationSpeed": "3000",
+          "composites": [
+            {
+              "name": "gpu-secondary",
+              "label": "Composite-1",
+              "order": 1,
+              "isTemplated": false,
+              "displayMode": "all",
+              "enabled": true,
+              "showName": true,
+              "showValue": true,
+              "showComposite": true,
+              "showMembers": false,
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "metrics": [
+                {
+                  "seriesMatch": "^gpu-secondary (.*)$",
+                  "alias": "$1",
+                  "order": 0
+                }
+              ],
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": ""
+            }
+          ]
+        },
+        "compositeGlobalAliasingEnabled": false,
+        "ellipseCharacters": 18,
+        "ellipseEnabled": false,
+        "globalAutoScaleFonts": false,
+        "globalClickthrough": "",
+        "globalClickthroughCustomTarget": "",
+        "globalClickthroughCustomTargetEnabled": false,
+        "globalClickthroughNewTabEnabled": true,
+        "globalClickthroughSanitizedEnabled": true,
+        "globalDecimals": 1,
+        "globalDisplayMode": "all",
+        "globalDisplayTextTriggeredEmpty": "OK",
+        "globalFillColor": "#111827",
+        "globalGradientsEnabled": false,
+        "globalOperator": "last",
+        "globalPolygonBorderColor": "#111827",
+        "globalPolygonBorderSize": 2,
+        "globalPolygonSize": "25",
+        "globalRegexPattern": "",
+        "globalShape": "hexagon_pointed_top",
+        "globalShowTimestampEnabled": false,
+        "globalShowTimestampFontSize": 12,
+        "globalShowTimestampFormat": "YYYY-MM-DD HH:mm:ss",
+        "globalShowTimestampPosition": "below_value",
+        "globalShowTimestampYOffset": 0,
+        "globalShowTooltipColumnHeadersEnabled": true,
+        "globalShowValueEnabled": true,
+        "globalTextFontAutoColorEnabled": false,
+        "globalTextFontColor": "#ffffff",
+        "globalTextFontFamily": "Inter",
+        "globalThresholdsConfig": [
+          {
+            "color": "#299c46",
+            "state": 0,
+            "value": 0
+          }
+        ],
+        "globalTooltipsEnabled": true,
+        "globalTooltipsFontFamily": "Inter",
+        "globalTooltipsShowTimestampEnabled": true,
+        "globalTooltipsShowValueEnabled": true,
+        "globalUnitFormat": "short",
+        "layoutDisplayLimit": 1,
+        "layoutNumColumns": 1,
+        "layoutNumRows": 1,
+        "overrideConfig": {
+          "overrides": [
+            {
+              "label": "Override-0",
+              "metricName": " busy$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#fbbf24",
+                  "state": 1,
+                  "value": 0
+                },
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 50
+                }
+              ],
+              "colors": [],
+              "unitFormat": "percent",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 0
+            },
+            {
+              "label": "Override-1",
+              "metricName": " power$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "watt",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 1
+            },
+            {
+              "label": "Override-2",
+              "metricName": " decode$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "suffix:tok/s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 2
+            },
+            {
+              "label": "Override-3",
+              "metricName": " age$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                },
+                {
+                  "color": "#f53636",
+                  "state": 2,
+                  "value": 120.001
+                }
+              ],
+              "colors": [],
+              "unitFormat": "s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 3
+            }
+          ]
+        },
+        "sortByDirection": 1,
+        "sortByField": "name",
+        "tooltipDisplayMode": "all",
+        "tooltipDisplayTextTriggeredEmpty": "OK",
+        "tooltipPrimarySortByField": "thresholdLevel",
+        "tooltipPrimarySortDirection": 1,
+        "tooltipSecondarySortByField": "value",
+        "tooltipSecondarySortDirection": 1,
+        "globalLabelFontSize": 30,
+        "globalValueFontSize": 30,
+        "globalCompositeValueFontSize": 26
+      }
+    },
+    {
+      "id": 3,
+      "type": "grafana-polystat-panel",
+      "pluginVersion": "2.1.16",
+      "title": "mac-primary · no engine decode telemetry",
+      "description": "Green: busy ≥50% and available telemetry ≤2 minutes old. Amber: busy <50%. Red: any rule, hardware, power, or engine source sample >2 minutes old. MetricsQL tlast_over_time reads raw timestamps over 24 hours; older or never-seen series are absent, not zero. Known telemetry gaps are listed below.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:busy_percent:avg5m{accelerator=\"mac-primary\"}",
+          "legendFormat": "mac-primary busy",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(accelerator:busy_percent:avg5m{accelerator=\"mac-primary\"}[24h]))",
+          "legendFormat": "mac-primary rule age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(macmon_gpu_usage_ratio{accelerator=\"mac-primary\"}[24h]))",
+          "legendFormat": "mac-primary hardware age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (accelerator) (macmon_gpu_power_watts{accelerator=\"mac-primary\"})",
+          "legendFormat": "mac-primary power",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(macmon_gpu_power_watts{accelerator=\"mac-primary\"}[24h]))",
+          "legendFormat": "mac-primary power age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "autoSizeColumns": false,
+        "autoSizePolygons": true,
+        "autoSizeRows": false,
+        "compositeConfig": {
+          "enabled": true,
+          "animationSpeed": "3000",
+          "composites": [
+            {
+              "name": "mac-primary",
+              "label": "Composite-2",
+              "order": 2,
+              "isTemplated": false,
+              "displayMode": "all",
+              "enabled": true,
+              "showName": true,
+              "showValue": true,
+              "showComposite": true,
+              "showMembers": false,
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "metrics": [
+                {
+                  "seriesMatch": "^mac-primary (.*)$",
+                  "alias": "$1",
+                  "order": 0
+                }
+              ],
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": ""
+            }
+          ]
+        },
+        "compositeGlobalAliasingEnabled": false,
+        "ellipseCharacters": 18,
+        "ellipseEnabled": false,
+        "globalAutoScaleFonts": false,
+        "globalClickthrough": "",
+        "globalClickthroughCustomTarget": "",
+        "globalClickthroughCustomTargetEnabled": false,
+        "globalClickthroughNewTabEnabled": true,
+        "globalClickthroughSanitizedEnabled": true,
+        "globalDecimals": 1,
+        "globalDisplayMode": "all",
+        "globalDisplayTextTriggeredEmpty": "OK",
+        "globalFillColor": "#111827",
+        "globalGradientsEnabled": false,
+        "globalOperator": "last",
+        "globalPolygonBorderColor": "#111827",
+        "globalPolygonBorderSize": 2,
+        "globalPolygonSize": "25",
+        "globalRegexPattern": "",
+        "globalShape": "hexagon_pointed_top",
+        "globalShowTimestampEnabled": false,
+        "globalShowTimestampFontSize": 12,
+        "globalShowTimestampFormat": "YYYY-MM-DD HH:mm:ss",
+        "globalShowTimestampPosition": "below_value",
+        "globalShowTimestampYOffset": 0,
+        "globalShowTooltipColumnHeadersEnabled": true,
+        "globalShowValueEnabled": true,
+        "globalTextFontAutoColorEnabled": false,
+        "globalTextFontColor": "#ffffff",
+        "globalTextFontFamily": "Inter",
+        "globalThresholdsConfig": [
+          {
+            "color": "#299c46",
+            "state": 0,
+            "value": 0
+          }
+        ],
+        "globalTooltipsEnabled": true,
+        "globalTooltipsFontFamily": "Inter",
+        "globalTooltipsShowTimestampEnabled": true,
+        "globalTooltipsShowValueEnabled": true,
+        "globalUnitFormat": "short",
+        "layoutDisplayLimit": 1,
+        "layoutNumColumns": 1,
+        "layoutNumRows": 1,
+        "overrideConfig": {
+          "overrides": [
+            {
+              "label": "Override-0",
+              "metricName": " busy$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#fbbf24",
+                  "state": 1,
+                  "value": 0
+                },
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 50
+                }
+              ],
+              "colors": [],
+              "unitFormat": "percent",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 0
+            },
+            {
+              "label": "Override-1",
+              "metricName": " power$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "watt",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 1
+            },
+            {
+              "label": "Override-2",
+              "metricName": " decode$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "suffix:tok/s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 2
+            },
+            {
+              "label": "Override-3",
+              "metricName": " age$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                },
+                {
+                  "color": "#f53636",
+                  "state": 2,
+                  "value": 120.001
+                }
+              ],
+              "colors": [],
+              "unitFormat": "s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 3
+            }
+          ]
+        },
+        "sortByDirection": 1,
+        "sortByField": "name",
+        "tooltipDisplayMode": "all",
+        "tooltipDisplayTextTriggeredEmpty": "OK",
+        "tooltipPrimarySortByField": "thresholdLevel",
+        "tooltipPrimarySortDirection": 1,
+        "tooltipSecondarySortByField": "value",
+        "tooltipSecondarySortDirection": 1,
+        "globalLabelFontSize": 30,
+        "globalValueFontSize": 30,
+        "globalCompositeValueFontSize": 26
+      }
+    },
+    {
+      "id": 5,
+      "type": "grafana-polystat-panel",
+      "pluginVersion": "2.1.16",
+      "title": "mac-secondary · no engine decode telemetry",
+      "description": "Green: busy ≥50% and available telemetry ≤2 minutes old. Amber: busy <50%. Red: any rule, hardware, power, or engine source sample >2 minutes old. MetricsQL tlast_over_time reads raw timestamps over 24 hours; older or never-seen series are absent, not zero. Known telemetry gaps are listed below.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:busy_percent:avg5m{accelerator=\"mac-secondary\"}",
+          "legendFormat": "mac-secondary busy",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(accelerator:busy_percent:avg5m{accelerator=\"mac-secondary\"}[24h]))",
+          "legendFormat": "mac-secondary rule age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(macmon_gpu_usage_ratio{accelerator=\"mac-secondary\"}[24h]))",
+          "legendFormat": "mac-secondary hardware age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (accelerator) (macmon_gpu_power_watts{accelerator=\"mac-secondary\"})",
+          "legendFormat": "mac-secondary power",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "time() - min(tlast_over_time(macmon_gpu_power_watts{accelerator=\"mac-secondary\"}[24h]))",
+          "legendFormat": "mac-secondary power age",
+          "format": "time_series",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "autoSizeColumns": false,
+        "autoSizePolygons": true,
+        "autoSizeRows": false,
+        "compositeConfig": {
+          "enabled": true,
+          "animationSpeed": "3000",
+          "composites": [
+            {
+              "name": "mac-secondary",
+              "label": "Composite-3",
+              "order": 3,
+              "isTemplated": false,
+              "displayMode": "all",
+              "enabled": true,
+              "showName": true,
+              "showValue": true,
+              "showComposite": true,
+              "showMembers": false,
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "metrics": [
+                {
+                  "seriesMatch": "^mac-secondary (.*)$",
+                  "alias": "$1",
+                  "order": 0
+                }
+              ],
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": ""
+            }
+          ]
+        },
+        "compositeGlobalAliasingEnabled": false,
+        "ellipseCharacters": 18,
+        "ellipseEnabled": false,
+        "globalAutoScaleFonts": false,
+        "globalClickthrough": "",
+        "globalClickthroughCustomTarget": "",
+        "globalClickthroughCustomTargetEnabled": false,
+        "globalClickthroughNewTabEnabled": true,
+        "globalClickthroughSanitizedEnabled": true,
+        "globalDecimals": 1,
+        "globalDisplayMode": "all",
+        "globalDisplayTextTriggeredEmpty": "OK",
+        "globalFillColor": "#111827",
+        "globalGradientsEnabled": false,
+        "globalOperator": "last",
+        "globalPolygonBorderColor": "#111827",
+        "globalPolygonBorderSize": 2,
+        "globalPolygonSize": "25",
+        "globalRegexPattern": "",
+        "globalShape": "hexagon_pointed_top",
+        "globalShowTimestampEnabled": false,
+        "globalShowTimestampFontSize": 12,
+        "globalShowTimestampFormat": "YYYY-MM-DD HH:mm:ss",
+        "globalShowTimestampPosition": "below_value",
+        "globalShowTimestampYOffset": 0,
+        "globalShowTooltipColumnHeadersEnabled": true,
+        "globalShowValueEnabled": true,
+        "globalTextFontAutoColorEnabled": false,
+        "globalTextFontColor": "#ffffff",
+        "globalTextFontFamily": "Inter",
+        "globalThresholdsConfig": [
+          {
+            "color": "#299c46",
+            "state": 0,
+            "value": 0
+          }
+        ],
+        "globalTooltipsEnabled": true,
+        "globalTooltipsFontFamily": "Inter",
+        "globalTooltipsShowTimestampEnabled": true,
+        "globalTooltipsShowValueEnabled": true,
+        "globalUnitFormat": "short",
+        "layoutDisplayLimit": 1,
+        "layoutNumColumns": 1,
+        "layoutNumRows": 1,
+        "overrideConfig": {
+          "overrides": [
+            {
+              "label": "Override-0",
+              "metricName": " busy$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#fbbf24",
+                  "state": 1,
+                  "value": 0
+                },
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 50
+                }
+              ],
+              "colors": [],
+              "unitFormat": "percent",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 0
+            },
+            {
+              "label": "Override-1",
+              "metricName": " power$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "watt",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 1
+            },
+            {
+              "label": "Override-2",
+              "metricName": " decode$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                }
+              ],
+              "colors": [],
+              "unitFormat": "suffix:tok/s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 2
+            },
+            {
+              "label": "Override-3",
+              "metricName": " age$",
+              "alias": "",
+              "thresholds": [
+                {
+                  "color": "#299c46",
+                  "state": 0,
+                  "value": 0
+                },
+                {
+                  "color": "#f53636",
+                  "state": 2,
+                  "value": 120.001
+                }
+              ],
+              "colors": [],
+              "unitFormat": "s",
+              "decimals": "1",
+              "scaledDecimals": null,
+              "enabled": true,
+              "operatorName": "last",
+              "prefix": "",
+              "suffix": "",
+              "clickThrough": "",
+              "clickThroughSanitize": true,
+              "clickThroughOpenNewTab": false,
+              "clickThroughCustomTargetEnabled": false,
+              "clickThroughCustomTarget": "",
+              "showTimestampEnabled": false,
+              "showTimestampFormat": "HH:mm:ss",
+              "showTimestampYOffset": 0,
+              "order": 3
+            }
+          ]
+        },
+        "sortByDirection": 1,
+        "sortByField": "name",
+        "tooltipDisplayMode": "all",
+        "tooltipDisplayTextTriggeredEmpty": "OK",
+        "tooltipPrimarySortByField": "thresholdLevel",
+        "tooltipPrimarySortDirection": 1,
+        "tooltipSecondarySortByField": "value",
+        "tooltipSecondarySortDirection": 1,
+        "globalLabelFontSize": 30,
+        "globalValueFontSize": 30,
+        "globalCompositeValueFontSize": 26
+      }
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "title": "Beta · telemetry coverage",
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 5
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**gpu-secondary: power telemetry available.** **mac-primary and mac-secondary: no engine decode telemetry.** Missing values are unknown, never zero. Composites rotate available metrics; color always follows the worst member. Busy below **50%** is amber; a source sample older than **2 minutes** is red. Source age uses a **24-hour** lookback, including each engine guest separately before aggregation; older or never-seen series are absent. Green describes available telemetry only. For the wall display, use Grafana's dark theme and kiosk mode."
+      }
+    }
+  ],
+  "style": "dark"
+}

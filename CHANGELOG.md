@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.22.0](https://github.com/dryvist/grafana-dashboards/compare/v1.21.0...v1.22.0) (2026-11-07)
+
+
+### Features
+
+* **dashboards:** add token flow and Polystat GPU wall dashboards ([#69](https://github.com/dryvist/grafana-dashboards/issues/69)) ([ad628c9](https://github.com/dryvist/grafana-dashboards/commit/ad628c95b04514690466de6e0d64e99942da23c7))
+
+## [1.21.0](https://github.com/dryvist/grafana-dashboards/compare/v1.20.0...v1.21.0) (2026-11-06)
+
+
+### Features
+
+* **alerting:** provision native agent platform alerts ([#58](https://github.com/dryvist/grafana-dashboards/issues/58)) ([c197af3](https://github.com/dryvist/grafana-dashboards/commit/c197af376479c31b811e956976280b376e6e0a9a))
+
+## [1.20.0](https://github.com/dryvist/grafana-dashboards/compare/v1.19.1...v1.20.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add LLM serving benchmarks dashboard ([#66](https://github.com/dryvist/grafana-dashboards/issues/66)) ([02f234a](https://github.com/dryvist/grafana-dashboards/commit/02f234afc95adeb3d604ee84cc7bd889206ee25d))
+
+## [1.19.1](https://github.com/dryvist/grafana-dashboards/compare/v1.19.0...v1.19.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **dashboards:** update daily spend, trace RED and spend alert queries ([#64](https://github.com/dryvist/grafana-dashboards/issues/64)) ([2491c5d](https://github.com/dryvist/grafana-dashboards/commit/2491c5deed5fbf3e0ad332ba278486e51d2005fa))
+
+## [1.19.0](https://github.com/dryvist/grafana-dashboards/compare/v1.18.0...v1.19.0) (2026-11-06)
+
+
+### Features
+
+* **dashboards:** add AI cents meter dashboard ([#61](https://github.com/dryvist/grafana-dashboards/issues/61)) ([9e12e17](https://github.com/dryvist/grafana-dashboards/commit/9e12e177907653b97d3e5a8366b366d5bec2970a))
+* **dashboards:** add model quality, speed and cost dashboard ([#62](https://github.com/dryvist/grafana-dashboards/issues/62)) ([f8986c0](https://github.com/dryvist/grafana-dashboards/commit/f8986c04e926869bba979e5ee878798ffea353c9))
+
 ## [1.18.0](https://github.com/dryvist/grafana-dashboards/compare/v1.17.0...v1.18.0) (2026-11-06)
 
 
