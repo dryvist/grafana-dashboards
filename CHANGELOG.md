@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.1](https://github.com/dryvist/grafana-dashboards/compare/v1.26.0...v1.26.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **dashboards:** clamp per-series spend at zero across counter resets ([#78](https://github.com/dryvist/grafana-dashboards/issues/78)) ([b933193](https://github.com/dryvist/grafana-dashboards/commit/b93319329b192fa7a2e2f597040e6721f16296c2))
+
 ## [1.26.0](https://github.com/dryvist/grafana-dashboards/compare/v1.25.0...v1.26.0) (2026-11-07)
 
 
