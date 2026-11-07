@@ -511,6 +511,129 @@
           "expr": "100 * max(avg_over_time(macmon_gpu_active_ratio{job=\"macmon\",accelerator=\"mac-secondary\"}[1h]))"
         }
       ]
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "Honesty",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 60, "w": 24, "h": 1 },
+      "panels": []
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Busy % per accelerator · 50% target",
+      "description": "Recorded five-minute average compute activity. Busy hardware alone does not prove useful token production. Missing samples remain gaps.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 61, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "noValue": "No recorded busy samples",
+          "custom": { "spanNulls": false, "thresholdsStyle": { "mode": "dashed" } },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }, { "color": "green", "value": 50 }] }
+        },
+        "overrides": []
+      },
+      "targets": [{ "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "accelerator:busy_percent:avg5m" }]
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Token utilization · 50% target (provisional capacity)",
+      "description": "Recorded one-hour generation rate divided by configured maximum generation rate. Reference rules mark capacity denominators provisional, not measured sustained capacity; this ratio is not a measured hardware efficiency. Values may exceed 100%.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 61, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit", "min": 0,
+          "noValue": "No token utilization samples",
+          "custom": { "spanNulls": false, "thresholdsStyle": { "mode": "dashed" } },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }, { "color": "green", "value": 0.5 }] }
+        },
+        "overrides": []
+      },
+      "targets": [{ "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "accelerator:token_utilization:ratio" }]
+    },
+    {
+      "id": 21,
+      "type": "state-timeline",
+      "title": "24h busy state per accelerator",
+      "description": "Five-minute average busy samples over the last 24 hours: below 50% is below target, at least 50% meets target. Missing telemetry is a gap, not an idle state. Use a relative dashboard time range for the 24h override.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 69, "w": 24, "h": 5 },
+      "timeFrom": "24h",
+      "interval": "1m",
+      "maxDataPoints": 1440,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "noValue": "No busy telemetry",
+          "color": { "mode": "thresholds" },
+          "custom": { "fillOpacity": 100, "lineWidth": 0, "spanNulls": false, "insertNulls": 120000 },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }, { "color": "green", "value": 50 }] }
+        },
+        "overrides": []
+      },
+      "options": { "mergeValues": true, "showValue": "never", "rowHeight": 0.8, "alignValue": "left", "legend": { "displayMode": "hidden" }, "tooltip": { "mode": "single" } },
+      "targets": [{ "refId": "A", "editorMode": "code", "range": true, "legendFormat": "{{accelerator}}", "expr": "accelerator:busy_percent:avg5m" }]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Decode tokens/s per accelerator · 1h mean",
+      "description": "Recorded generation rate: vLLM for GPU primary, llama.cpp for GPU secondary, router output tokens for Mac primary. Mac values are a router proxy, not per-request engine telemetry. Embedding work is not measured by decode tokens.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 74, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "suffix:tok/s", "min": 0, "noValue": "No recorded decode rate", "custom": { "spanNulls": false } }, "overrides": [] },
+      "targets": [{ "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "accelerator:generation_tokens_per_second:rate1h" }]
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Decode tokens per joule · 1h mean",
+      "description": "One-hour recorded decode tokens/s divided by one-hour mean accelerator watts. DCGM power without an accelerator label maps to GPU primary, matching the busy precomputed rule; macmon supplies Mac primary GPU power. Only positive power with matching token telemetry is shown. Secondary power is unavailable. Mac throughput is router-derived; GPU power excludes the rest of the system.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 74, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "suffix:tok/J", "min": 0, "noValue": "No matching decode and positive power samples", "custom": { "spanNulls": false } }, "overrides": [] },
+      "targets": [{ "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "accelerator:generation_tokens_per_second:rate1h / on (accelerator) ((label_replace(avg(avg_over_time(DCGM_FI_DEV_POWER_USAGE{job=\"dcgm_exporter\",accelerator=\"\"}[1h])), \"accelerator\", \"gpu-primary\", \"\", \"\") or avg by (accelerator) (avg_over_time(macmon_gpu_power_watts{job=\"macmon\",accelerator=\"mac-primary\"}[1h]))) > 0)" }]
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Accelerator power",
+      "description": "Instantaneous GPU power, not whole-system power. GPU primary uses DCGM; Mac primary uses macmon. Secondary power telemetry is unavailable.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 82, "w": 8, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "watt", "min": 0, "noValue": "No accelerator power telemetry", "custom": { "spanNulls": false } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "label_replace(avg(DCGM_FI_DEV_POWER_USAGE{job=\"dcgm_exporter\",accelerator=\"\"}), \"accelerator\", \"gpu-primary\", \"\", \"\")" },
+        { "refId": "B", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "avg by (accelerator) (macmon_gpu_power_watts{job=\"macmon\",accelerator=\"mac-primary\"})" }
+      ]
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Accelerator temperature",
+      "description": "GPU primary temperature from DCGM and Mac primary GPU temperature from macmon. Secondary temperature telemetry is unavailable.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 8, "y": 82, "w": 8, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "celsius", "noValue": "No accelerator temperature telemetry", "custom": { "spanNulls": false } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "label_replace(max(DCGM_FI_DEV_GPU_TEMP{job=\"dcgm_exporter\",accelerator=\"\"}), \"accelerator\", \"gpu-primary\", \"\", \"\")" },
+        { "refId": "B", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "max by (accelerator) (macmon_gpu_temp_celsius{job=\"macmon\",accelerator=\"mac-primary\"})" }
+      ]
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "VRAM used · GPU primary",
+      "description": "DCGM framebuffer used, converted from MiB to bytes. Secondary VRAM and Mac GPU-attributed unified-memory metrics are unavailable; no memory usage is inferred.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 16, "y": 82, "w": 8, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "min": 0, "noValue": "No framebuffer telemetry", "custom": { "spanNulls": false } }, "overrides": [] },
+      "targets": [{ "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "label_replace(sum(DCGM_FI_DEV_FB_USED{job=\"dcgm_exporter\",accelerator=\"\"}) * 1024 * 1024, \"accelerator\", \"gpu-primary\", \"\", \"\")" }]
     }
   ],
   "refresh": "30s",
