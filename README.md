@@ -33,6 +33,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/ai-agent-traffic.json` | `ai-agent-traffic` |
 | `dashboards/ai-cents-meter.json` | `ai-cents-meter` |
 | `dashboards/ai-token-offload.json` | `ai-token-offload` |
+| `dashboards/ai-token-flow.json` | `ai-token-flow` |
 | `dashboards/ai-usage.json` | `ai-usage` |
 | `dashboards/claude-code-metrics.json` | `claude-code-metrics` |
 | `dashboards/claude-cache-economics.json` | `claude-cache-economics` |
