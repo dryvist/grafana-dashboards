@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/dryvist/grafana-dashboards/compare/v1.23.0...v1.24.0) (2026-11-07)
+
+
+### Features
+
+* **dashboards:** add telemetry health dashboard ([#72](https://github.com/dryvist/grafana-dashboards/issues/72)) ([f0e109e](https://github.com/dryvist/grafana-dashboards/commit/f0e109e428b4ebd930bd9e56fb082a93c1eb8f3e))
+
 ## [1.23.0](https://github.com/dryvist/grafana-dashboards/compare/v1.22.0...v1.23.0) (2026-11-07)
 
 
