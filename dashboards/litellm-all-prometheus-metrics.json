@@ -197,7 +197,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_requests_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_requests_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -254,7 +254,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_llm_api_failed_requests_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_llm_api_failed_requests_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1175,7 +1175,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_total_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_total_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1232,7 +1232,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_input_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_input_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1289,7 +1289,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_output_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_output_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1346,7 +1346,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_input_cached_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_input_cached_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1403,7 +1403,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_input_cache_creation_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_input_cache_creation_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1460,7 +1460,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_input_audio_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_input_audio_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1517,7 +1517,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_output_audio_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_output_audio_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1574,7 +1574,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_output_reasoning_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_output_reasoning_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1872,7 +1872,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_cached_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_cached_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1929,7 +1929,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_provider_cache_read_input_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_provider_cache_read_input_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1986,7 +1986,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_provider_cache_creation_input_tokens_metric_total[$__rate_interval])) by (model)",
+          "expr": "sum(rate(litellm_provider_cache_creation_input_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -2113,7 +2113,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_deployment_total_requests_total[$__rate_interval])) by (requested_model)",
+          "expr": "sum(rate(litellm_deployment_total_requests_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (requested_model)",
           "legendFormat": "{{requested_model}}",
           "range": true,
           "refId": "A"
@@ -2170,7 +2170,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_deployment_success_responses_total[$__rate_interval])) by (requested_model)",
+          "expr": "sum(rate(litellm_deployment_success_responses_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (requested_model)",
           "legendFormat": "{{requested_model}}",
           "range": true,
           "refId": "A"
@@ -2227,7 +2227,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litellm_deployment_failure_responses_total[$__rate_interval])) by (litellm_model_name, exception_class)",
+          "expr": "sum(rate(litellm_deployment_failure_responses_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) by (litellm_model_name, exception_class)",
           "legendFormat": "{{litellm_model_name}} / {{exception_class}}",
           "range": true,
           "refId": "A"

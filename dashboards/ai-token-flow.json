@@ -215,7 +215,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (team, api_provider, model, tag_telemetry_billing_class_free, tag_telemetry_billing_class_local, tag_telemetry_billing_class_paid, tag_telemetry_billing_class_subscription) (increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\"}[$__range])) / $__range_s",
+          "expr": "sum by (team, api_provider, model, tag_telemetry_billing_class_free, tag_telemetry_billing_class_local, tag_telemetry_billing_class_paid, tag_telemetry_billing_class_subscription) (increase(litellm_output_tokens_metric_total{team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\"}[$__range])) / $__range_s",
           "legendFormat": "",
           "format": "time_series",
           "instant": true,
