@@ -254,21 +254,21 @@
           "refId": "A",
           "format": "table",
           "instant": true,
-          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\",le=\"+Inf\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_request_total_latency_metric_bucket{le=\"+Inf\",api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\",le=\"+Inf\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_request_total_latency_metric_bucket{le=\"+Inf\",api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
           "range": false
         },
         {
           "refId": "B",
           "format": "table",
           "instant": true,
-          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval])), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval])), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
           "range": false
         },
         {
           "refId": "C",
           "format": "table",
           "instant": true,
-          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) + sum by (model_name) (rate(vllm:prompt_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval])) + sum by (guest) (rate(llamacpp:prompt_tokens_total{job=\"llm_gpu_engine\"}[$interval])), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_total_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "expr": "sum by (serving_model) (label_replace(sum by (model_name) (rate(vllm:generation_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])) + sum by (model_name) (rate(vllm:prompt_tokens_total{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval])), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(sum by (guest) (rate(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\"}[$interval])) + sum by (guest) (rate(llamacpp:prompt_tokens_total{job=\"llm_gpu_engine\"}[$interval])), \"serving_model\", \"$1 / llama.cpp\", \"guest\", \"(.+)\") or label_replace(sum by (model) (rate(litellm_total_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
           "range": false
         },
         {
@@ -282,14 +282,14 @@
           "refId": "E",
           "format": "table",
           "instant": true,
-          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.5, sum by (model_name, le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.5, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.5, sum by (model_name, le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.5, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
           "range": false
         },
         {
           "refId": "F",
           "format": "table",
           "instant": true,
-          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.99, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.99, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
           "range": false
         },
         {
@@ -317,7 +317,7 @@
           "refId": "J",
           "format": "table",
           "instant": true,
-          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.99, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
+          "expr": "sum by (serving_model) (label_replace(histogram_quantile(0.99, sum by (model_name, le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"llm_gpu_engine\",model_name!=\"\",model_name=~\"${model:regex}\"}[$interval]))), \"serving_model\", \"$1 / vLLM\", \"model_name\", \"(.+)\") or label_replace(histogram_quantile(0.99, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))), \"serving_model\", \"$1 / router\", \"model\", \"(.+)\"))",
           "range": false
         },
         {
@@ -1146,12 +1146,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (model) (rate(litellm_input_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))",
+          "expr": "sum by (model) (rate(litellm_input_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))",
           "legendFormat": "{{model}} · input"
         },
         {
           "refId": "B",
-          "expr": "sum by (model) (rate(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))",
+          "expr": "sum by (model) (rate(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval]))",
           "legendFormat": "{{model}} · output"
         }
       ],
@@ -1249,17 +1249,17 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p50"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(0.95, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.95, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p95"
         },
         {
           "refId": "C",
-          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_llm_api_time_to_first_token_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p99"
         }
       ],
@@ -1290,12 +1290,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p50"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_request_total_latency_metric_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p99"
         }
       ],
@@ -1326,17 +1326,17 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.5, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p50"
         },
         {
           "refId": "B",
-          "expr": "histogram_quantile(0.95, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.95, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p95"
         },
         {
           "refId": "C",
-          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
+          "expr": "histogram_quantile(0.99, sum by (model, le) (rate(litellm_deployment_latency_per_output_token_bucket{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\",api_key_alias!=\"litellm-internal-health-check\",model!=\"\"}[$interval])))",
           "legendFormat": "{{model}} · p99"
         }
       ],
