@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Beta telemetry health: scrape availability, source sample freshness, and remote-write delivery. Raw queries move to telemetry:* recording rules when those land. Freshness measures ingestion timestamps, not payload correctness or request activity. Missing series remain No data; no synthetic zeros.",
+  "description": "Beta telemetry health: scrape availability, source sample freshness, and remote-write delivery. Raw queries move to telemetry:* precomputed rules when those land. Freshness measures ingestion timestamps, not payload correctness or request activity. Missing series remain No data; no synthetic zeros.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 2,
