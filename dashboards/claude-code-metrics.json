@@ -245,7 +245,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range]))",
+          "expr": "sum(increase(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range]))",
           "legendFormat": "Cost",
           "range": true,
           "refId": "A"
@@ -311,7 +311,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range]))",
+          "expr": "sum(increase(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range]))",
           "legendFormat": "Tokens",
           "range": true,
           "refId": "A"
@@ -799,7 +799,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (type)",
+          "expr": "sum(increase(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (type)",
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
@@ -985,7 +985,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\", type=\"cacheRead\"}[$__rate_interval])) / sum(rate(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\", type=~\"cacheRead|cacheCreation|input\"}[$__rate_interval]))",
+          "expr": "sum(rate(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\", type=\"cacheRead\"}[$__rate_interval])) / sum(rate(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\", type=~\"cacheRead|cacheCreation|input\"}[$__rate_interval]))",
           "range": true,
           "refId": "A"
         }
@@ -1067,7 +1067,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (user_email))",
+          "expr": "topk(10, sum(increase(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (user_email))",
           "legendFormat": "{{user_email}}",
           "range": true,
           "refId": "A"
@@ -1138,7 +1138,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum(increase(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (user_email))",
+          "expr": "topk(10, sum(increase(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (user_email))",
           "legendFormat": "{{user_email}}",
           "range": true,
           "refId": "A"
@@ -1209,7 +1209,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (session_id))",
+          "expr": "topk(10, sum(increase(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (session_id))",
           "legendFormat": "{{session_id}}",
           "range": true,
           "refId": "A"
@@ -1279,7 +1279,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (model)",
+          "expr": "sum(increase(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1531,7 +1531,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) * 3600",
+          "expr": "sum(rate(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) * 3600",
           "legendFormat": "Cost $/hour",
           "range": true,
           "refId": "A"
@@ -1631,7 +1631,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) by (model) * 3600",
+          "expr": "sum(rate(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) by (model) * 3600",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1789,7 +1789,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) by (type)",
+          "expr": "sum(rate(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) by (type)",
           "legendFormat": "{{type}}",
           "range": true,
           "refId": "A"
@@ -1885,7 +1885,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) by (model)",
+          "expr": "sum(rate(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval])) by (model)",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -1955,7 +1955,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (query_source)",
+          "expr": "sum(increase(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (query_source)",
           "legendFormat": "{{query_source}}",
           "range": true,
           "refId": "A"
@@ -2025,7 +2025,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_cost_usage_USD_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (effort)",
+          "expr": "sum(increase(claude_code_cost_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__range])) by (effort)",
           "legendFormat": "{{effort}}",
           "range": true,
           "refId": "A"
@@ -2529,7 +2529,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_token_usage_tokens_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval]))",
+          "expr": "sum(rate(claude_code_token_usage_total{organization_id=~\"$organization\", user_email=~\"$user\", model=~\"$model\"}[$__rate_interval]))",
           "legendFormat": "Claude Code",
           "range": true,
           "refId": "A"
@@ -2586,7 +2586,7 @@
         "multi": true,
         "name": "organization",
         "options": [],
-        "query": "label_values(claude_code_cost_usage_USD_total, organization_id)",
+        "query": "label_values(claude_code_cost_usage_total, organization_id)",
         "refresh": 2,
         "regex": "",
         "regexApplyTo": "value",
@@ -2614,7 +2614,7 @@
         "multi": true,
         "name": "user",
         "options": [],
-        "query": "label_values(claude_code_cost_usage_USD_total{organization_id=~\"$organization\"}, user_email)",
+        "query": "label_values(claude_code_cost_usage_total{organization_id=~\"$organization\"}, user_email)",
         "refresh": 2,
         "regex": "",
         "regexApplyTo": "value",
@@ -2635,14 +2635,14 @@
           "type": "prometheus",
           "uid": "victoriametrics"
         },
-        "definition": "label_values(claude_code_token_usage_tokens_total{organization_id=~\"$organization\"}, model)",
+        "definition": "label_values(claude_code_token_usage_total{organization_id=~\"$organization\"}, model)",
         "hide": 0,
         "includeAll": true,
         "label": "Model",
         "multi": true,
         "name": "model",
         "options": [],
-        "query": "label_values(claude_code_token_usage_tokens_total{organization_id=~\"$organization\"}, model)",
+        "query": "label_values(claude_code_token_usage_total{organization_id=~\"$organization\"}, model)",
         "refresh": 2,
         "regex": "",
         "regexApplyTo": "value",

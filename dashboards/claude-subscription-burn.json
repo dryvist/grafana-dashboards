@@ -40,7 +40,7 @@
         "includeAll": true,
         "multi": true,
         "refresh": 1,
-        "query": "label_values(claude_code_cost_usage_USD_total, model)",
+        "query": "label_values(claude_code_cost_usage_total, model)",
         "current": {
           "text": "All",
           "value": "$__all"
@@ -71,7 +71,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))",
+          "expr": "sum(increase(claude_code_cost_usage_total[$__range]))",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -120,7 +120,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_cost_usage_USD_total[$__range])) * 86400",
+          "expr": "sum(rate(claude_code_cost_usage_total[$__range])) * 86400",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -169,7 +169,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_cost_usage_USD_total[$__range])) * 86400 * 30",
+          "expr": "sum(rate(claude_code_cost_usage_total[$__range])) * 86400 * 30",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -218,7 +218,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(claude_code_cost_usage_USD_total[$__range])) * 86400 * 30 / clamp_min($plan_cost_usd, 1)",
+          "expr": "sum(rate(claude_code_cost_usage_total[$__range])) * 86400 * 30 / clamp_min($plan_cost_usd, 1)",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -365,7 +365,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(claude_code_cost_usage_USD_total[$__rate_interval]) * 86400)",
+          "expr": "sum by (model) (rate(claude_code_cost_usage_total[$__rate_interval]) * 86400)",
           "legendFormat": "{{model}}",
           "range": true,
           "instant": false,
@@ -425,7 +425,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (effort) (rate(claude_code_cost_usage_USD_total[$__rate_interval]) * 86400)",
+          "expr": "sum by (effort) (rate(claude_code_cost_usage_total[$__rate_interval]) * 86400)",
           "legendFormat": "{{effort}}",
           "range": true,
           "instant": false,
@@ -485,7 +485,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (query_source) (rate(claude_code_cost_usage_USD_total[$__rate_interval]) * 86400)",
+          "expr": "sum by (query_source) (rate(claude_code_cost_usage_total[$__rate_interval]) * 86400)",
           "legendFormat": "{{query_source}}",
           "range": true,
           "instant": false,
@@ -747,7 +747,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (type) (rate(claude_code_token_usage_tokens_total[$__rate_interval]))",
+          "expr": "sum by (type) (rate(claude_code_token_usage_total[$__rate_interval]))",
           "legendFormat": "{{type}}",
           "range": true,
           "instant": false,
