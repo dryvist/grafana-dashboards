@@ -1338,7 +1338,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (model, tier) (label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(sum by (model, api_provider) (rate(litellm_total_tokens_metric_total[$__rate_interval])), \"tier\", \"unmapped\", \"model\", \".*\"), \"tier\", \"haiku\", \"model\", \".*haiku.*\"), \"tier\", \"zcode GLM family\", \"model\", \"(.*/)?glm-.*\"), \"tier\", \"codex luna\", \"model\", \"(.*/)?gpt-.*-luna\"), \"tier\", \"codex sol\", \"model\", \"(.*/)?gpt-.*-sol\"), \"tier\", \"codex terra\", \"model\", \"(.*/)?gpt-.*-terra\"), \"tier\", \"local\", \"api_provider\", \"hosted_vllm\"))",
+          "expr": "sum by (model, tier) (label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(label_replace(sum by (model, api_provider) (rate(litellm_total_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])), \"tier\", \"unmapped\", \"model\", \".*\"), \"tier\", \"haiku\", \"model\", \".*haiku.*\"), \"tier\", \"zcode GLM family\", \"model\", \"(.*/)?glm-.*\"), \"tier\", \"codex luna\", \"model\", \"(.*/)?gpt-.*-luna\"), \"tier\", \"codex sol\", \"model\", \"(.*/)?gpt-.*-sol\"), \"tier\", \"codex terra\", \"model\", \"(.*/)?gpt-.*-terra\"), \"tier\", \"local\", \"api_provider\", \"hosted_vllm\"))",
           "legendFormat": "{{tier}} / {{model}}",
           "range": true,
           "instant": false,
@@ -1401,7 +1401,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(litellm_input_cached_tokens_metric_total[$__rate_interval])) / (sum by (model) (rate(litellm_input_tokens_metric_total[$__rate_interval])) > 0)",
+          "expr": "sum by (model) (rate(litellm_input_cached_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) / (sum by (model) (rate(litellm_input_tokens_metric_total{api_key_alias!=\"litellm-internal-health-check\"}[$__rate_interval])) > 0)",
           "legendFormat": "{{model}}",
           "range": true,
           "instant": false,
