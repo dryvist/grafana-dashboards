@@ -593,7 +593,7 @@
       "id": 23,
       "type": "timeseries",
       "title": "Decode tokens per joule · 1h mean",
-      "description": "One-hour recorded decode tokens/s divided by one-hour mean accelerator watts. DCGM power without an accelerator label maps to GPU primary, matching the busy recording rule; macmon supplies Mac primary GPU power. Only positive power with matching token telemetry is shown. Secondary power is unavailable. Mac throughput is router-derived; GPU power excludes the rest of the system.",
+      "description": "One-hour recorded decode tokens/s divided by one-hour mean accelerator watts. DCGM power without an accelerator label maps to GPU primary, matching the busy precomputed rule; macmon supplies Mac primary GPU power. Only positive power with matching token telemetry is shown. Secondary power is unavailable. Mac throughput is router-derived; GPU power excludes the rest of the system.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 12, "y": 74, "w": 12, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "suffix:tok/J", "min": 0, "noValue": "No matching decode and positive power samples", "custom": { "spanNulls": false } }, "overrides": [] },
