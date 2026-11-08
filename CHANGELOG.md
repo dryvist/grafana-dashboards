@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.5](https://github.com/dryvist/grafana-dashboards/compare/v1.26.4...v1.26.5) (2026-11-08)
+
+
+### Bug Fixes
+
+* **alerting:** name the panel in the spend alert dashboard links ([#89](https://github.com/dryvist/grafana-dashboards/issues/89)) ([b1ccd85](https://github.com/dryvist/grafana-dashboards/commit/b1ccd8521a9aa91906d4fde1ba77a48d17ffe1df))
+
 ## [1.26.4](https://github.com/dryvist/grafana-dashboards/compare/v1.26.3...v1.26.4) (2026-11-07)
 
 
