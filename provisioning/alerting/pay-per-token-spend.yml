@@ -72,6 +72,7 @@ groups:
             month-start sample.
             See /d/ai-cents-meter.
           __dashboardUid__: ai-cents-meter
+          __panelId__: "4"
       - uid: pay-per-token-spend-critical
         title: OpenRouter month-to-date spend at least 100 cents
         condition: B
@@ -135,3 +136,4 @@ groups:
             month-start sample.
             See /d/ai-cents-meter.
           __dashboardUid__: ai-cents-meter
+          __panelId__: "4"

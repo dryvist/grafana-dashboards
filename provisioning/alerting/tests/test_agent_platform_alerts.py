@@ -140,3 +140,12 @@ def test_notification_receivers_reference_existing_contact_points(rules):
         rule["notification_settings"]["receiver"] in contact_points
         for rule in rules.values()
     )
+
+
+@pytest.mark.parametrize("path", sorted(ALERTING.glob("*.yml")), ids=lambda path: path.name)
+def test_dashboard_links_name_both_dashboard_and_panel(path):
+    # Grafana refuses to provision every alert file when a rule sets one of these without the other.
+    for group in load_provisioning(path.name).get("groups", []):
+        for rule in group.get("rules", []):
+            keys = {"__dashboardUid__", "__panelId__"} & set(rule.get("annotations", {}))
+            assert len(keys) in (0, 2), f"{rule['uid']} sets only {keys}"
