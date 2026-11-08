@@ -32,13 +32,22 @@ def rules():
     return indexed
 
 
-def test_gpu_underuse_window_threshold_and_delivery(rules):
-    rule = rules["accelerator-underutilized"]
+@pytest.mark.parametrize(
+    "uid",
+    [
+        "accelerator-underutilized-gpu-primary",
+        "accelerator-underutilized-gpu-secondary",
+        "accelerator-underutilized-mac-primary",
+    ],
+)
+def test_lane_underuse_window_threshold_and_delivery(rules, uid):
+    rule = rules[uid]
+    lane = uid.removeprefix("accelerator-underutilized-")
     query, threshold = rule["data"]
     assert query["model"]["expr"] == (
-        'avg_over_time(accelerator:busy_percent:avg5m'
-        '{accelerator=~"gpu-primary|gpu-secondary|mac-primary"}[4h])'
+        f'avg_over_time(accelerator:busy_percent:avg5m{{accelerator="{lane}"}}[4h])'
     )
+    assert query["datasourceUid"] == "prometheus"
     assert threshold["model"]["conditions"][0]["evaluator"] == {
         "type": "lt", "params": [50],
     }
@@ -67,11 +76,32 @@ def test_token_absence_is_independent_for_each_serving_lane(rules):
     }
 
 
+def test_busy_series_absence_is_independent_for_each_serving_lane(rules):
+    rule = rules["accelerator-busy-kpi-missing"]
+    expression = rule["data"][0]["model"]["expr"]
+    lanes = re.findall(
+        r'absent_over_time\(accelerator:busy_percent:avg5m'
+        r'\{accelerator="([^"]+)"\}\[30m\]\)',
+        expression,
+    )
+    assert set(lanes) == {"gpu-primary", "gpu-secondary", "mac-primary"}
+    assert len(lanes) == 3
+    assert " or " in expression
+    assert rule["data"][0]["datasourceUid"] == "prometheus"
+    assert rule["for"] == "0s"
+    assert rule["noDataState"] == "OK"
+    assert rule["data"][1]["model"]["conditions"][0]["evaluator"] == {
+        "type": "gt", "params": [0],
+    }
+
+
 def test_shared_critical_delivery_and_condition_references(rules):
     for rule in rules.values():
-        assert rule["labels"] == rules["accelerator-underutilized"]["labels"]
+        assert rule["labels"] == (
+            rules["accelerator-underutilized-gpu-primary"]["labels"]
+        )
         assert rule["notification_settings"] == (
-            rules["accelerator-underutilized"]["notification_settings"]
+            rules["accelerator-underutilized-gpu-primary"]["notification_settings"]
         )
         assert rule["execErrState"] == "Error"
         queries = {query["refId"]: query for query in rule["data"]}
