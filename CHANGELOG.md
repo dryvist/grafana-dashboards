@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.0](https://github.com/dryvist/grafana-dashboards/compare/v1.26.5...v1.27.0) (2026-11-08)
+
+
+### Features
+
+* **alerting:** alert local accelerator underuse per lane ([#92](https://github.com/dryvist/grafana-dashboards/issues/92)) ([d4d737d](https://github.com/dryvist/grafana-dashboards/commit/d4d737d29e344dfb9d6c9d0dbe598bf8f82c8c85))
+* **alerting:** alert local accelerator underuse per serving lane ([19889ff](https://github.com/dryvist/grafana-dashboards/commit/19889ff45b3804ddc72508d438de271dc28e84ea))
+
 ## [1.26.5](https://github.com/dryvist/grafana-dashboards/compare/v1.26.4...v1.26.5) (2026-11-08)
 
 
