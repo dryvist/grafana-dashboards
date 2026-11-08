@@ -8,21 +8,23 @@ groups:
     interval: 1m
     rules:
       - &critical-alert
-        uid: accelerator-underutilized
-        title: Model-serving busy percent below 50% over 4 hours
+        uid: accelerator-underutilized-gpu-primary
+        title: Serving lane gpu-primary busy percent below 50% over 4 hours
         condition: B
         data:
-          - refId: A
+          - &busy-query
+            refId: A
             relativeTimeRange:
               from: 14400
               to: 0
             datasourceUid: prometheus
             model:
               expr: >-
-                avg_over_time(accelerator:busy_percent:avg5m{accelerator=~"gpu-primary|gpu-secondary|mac-primary"}[4h])
+                avg_over_time(accelerator:busy_percent:avg5m{accelerator="gpu-primary"}[4h])
               instant: true
               refId: A
-          - refId: B
+          - &busy-threshold
+            refId: B
             relativeTimeRange:
               from: 0
               to: 0
@@ -44,9 +46,9 @@ groups:
           ntfy: "true"
         annotations:
           summary: >-
-            Model-serving busy percent 4-hour average is below 50%
+            {{ $labels.accelerator }} busy percent 4-hour average is below 50%
           description: >-
-            The 4-hour average busy percent of a model-serving accelerator has been below 50%.
+            The 4-hour average busy percent of {{ $labels.accelerator }} has been below 50%.
         notification_settings:
           receiver: critical-slack
           group_by:
@@ -54,6 +56,28 @@ groups:
             - alertname
             - accelerator
           repeat_interval: 4h
+      - <<: *critical-alert
+        uid: accelerator-underutilized-gpu-secondary
+        title: Serving lane gpu-secondary busy percent below 50% over 4 hours
+        data:
+          - <<: *busy-query
+            model:
+              expr: >-
+                avg_over_time(accelerator:busy_percent:avg5m{accelerator="gpu-secondary"}[4h])
+              instant: true
+              refId: A
+          - *busy-threshold
+      - <<: *critical-alert
+        uid: accelerator-underutilized-mac-primary
+        title: Serving lane mac-primary busy percent below 50% over 4 hours
+        data:
+          - <<: *busy-query
+            model:
+              expr: >-
+                avg_over_time(accelerator:busy_percent:avg5m{accelerator="mac-primary"}[4h])
+              instant: true
+              refId: A
+          - *busy-threshold
   - orgId: 1
     name: accelerator-token-kpi
     folder: Alerting
@@ -98,6 +122,31 @@ groups:
             {{ $labels.accelerator }} token utilization KPI is absent for 30 minutes
           description: >-
             The serving lane has no accelerator:token_utilization:ratio samples in the last 30 minutes.
+  - orgId: 1
+    name: accelerator-busy-kpi
+    folder: Alerting
+    interval: 1m
+    rules:
+      - <<: *critical-alert
+        uid: accelerator-busy-kpi-missing
+        title: Serving lane busy percent KPI absent for 30 minutes
+        data:
+          - <<: *serving-query
+            datasourceUid: prometheus
+            model:
+              expr: >-
+                absent_over_time(accelerator:busy_percent:avg5m{accelerator="gpu-primary"}[30m])
+                or absent_over_time(accelerator:busy_percent:avg5m{accelerator="gpu-secondary"}[30m])
+                or absent_over_time(accelerator:busy_percent:avg5m{accelerator="mac-primary"}[30m])
+              instant: true
+              refId: A
+          - *positive-result
+        noDataState: OK
+        annotations:
+          summary: >-
+            {{ $labels.accelerator }} busy percent KPI is absent for 30 minutes
+          description: >-
+            The serving lane has no accelerator:busy_percent:avg5m samples in the last 30 minutes.
   - orgId: 1
     name: router-saturation
     folder: Alerting
@@ -175,42 +224,3 @@ groups:
           summary: Total serving queue grows for 15 minutes
           description: >-
             The 5-minute slope of total llm:requests_waiting across all serving lanes stays positive for 15 minutes.
-  - orgId: 1
-    name: agent-completion-kpi
-    folder: Alerting
-    interval: 1m
-    rules:
-      - <<: *critical-alert
-        uid: agent-completion-busy-kpi
-        title: Agent completion KPI busy percent below 50% over 4 hours
-        data:
-          - refId: A
-            relativeTimeRange:
-              from: 14400
-              to: 0
-            datasourceUid: victoriametrics
-            model:
-              # Must match the gpu-hardware agent completion KPI stat panels.
-              expr: >-
-                avg_over_time(accelerator:busy_percent:avg5m{accelerator=~"gpu-primary|gpu-secondary|mac-primary"}[4h])
-              instant: true
-              refId: A
-          - <<: *positive-result
-            model:
-              type: threshold
-              expression: A
-              conditions:
-                - evaluator:
-                    type: lt
-                    params:
-                      - 50
-              refId: B
-        annotations:
-          summary: >-
-            {{ $labels.accelerator }} 4-hour average busy percent is below 50%
-          description: >-
-            The 4-hour average of accelerator:busy_percent:avg5m for {{ $labels.accelerator }}
-            is below the 50% floor of the agent completion KPI.
-            See /d/gpu-hardware.
-          __dashboardUid__: gpu-hardware
-          __panelId__: "19"
