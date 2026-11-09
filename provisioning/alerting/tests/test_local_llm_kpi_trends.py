@@ -9,6 +9,9 @@ import pytest
 
 LANES = ("gpu-primary", "gpu-secondary", "mac-primary")
 LANE_MATCHER = 'accelerator=~"gpu-primary|gpu-secondary|mac-primary"'
+# Local router lanes that report api_provider="openai"; the output-token
+# selectors must name them or their tokens land in the cloud series.
+LANE_IDS = ("qwen3.5-9b-4080", "qwen3.5-9b", "qwen3.6-35b-a3b")
 DATASOURCE = {"type": "prometheus", "uid": "victoriametrics"}
 DASHBOARD = (
     Path(__file__).resolve().parents[3] / "dashboards" / "local-llm-kpi-trends.json"
@@ -163,13 +166,14 @@ def test_daily_output_tokens_split_local_and_cloud_like_the_cents_meter(
     assert custom.get("stacking", {}).get("mode", "none") == "none"
     targets = {target["refId"]: target for target in panel["targets"]}
     metric = "litellm_output_tokens_metric_total"
+    split_regex = "|".join((*local_model_regex.split("|"), *LANE_IDS))
     local_routes = (
         'api_provider="hosted_vllm"',
-        f'api_provider="openai",model=~"{local_model_regex}"',
+        f'api_provider="openai",model=~"{split_regex}"',
     )
     cloud_routes = (
         'api_provider!~"hosted_vllm|openai"',
-        f'api_provider="openai",model!~"{local_model_regex}"',
+        f'api_provider="openai",model!~"{split_regex}"',
     )
     for ref_id, legend, routes in (
         ("A", "Local", local_routes),
@@ -181,6 +185,31 @@ def test_daily_output_tokens_split_local_and_cloud_like_the_cents_meter(
         )
         assert targets[ref_id]["expr"] == f"sum({terms})"
         assert targets[ref_id]["legendFormat"] == legend
+
+
+def test_local_and_cloud_output_regexes_stay_complements_over_the_lane_ids(
+    panels, local_model_regex
+):
+    panel = titled(panels, "Local vs cloud output tokens per day")
+    metric = "litellm_output_tokens_metric_total"
+    selectors = {}
+    for target in panel["targets"]:
+        match = re.search(
+            rf'{metric}{{api_provider="openai",model([=!])~"([^"]+)"',
+            target["expr"],
+        )
+        assert match, f"{target['refId']} needs an openai model selector"
+        selectors[target["refId"]] = match
+    assert set(selectors) == {"A", "B"}
+    assert selectors["A"].group(1) == "="
+    assert selectors["B"].group(1) == "!"
+    local_ids = selectors["A"].group(2).split("|")
+    cloud_ids = selectors["B"].group(2).split("|")
+    assert len(local_ids) == len(set(local_ids)), "Duplicate local model id"
+    assert len(cloud_ids) == len(set(cloud_ids)), "Duplicate cloud model id"
+    assert cloud_ids == local_ids, "The selectors must complement one id set"
+    assert set(LANE_IDS) <= set(local_ids)
+    assert set(local_model_regex.split("|")) <= set(local_ids)
 
 
 def test_router_requests_per_day_rank_key_aliases_with_the_health_check_excluded(

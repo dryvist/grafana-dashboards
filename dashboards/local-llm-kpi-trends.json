@@ -519,7 +519,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(litellm_output_tokens_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1d]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1d]))",
+          "expr": "sum(increase(litellm_output_tokens_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1d]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3|qwen3.5-9b-4080|qwen3.5-9b|qwen3.6-35b-a3b\",team!=\"litellm-internal-health-check\"}[1d]))",
           "legendFormat": "Local",
           "range": true,
           "instant": false,
@@ -532,7 +532,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase(litellm_output_tokens_metric_total{api_provider!~\"hosted_vllm|openai\",team!=\"litellm-internal-health-check\"}[1d]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model!~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1d]))",
+          "expr": "sum(increase(litellm_output_tokens_metric_total{api_provider!~\"hosted_vllm|openai\",team!=\"litellm-internal-health-check\"}[1d]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model!~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3|qwen3.5-9b-4080|qwen3.5-9b|qwen3.6-35b-a3b\",team!=\"litellm-internal-health-check\"}[1d]))",
           "legendFormat": "Cloud",
           "range": true,
           "instant": false,
