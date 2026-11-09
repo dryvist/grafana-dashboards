@@ -17,19 +17,19 @@ groups:
         title: Serving lane gpu-primary token utilization below 50% over 4 hours
         condition: B
         data:
-          - &token-query
+          - &duty-query
             refId: A
             relativeTimeRange:
               from: 14400
               to: 0
             datasourceUid: victoriametrics
             model:
-              # Source: dryvist/prometheus-homelab-rules, rules/accelerator_tokens.yml (PR #11).
+              # Source: dryvist/prometheus-homelab-rules, rules/accelerator_slots.yml (PR #19).
               expr: >-
-                avg_over_time(accelerator:token_utilization:ratio{accelerator="gpu-primary"}[4h])
+                avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator="gpu-primary"}[4h])
               instant: true
               refId: A
-          - &token-threshold
+          - &duty-threshold
             refId: B
             relativeTimeRange:
               from: 0
@@ -52,9 +52,9 @@ groups:
           ntfy: "true"
         annotations:
           summary: >-
-            {{ $labels.accelerator }} token utilization 4-hour average is below 50%
+            {{ $labels.accelerator }} slot duty cycle 4-hour average is below 50%
           description: >-
-            The 4-hour average accelerator:token_utilization:ratio of {{ $labels.accelerator }} has been below 0.5.
+            The 4-hour average slot duty cycle (accelerator:slot_duty_cycle:ratio) of {{ $labels.accelerator }} has been below 0.5.
         notification_settings:
           receiver: critical-slack
           group_by:
@@ -67,25 +67,25 @@ groups:
         title: Serving lane gpu-secondary token utilization below 50% over 4 hours
         noDataState: OK
         data:
-          - <<: *token-query
+          - <<: *duty-query
             model:
               expr: >-
-                avg_over_time(accelerator:token_utilization:ratio{accelerator="gpu-secondary"}[4h])
+                avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator="gpu-secondary"}[4h])
               instant: true
               refId: A
-          - *token-threshold
+          - *duty-threshold
       - <<: *critical-alert
         uid: accelerator-underutilized-mac-primary
         title: Serving lane mac-primary token utilization below 50% over 4 hours
         noDataState: OK
         data:
-          - <<: *token-query
+          - <<: *duty-query
             model:
               expr: >-
-                avg_over_time(accelerator:token_utilization:ratio{accelerator="mac-primary"}[4h])
+                avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator="mac-primary"}[4h])
               instant: true
               refId: A
-          - *token-threshold
+          - *duty-threshold
   - orgId: 1
     name: accelerator-token-kpi
     folder: Alerting
