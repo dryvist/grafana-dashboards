@@ -1,0 +1,70 @@
+# Grafana file-provisioned alert rule (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: catalog-agent-runs
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: catalog-agent-run-silence
+        title: Catalog agent has had no runs in six hours
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Same run count, agent grouping and health-check exclusion as
+              # the gpu-hardware "Router requests by key alias" agent
+              # completion panel, narrowed to the six-hour silence window.
+              expr: >-
+                sum by (api_key_alias) (increase(litellm_proxy_total_requests_metric_total{team!="litellm-internal-health-check"}[6h]))
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+              refId: B
+        for: 0s
+        # A missing export is a telemetry outage, not a silent agent; query
+        # errors stay visible through execErrState.
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          monitored_agents: >-
+            Cataloged router api_key_alias agents surfaced by the
+            "Router requests by key alias" panel. The panel data exposes no
+            per-agent design interval, so the rule covers that group as the
+            set expected to run at least every six hours and excludes the
+            litellm-internal-health-check team.
+          summary: >-
+            Catalog agent {{ $labels.api_key_alias }} has had no runs in six hours
+          description: >-
+            The cataloged agent api_key_alias {{ $labels.api_key_alias }}
+            recorded fewer than one router request in six hours.
+            See /d/gpu-hardware.
+          __dashboardUid__: gpu-hardware
+          __panelId__: "31"
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - api_key_alias
+          repeat_interval: 4h
