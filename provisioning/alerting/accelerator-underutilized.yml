@@ -1,6 +1,11 @@
 # Grafana file-provisioned model-serving alert rules (unified alerting).
 # ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
 apiVersion: 1
+# Grafana keeps a provisioned rule in its database until deleteRules lists it,
+# so retired uids stay here with the org that provisioned them.
+deleteRules:
+  - orgId: 1
+    uid: accelerator-underutilized
 groups:
   - orgId: 1
     name: accelerator-token-underuse
