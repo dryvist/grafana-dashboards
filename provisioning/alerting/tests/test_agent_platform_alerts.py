@@ -19,6 +19,10 @@ def load_provisioning(filename):
     ))
 
 
+def load_dashboard(uid):
+    return json.loads((ALERTING.parents[1] / "dashboards" / f"{uid}.json").read_text())
+
+
 @pytest.fixture(scope="module")
 def rules():
     document = load_provisioning("accelerator-underutilized.yml")
@@ -56,6 +60,55 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     assert rule["notification_settings"]["receiver"] == "critical-slack"
     assert rule["notification_settings"]["repeat_interval"] == "4h"
     assert "accelerator" in rule["notification_settings"]["group_by"]
+
+
+def test_agent_completion_kpi_stat_panels_match_the_alert_machines_and_floor(rules):
+    lanes, floors = [], set()
+    for uid in [
+        "accelerator-underutilized-gpu-primary",
+        "accelerator-underutilized-gpu-secondary",
+        "accelerator-underutilized-mac-primary",
+    ]:
+        query, threshold = rules[uid]["data"]
+        lanes.append(re.search(r'accelerator="([^"]+)"', query["model"]["expr"])[1])
+        floors.add(threshold["model"]["conditions"][0]["evaluator"]["params"][0])
+    assert len(floors) == 1
+    floor, = floors
+    panels = {}
+    for panel in load_dashboard("gpu-hardware")["panels"]:
+        for target in panel.get("targets", []):
+            match = re.fullmatch(
+                r'avg_over_time\(accelerator:busy_percent:avg5m'
+                r'\{accelerator="([^"]+)"\}\[4h\]\)',
+                target["expr"],
+            )
+            if match:
+                assert match[1] not in panels, f"{match[1]} has more than one KPI panel"
+                panels[match[1]] = (panel, target)
+    assert sorted(panels) == sorted(lanes)
+    for panel, target in panels.values():
+        assert panel["type"] == "stat"
+        assert target["instant"] is True
+        assert panel["fieldConfig"]["defaults"]["thresholds"]["steps"] == [
+            {"color": "red", "value": None},
+            {"color": "yellow", "value": floor},
+            {"color": "green", "value": 75},
+        ]
+
+
+def test_agent_completion_router_requests_exclude_the_health_check_team():
+    expression = (
+        "sum by (api_key_alias) (increase(litellm_proxy_total_requests_metric_total"
+        '{team!="litellm-internal-health-check"}[24h]))'
+    )
+    targets = [
+        target
+        for panel in load_dashboard("gpu-hardware")["panels"]
+        for target in panel.get("targets", [])
+        if target["expr"] == expression
+    ]
+    assert len(targets) == 1
+    assert targets[0]["instant"] is True
 
 
 def test_token_absence_is_independent_for_each_serving_lane(rules):

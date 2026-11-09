@@ -634,6 +634,185 @@
       "gridPos": { "x": 16, "y": 82, "w": 8, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "bytes", "min": 0, "noValue": "No framebuffer telemetry", "custom": { "spanNulls": false } }, "overrides": [] },
       "targets": [{ "refId": "A", "editorMode": "code", "legendFormat": "{{accelerator}}", "expr": "label_replace(sum(DCGM_FI_DEV_FB_USED{job=\"dcgm_exporter\",accelerator=\"\"}) * 1024 * 1024, \"accelerator\", \"gpu-primary\", \"\", \"\")" }]
+    },
+    {
+      "id": 27,
+      "type": "row",
+      "title": "Agent completion KPI",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 90, "w": 24, "h": 1 },
+      "panels": []
+    },
+    {
+      "id": 28,
+      "type": "stat",
+      "title": "GPU primary · 4h busy %",
+      "description": "Four-hour average of recorded five-minute busy percent: red below 50%, yellow from 50%, green from 75%.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 91, "w": 8, "h": 5 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No busy samples in 4h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 75 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "instant": true,
+          "legendFormat": "GPU primary",
+          "expr": "avg_over_time(accelerator:busy_percent:avg5m{accelerator=\"gpu-primary\"}[4h])"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "type": "stat",
+      "title": "GPU secondary · 4h busy %",
+      "description": "Four-hour average of recorded five-minute busy percent: red below 50%, yellow from 50%, green from 75%.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 8, "y": 91, "w": 8, "h": 5 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No busy samples in 4h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 75 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "instant": true,
+          "legendFormat": "GPU secondary",
+          "expr": "avg_over_time(accelerator:busy_percent:avg5m{accelerator=\"gpu-secondary\"}[4h])"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "type": "stat",
+      "title": "Mac primary · 4h busy %",
+      "description": "Four-hour average of recorded five-minute busy percent: red below 50%, yellow from 50%, green from 75%.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 16, "y": 91, "w": 8, "h": 5 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No busy samples in 4h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 75 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "instant": true,
+          "legendFormat": "Mac primary",
+          "expr": "avg_over_time(accelerator:busy_percent:avg5m{accelerator=\"mac-primary\"}[4h])"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "type": "bargauge",
+      "title": "Router requests by key alias · 24h",
+      "description": "Router requests per API key alias over the last 24 hours, excluding the litellm-internal-health-check team.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 96, "w": 24, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "No router requests in 24h",
+          "color": { "mode": "palette-classic" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "auto",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color",
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "maxVizHeight": 300,
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "instant": true,
+          "legendFormat": "{{api_key_alias}}",
+          "expr": "sum by (api_key_alias) (increase(litellm_proxy_total_requests_metric_total{team!=\"litellm-internal-health-check\"}[24h]))"
+        }
+      ]
     }
   ],
   "refresh": "30s",
