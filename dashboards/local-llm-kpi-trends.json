@@ -1,0 +1,823 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "History view of the local serving lanes gpu-primary, gpu-secondary and mac-primary over days and weeks: four-hour token utilization against the 50% goal and 75% aim, generation rate against each lane's ceiling, daily generated tokens and a one-day GPU duty cycle. Local and cloud router output tokens per day are separate series that are never summed. Daily values cover UTC calendar days. Router token and request panels exclude the litellm-internal-health-check team. The Local LLM scoreboard is the real-time view.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Local LLM scoreboard",
+      "tooltip": "Real-time view of the same lanes",
+      "type": "link",
+      "url": "/d/local-llm-scoreboard"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Token utilization · 4h windows · 50% goal, 75% aim",
+      "description": "Four-hour average of accelerator:token_utilization:ratio per accelerator at each point of the selected range: the recorded one-hour generation rate divided by the maximum generation rate. Dashed lines mark the 50% goal and the 75% aim. Values may exceed 100%. A missing series shows 0.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "noValue": "0",
+          "custom": {
+            "spanNulls": false,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:token_utilization:ratio{accelerator=\"gpu-primary\"}[4h]) or on() vector(0)",
+          "legendFormat": "gpu-primary",
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:token_utilization:ratio{accelerator=\"gpu-secondary\"}[4h]) or on() vector(0)",
+          "legendFormat": "gpu-secondary",
+          "instant": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:token_utilization:ratio{accelerator=\"mac-primary\"}[4h]) or on() vector(0)",
+          "legendFormat": "mac-primary",
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Generation tokens/s · 1h mean vs ceiling",
+      "description": "Solid lines: recorded one-hour mean generation tokens/s per accelerator (accelerator:generation_tokens_per_second:rate1h). Dashed lines: the same accelerator's maximum generation tokens/s (accelerator:max_generation_tokens_per_second), drawn in its color.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:tok/s",
+          "min": 0,
+          "noValue": "No recorded generation rate",
+          "custom": {
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^gpu-primary( ceiling)?$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^gpu-secondary( ceiling)?$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^mac-primary( ceiling)?$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:generation_tokens_per_second:rate1h{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}}",
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:max_generation_tokens_per_second{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}} ceiling",
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Daily generated tokens per accelerator",
+      "description": "Generated tokens per UTC calendar day: the one-day increase of the counters behind accelerator:generation_tokens_per_second:rate1h. gpu-primary counts vLLM generation tokens, gpu-secondary counts llama.cpp predicted tokens, and mac-primary counts router output tokens for its MLX model, excluding the litellm-internal-health-check team. Engine series without an accelerator label count toward that lane. Each bar ends at 00:00 UTC and covers the preceding day.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 9
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "noValue": "No generated tokens",
+          "custom": {
+            "drawStyle": "bars",
+            "barAlignment": -1,
+            "lineWidth": 0,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(vllm:generation_tokens_total{job=\"llm_gpu_engine\",accelerator=~\"gpu-primary|\"}[1d]))",
+          "legendFormat": "gpu-primary",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(llamacpp:tokens_predicted_total{job=\"llm_gpu_engine\",accelerator=~\"gpu-secondary|\"}[1d]))",
+          "legendFormat": "gpu-secondary",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(litellm_output_tokens_metric_total{job=\"llm_router\",model=\"mlx-community/Qwen3.8-27B-4bit\",team!=\"litellm-internal-health-check\",accelerator=~\"mac-primary|\"}[1d]))",
+          "legendFormat": "mac-primary",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Local vs cloud output tokens per day",
+      "description": "Router output tokens per UTC calendar day as two separate series that are never summed, excluding the litellm-internal-health-check team. Local means api_provider hosted_vllm, or api_provider openai with a model from the local model list the cents meter uses, because MLX lanes report api_provider openai. Cloud is every other route. Each point ends at 00:00 UTC and covers the preceding day.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 12,
+        "h": 9
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "noValue": "No router output tokens",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "always"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Local"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cloud"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(litellm_output_tokens_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1d]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1d]))",
+          "legendFormat": "Local",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(litellm_output_tokens_metric_total{api_provider!~\"hosted_vllm|openai\",team!=\"litellm-internal-health-check\"}[1d]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model!~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1d]))",
+          "legendFormat": "Cloud",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Router requests per day by key alias · top 10",
+      "description": "Router requests per UTC calendar day for the ten busiest API key aliases of each day, excluding the litellm-internal-health-check team. Lines are not stacked. Each point ends at 00:00 UTC and covers the preceding day.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 18,
+        "w": 12,
+        "h": 9
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "No router requests",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (api_key_alias) (increase(litellm_proxy_total_requests_metric_total{team!=\"litellm-internal-health-check\"}[1d])))",
+          "legendFormat": "{{api_key_alias}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "GPU duty cycle (secondary)",
+      "description": "Average busy percent per accelerator for each UTC calendar day: the one-day avg_over_time of accelerator:busy_percent:avg5m. Secondary signal: busy hardware alone does not show useful token production. Each point ends at 00:00 UTC and covers the preceding day.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 8
+      },
+      "interval": "1d",
+      "maxDataPoints": 10000,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No busy samples",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "always"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(accelerator:busy_percent:avg5m{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}[1d])",
+          "legendFormat": "{{accelerator}}",
+          "range": true,
+          "instant": false,
+          "interval": "1d"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Router 429 rate and queued requests",
+      "description": "Router HTTP 429 responses per second from the request counter's status_code label, reading 0 while the router reports traffic without 429 responses, and requests queued by the router worker (litellm_admission_queued_requests, present only with admission control enabled) on the right axis. Both metrics come from the LiteLLM metrics dashboard.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0,
+          "noValue": "No router telemetry",
+          "custom": {
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(litellm_proxy_total_requests_metric_total{status_code=\"429\"}[$__rate_interval])) or (0 * sum(rate(litellm_proxy_total_requests_metric_total[$__rate_interval])))",
+          "legendFormat": "HTTP 429/s",
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(litellm_admission_queued_requests)",
+          "legendFormat": "Queued requests",
+          "instant": false
+        }
+      ]
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 42,
+  "tags": [
+    "ai-observability",
+    "gpu",
+    "llm"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timezone": "utc",
+  "title": "Local LLM KPI trends",
+  "uid": "local-llm-kpi-trends",
+  "version": 1
+}
