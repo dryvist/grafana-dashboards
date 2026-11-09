@@ -3,27 +3,28 @@
 apiVersion: 1
 groups:
   - orgId: 1
-    name: accelerator-busy
+    name: accelerator-token-underuse
     folder: Alerting
     interval: 1m
     rules:
       - &critical-alert
         uid: accelerator-underutilized-gpu-primary
-        title: Serving lane gpu-primary busy percent below 50% over 4 hours
+        title: Serving lane gpu-primary token utilization below 50% over 4 hours
         condition: B
         data:
-          - &busy-query
+          - &token-query
             refId: A
             relativeTimeRange:
               from: 14400
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: victoriametrics
             model:
+              # Source: dryvist/prometheus-homelab-rules, rules/accelerator_tokens.yml (PR #11).
               expr: >-
-                avg_over_time(accelerator:busy_percent:avg5m{accelerator="gpu-primary"}[4h])
+                avg_over_time(accelerator:token_utilization:ratio{accelerator="gpu-primary"}[4h])
               instant: true
               refId: A
-          - &busy-threshold
+          - &token-threshold
             refId: B
             relativeTimeRange:
               from: 0
@@ -36,19 +37,19 @@ groups:
                 - evaluator:
                     type: lt
                     params:
-                      - 50
+                      - 0.5
               refId: B
         for: 0s
-        noDataState: Alerting
+        noDataState: OK
         execErrState: Error
         labels:
           severity: critical
           ntfy: "true"
         annotations:
           summary: >-
-            {{ $labels.accelerator }} busy percent 4-hour average is below 50%
+            {{ $labels.accelerator }} token utilization 4-hour average is below 50%
           description: >-
-            The 4-hour average busy percent of {{ $labels.accelerator }} has been below 50%.
+            The 4-hour average accelerator:token_utilization:ratio of {{ $labels.accelerator }} has been below 0.5.
         notification_settings:
           receiver: critical-slack
           group_by:
@@ -58,26 +59,28 @@ groups:
           repeat_interval: 4h
       - <<: *critical-alert
         uid: accelerator-underutilized-gpu-secondary
-        title: Serving lane gpu-secondary busy percent below 50% over 4 hours
+        title: Serving lane gpu-secondary token utilization below 50% over 4 hours
+        noDataState: OK
         data:
-          - <<: *busy-query
+          - <<: *token-query
             model:
               expr: >-
-                avg_over_time(accelerator:busy_percent:avg5m{accelerator="gpu-secondary"}[4h])
+                avg_over_time(accelerator:token_utilization:ratio{accelerator="gpu-secondary"}[4h])
               instant: true
               refId: A
-          - *busy-threshold
+          - *token-threshold
       - <<: *critical-alert
         uid: accelerator-underutilized-mac-primary
-        title: Serving lane mac-primary busy percent below 50% over 4 hours
+        title: Serving lane mac-primary token utilization below 50% over 4 hours
+        noDataState: OK
         data:
-          - <<: *busy-query
+          - <<: *token-query
             model:
               expr: >-
-                avg_over_time(accelerator:busy_percent:avg5m{accelerator="mac-primary"}[4h])
+                avg_over_time(accelerator:token_utilization:ratio{accelerator="mac-primary"}[4h])
               instant: true
               refId: A
-          - *busy-threshold
+          - *token-threshold
   - orgId: 1
     name: accelerator-token-kpi
     folder: Alerting

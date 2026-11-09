@@ -49,31 +49,54 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     lane = uid.removeprefix("accelerator-underutilized-")
     query, threshold = rule["data"]
     assert query["model"]["expr"] == (
-        f'avg_over_time(accelerator:busy_percent:avg5m{{accelerator="{lane}"}}[4h])'
+        f'avg_over_time(accelerator:token_utilization:ratio{{accelerator="{lane}"}}[4h])'
     )
-    assert query["datasourceUid"] == "prometheus"
+    assert query["datasourceUid"] == "victoriametrics"
+    assert query["relativeTimeRange"]["from"] == 14400
     assert threshold["model"]["conditions"][0]["evaluator"] == {
-        "type": "lt", "params": [50],
+        "type": "lt", "params": [0.5],
     }
     assert rule["for"] == "0s"
+    assert rule["noDataState"] == "OK"
     assert rule["labels"]["severity"] == "critical"
     assert rule["notification_settings"]["receiver"] == "critical-slack"
     assert rule["notification_settings"]["repeat_interval"] == "4h"
     assert "accelerator" in rule["notification_settings"]["group_by"]
 
 
-def test_agent_completion_kpi_stat_panels_match_the_alert_machines_and_floor(rules):
-    lanes, floors = [], set()
-    for uid in [
-        "accelerator-underutilized-gpu-primary",
-        "accelerator-underutilized-gpu-secondary",
-        "accelerator-underutilized-mac-primary",
-    ]:
-        query, threshold = rules[uid]["data"]
-        lanes.append(re.search(r'accelerator="([^"]+)"', query["model"]["expr"])[1])
-        floors.add(threshold["model"]["conditions"][0]["evaluator"]["params"][0])
-    assert len(floors) == 1
-    floor, = floors
+def test_token_utilization_is_the_only_underuse_family():
+    """The below-threshold (lt) rules form one family, reading the token KPI."""
+    families = set()
+    underuse_rules = []
+    for path in sorted(ALERTING.glob("*.yml")):
+        for group in load_provisioning(path.name).get("groups", []):
+            for rule in group.get("rules", []):
+                queries = {query["refId"]: query for query in rule["data"]}
+                evaluator = (
+                    queries[rule["condition"]]["model"]
+                    .get("conditions", [{}])[0]
+                    .get("evaluator", {})
+                )
+                if evaluator.get("type") == "lt":
+                    families.add(group["name"])
+                    underuse_rules.append(rule)
+    assert families == {"accelerator-token-underuse"}
+    assert len(underuse_rules) == 3
+    for rule in underuse_rules:
+        expression = rule["data"][0]["model"]["expr"]
+        assert "accelerator:token_utilization:ratio" in expression
+        assert "accelerator:busy_percent" not in expression
+
+
+def test_busy_percent_stat_panels_cover_the_alert_lanes(rules):
+    lanes = [
+        re.search(r'accelerator="([^"]+)"', rules[uid]["data"][0]["model"]["expr"])[1]
+        for uid in [
+            "accelerator-underutilized-gpu-primary",
+            "accelerator-underutilized-gpu-secondary",
+            "accelerator-underutilized-mac-primary",
+        ]
+    ]
     panels = {}
     for panel in load_dashboard("gpu-hardware")["panels"]:
         for target in panel.get("targets", []):
@@ -91,7 +114,7 @@ def test_agent_completion_kpi_stat_panels_match_the_alert_machines_and_floor(rul
         assert target["instant"] is True
         assert panel["fieldConfig"]["defaults"]["thresholds"]["steps"] == [
             {"color": "red", "value": None},
-            {"color": "yellow", "value": floor},
+            {"color": "yellow", "value": 50},
             {"color": "green", "value": 75},
         ]
 
