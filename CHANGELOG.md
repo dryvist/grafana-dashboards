@@ -1,19 +1,5 @@
 # Changelog
 
-## [1.31.0](https://github.com/dryvist/grafana-dashboards/compare/v1.30.0...v1.31.0) (2026-11-09)
-
-
-### Features
-
-* **alerting:** alert when the catalog agents have no runs for six hours ([#100](https://github.com/dryvist/grafana-dashboards/issues/100)) ([2db7cde](https://github.com/dryvist/grafana-dashboards/commit/2db7cde5ead5e527d73d9643a4c9548770fde760))
-
-## [1.30.0](https://github.com/dryvist/grafana-dashboards/compare/v1.29.0...v1.30.0) (2026-11-09)
-
-
-### Features
-
-* **alerting:** alert when router health checks spend paid or subscription quota ([#102](https://github.com/dryvist/grafana-dashboards/issues/102)) ([68e3924](https://github.com/dryvist/grafana-dashboards/commit/68e39245fbc2c9cca1c74127160a77505b127564))
-
 ## [1.29.0](https://github.com/dryvist/grafana-dashboards/compare/v1.28.0...v1.29.0) (2026-11-09)
 
 
