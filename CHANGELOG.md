@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.0](https://github.com/dryvist/grafana-dashboards/compare/v1.28.0...v1.29.0) (2026-11-09)
+
+
+### Features
+
+* **dashboards:** add local LLM scoreboard dashboard ([#97](https://github.com/dryvist/grafana-dashboards/issues/97)) ([5dd9737](https://github.com/dryvist/grafana-dashboards/commit/5dd97378b9659096a022c8ff254ecf1c41ec0183))
+
 ## [1.28.0](https://github.com/dryvist/grafana-dashboards/compare/v1.27.0...v1.28.0) (2026-11-09)
 
 
