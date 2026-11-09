@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.1](https://github.com/dryvist/grafana-dashboards/compare/v1.32.0...v1.32.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **alerts:** alert on the token-utilization KPI instead of two duplicate busy-percent families ([#107](https://github.com/dryvist/grafana-dashboards/issues/107)) ([60f8cd4](https://github.com/dryvist/grafana-dashboards/commit/60f8cd45ec826ee79bbf63c75da0cbf548416660))
+
 ## [1.32.0](https://github.com/dryvist/grafana-dashboards/compare/v1.31.0...v1.32.0) (2026-11-09)
 
 
