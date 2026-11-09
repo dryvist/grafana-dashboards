@@ -264,16 +264,32 @@ def test_health_check_spend_counts_input_tokens_outside_the_cents_meter_local_la
     }
     assert len(regexes) == 1, "The cents meter needs one local model regex"
     local_models, = regexes
+    router_local_lanes = ["qwen3.5-9b-4080", "qwen3.5-9b", "qwen3.6-35b-a3b"]
     query, _ = spend_rules["pay-per-token-spend-health-check"]["data"]
+    expression = query["model"]["expr"]
+    excluded_ids, = [
+        regex.split("|")
+        for regex in re.findall(
+            r'api_provider="openai", model!~"([^"]+)"', expression
+        )
+    ]
+    assert set(local_models.split("|")) <= set(excluded_ids), (
+        "The rule must keep excluding every ai-cents-meter local model"
+    )
+    assert set(router_local_lanes) <= set(excluded_ids), (
+        "The rule must exclude the router's local lanes"
+    )
     selector = (
         "litellm_input_tokens_metric_total"
         '{api_key_alias="litellm-internal-health-check", '
     )
-    assert query["model"]["expr"] == (
+    assert expression == (
         "sum(\n"
         f'  increase({selector}api_provider!~"hosted_vllm|openai"}}[30m])\n'
         "  or\n"
-        f'  increase({selector}api_provider="openai", model!~"{local_models}"}}[30m])\n'
+        "  increase("
+        f'{selector}api_provider="openai", '
+        f'model!~"{local_models}|{"|".join(router_local_lanes)}"}}[30m])\n'
         ")"
     )
     assert query["datasourceUid"] == "victoriametrics"

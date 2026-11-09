@@ -149,12 +149,13 @@ groups:
             model:
               # Local lanes are hosted_vllm plus the openai-provider models
               # in the ai-cents-meter local-model classifier (MLX and
-              # llama.cpp lanes report api_provider="openai").
+              # llama.cpp lanes report api_provider="openai") and the
+              # router's local GPU, CPU-pool and light lanes.
               expr: >-
                 sum(
                   increase(litellm_input_tokens_metric_total{api_key_alias="litellm-internal-health-check", api_provider!~"hosted_vllm|openai"}[30m])
                   or
-                  increase(litellm_input_tokens_metric_total{api_key_alias="litellm-internal-health-check", api_provider="openai", model!~"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3"}[30m])
+                  increase(litellm_input_tokens_metric_total{api_key_alias="litellm-internal-health-check", api_provider="openai", model!~"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3|qwen3.5-9b-4080|qwen3.5-9b|qwen3.6-35b-a3b"}[30m])
                 )
               instant: true
               refId: A
@@ -180,8 +181,9 @@ groups:
           description: >-
             The litellm-internal-health-check key sent
             {{ printf "%.0f" $values.A.Value }} input tokens in the last
-            30 minutes to models outside the local lanes (hosted_vllm and
-            the ai-cents-meter local-model classifier).
+            30 minutes to models outside the local lanes (hosted_vllm,
+            the ai-cents-meter local-model classifier, and the router's
+            local lanes).
             The threshold is above 0 tokens for 15 minutes.
             See /d/ai-cents-meter.
           __dashboardUid__: ai-cents-meter
