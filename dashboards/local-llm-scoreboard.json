@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Local serving lanes gpu-primary, gpu-secondary and mac-primary: token throughput against each lane's maximum generation rate, with GPU duty cycle as a secondary signal. Router requests and output tokens per hour show local (api_provider hosted_vllm, or api_provider openai with a model from the cents meter's local model list) and cloud (everything else) traffic in separate panels that are never summed. The litellm-internal-health-check team is excluded.",
+  "description": "Local serving lanes gpu-primary, gpu-secondary and mac-primary: slot duty cycle per lane and the context-weighted aggregate across lanes lead as the utilization KPI, with VRAM utilization and total tokens per second (1h, 4h, 12h and 24h means) as reference metrics. Token utilization, token throughput against each lane's maximum generation rate, and GPU duty cycle are secondary signals. Router requests and output tokens per hour show local (api_provider hosted_vllm, or api_provider openai with a model from the cents meter's local model list) and cloud (everything else) traffic in separate panels that are never summed. The litellm-internal-health-check team is excluded.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 2,
@@ -24,8 +24,8 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "GPU primary · 4h token utilization",
-      "description": "Four-hour average of accelerator:token_utilization:ratio, the recorded one-hour generation rate divided by the maximum generation rate: red below 50%, yellow from 50%, green from 75%. Values may exceed 100%. A missing series shows 0.",
+      "title": "GPU primary · 4h slot duty cycle",
+      "description": "Four-hour average of accelerator:slot_duty_cycle:ratio, in-flight requests divided by serving slots: red below 50%, yellow from 50%, green from 75%. A missing series shows 0.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -33,6 +33,775 @@
       "gridPos": {
         "x": 0,
         "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator=\"gpu-primary\"}[4h]) or on() vector(0)",
+          "legendFormat": "GPU primary",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "GPU secondary · 4h slot duty cycle",
+      "description": "Four-hour average of accelerator:slot_duty_cycle:ratio, in-flight requests divided by serving slots: red below 50%, yellow from 50%, green from 75%. A missing series shows 0.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator=\"gpu-secondary\"}[4h]) or on() vector(0)",
+          "legendFormat": "GPU secondary",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Mac primary · 4h slot duty cycle",
+      "description": "Four-hour average of accelerator:slot_duty_cycle:ratio, in-flight requests divided by serving slots: red below 50%, yellow from 50%, green from 75%. A missing series shows 0. This lane has no engine in-flight metric yet, so its GPU active ratio stands in (provenance proxy).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator=\"mac-primary\"}[4h]) or on() vector(0)",
+          "legendFormat": "Mac primary",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "All lanes · 4h slot duty cycle",
+      "description": "Four-hour average of accelerator:slot_utilization:ratio, the lane slot duty cycles weighted by each lane's share of total context capacity (serving slots times context tokens per slot): red below 50%, yellow from 50%, green from 75%. A lane with no duty cycle series counts as 0. A missing series shows 0.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:slot_utilization:ratio[4h]) or on() vector(0)",
+          "legendFormat": "All lanes",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "VRAM utilization per accelerator",
+      "description": "Recorded VRAM utilization per accelerator (accelerator:vram_utilization:ratio): GPU framebuffer used over used plus free, and Mac memory used over total. Reference metric beside the slot duty cycle KPI.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "noValue": "No VRAM samples",
+          "custom": {
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * accelerator:vram_utilization:ratio{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}}",
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Total tokens/s · 1h mean",
+      "description": "Recorded prompt plus generated tokens per second per accelerator over the trailing hour (accelerator:total_tokens_per_second:rate1h). Reference metric beside the slot duty cycle KPI.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:tok/s",
+          "min": 0,
+          "noValue": "No recorded token rate"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:total_tokens_per_second:rate1h{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Total tokens/s · 4h mean",
+      "description": "Recorded prompt plus generated tokens per second per accelerator over the trailing four hours (accelerator:total_tokens_per_second:rate4h). Reference metric beside the slot duty cycle KPI.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 13,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:tok/s",
+          "min": 0,
+          "noValue": "No recorded token rate"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:total_tokens_per_second:rate4h{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Total tokens/s · 12h mean",
+      "description": "Recorded prompt plus generated tokens per second per accelerator over the trailing 12 hours (accelerator:total_tokens_per_second:rate12h). Reference metric beside the slot duty cycle KPI.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:tok/s",
+          "min": 0,
+          "noValue": "No recorded token rate"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:total_tokens_per_second:rate12h{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Total tokens/s · 24h mean",
+      "description": "Recorded prompt plus generated tokens per second per accelerator over the trailing 24 hours (accelerator:total_tokens_per_second:rate24h). Reference metric beside the slot duty cycle KPI.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 13,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:tok/s",
+          "min": 0,
+          "noValue": "No recorded token rate"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu-secondary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mac-primary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "accelerator:total_tokens_per_second:rate24h{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}",
+          "legendFormat": "{{accelerator}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "GPU primary · 4h token utilization (secondary)",
+      "description": "Four-hour average of accelerator:token_utilization:ratio, the recorded one-hour generation rate divided by the maximum generation rate: red below 50%, yellow from 50%, green from 75%. Values may exceed 100%. A missing series shows 0. Secondary signal: slot duty cycle is the primary utilization KPI.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
         "w": 8,
         "h": 5
       },
@@ -91,17 +860,17 @@
       ]
     },
     {
-      "id": 2,
+      "id": 17,
       "type": "stat",
-      "title": "GPU secondary · 4h token utilization",
-      "description": "Four-hour average of accelerator:token_utilization:ratio, the recorded one-hour generation rate divided by the maximum generation rate: red below 50%, yellow from 50%, green from 75%. Values may exceed 100%. A missing series shows 0.",
+      "title": "GPU secondary · 4h token utilization (secondary)",
+      "description": "Four-hour average of accelerator:token_utilization:ratio, the recorded one-hour generation rate divided by the maximum generation rate: red below 50%, yellow from 50%, green from 75%. Values may exceed 100%. A missing series shows 0. Secondary signal: slot duty cycle is the primary utilization KPI.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 8,
-        "y": 0,
+        "y": 18,
         "w": 8,
         "h": 5
       },
@@ -160,17 +929,17 @@
       ]
     },
     {
-      "id": 3,
+      "id": 18,
       "type": "stat",
-      "title": "Mac primary · 4h token utilization",
-      "description": "Four-hour average of accelerator:token_utilization:ratio, the recorded one-hour generation rate divided by the maximum generation rate: red below 50%, yellow from 50%, green from 75%. Values may exceed 100%. A missing series shows 0.",
+      "title": "Mac primary · 4h token utilization (secondary)",
+      "description": "Four-hour average of accelerator:token_utilization:ratio, the recorded one-hour generation rate divided by the maximum generation rate: red below 50%, yellow from 50%, green from 75%. Values may exceed 100%. A missing series shows 0. Secondary signal: slot duty cycle is the primary utilization KPI.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
       },
       "gridPos": {
         "x": 16,
-        "y": 0,
+        "y": 18,
         "w": 8,
         "h": 5
       },
@@ -239,7 +1008,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 23,
         "w": 16,
         "h": 9
       },
@@ -368,7 +1137,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 5,
+        "y": 23,
         "w": 8,
         "h": 9
       },
@@ -469,7 +1238,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 32,
         "w": 6,
         "h": 8
       },
@@ -524,7 +1293,7 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 14,
+        "y": 32,
         "w": 6,
         "h": 8
       },
@@ -579,7 +1348,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 14,
+        "y": 32,
         "w": 6,
         "h": 8
       },
@@ -633,7 +1402,7 @@
       },
       "gridPos": {
         "x": 18,
-        "y": 14,
+        "y": 32,
         "w": 6,
         "h": 8
       },

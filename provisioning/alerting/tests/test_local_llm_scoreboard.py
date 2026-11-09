@@ -9,6 +9,7 @@ import pytest
 
 LANES = ("gpu-primary", "gpu-secondary", "mac-primary")
 LANE_MATCHER = 'accelerator=~"gpu-primary|gpu-secondary|mac-primary"'
+TOKEN_RATE_WINDOWS = ("1h", "4h", "12h", "24h")
 DATASOURCE = {"type": "prometheus", "uid": "victoriametrics"}
 DASHBOARD = (
     Path(__file__).resolve().parents[3] / "dashboards" / "local-llm-scoreboard.json"
@@ -47,11 +48,11 @@ def local_model_regex():
 
 
 @pytest.mark.parametrize("lane", LANES)
-def test_headline_token_utilization_reads_zero_for_a_missing_lane(panels, lane):
+def test_headline_slot_duty_cycle_reads_zero_for_a_missing_lane(panels, lane):
     # The lane series keeps its accelerator label, so only on() stops vector(0)
     # from adding a second, zero-valued series when the lane is present.
     expression = (
-        "100 * avg_over_time(accelerator:token_utilization:ratio"
+        "100 * avg_over_time(accelerator:slot_duty_cycle:ratio"
         f'{{accelerator="{lane}"}}[4h]) or on() vector(0)'
     )
     matches = [
@@ -73,6 +74,108 @@ def test_headline_token_utilization_reads_zero_for_a_missing_lane(panels, lane):
         {"color": "yellow", "value": 50},
         {"color": "green", "value": 75},
     ]
+
+
+def test_headline_lane_stats_keep_their_panel_ids(panels):
+    ids = {
+        re.search(r'accelerator="([^"]+)"', target["expr"])[1]: panel["id"]
+        for panel in panels
+        for target in panel["targets"]
+        if "accelerator:slot_duty_cycle:ratio" in target["expr"]
+    }
+    assert ids == {"gpu-primary": 1, "gpu-secondary": 2, "mac-primary": 3}
+
+
+def test_headline_row_ends_with_the_context_weighted_aggregate(panels):
+    panel = titled(panels, "All lanes · 4h slot duty cycle")
+    target, = panel["targets"]
+    assert target["expr"] == (
+        "100 * avg_over_time(accelerator:slot_utilization:ratio[4h]) or on() vector(0)"
+    )
+    assert panel["type"] == "stat"
+    assert target["instant"] is True
+    headline = sorted(
+        (other for other in panels if other["gridPos"]["y"] == 0),
+        key=lambda other: other["gridPos"]["x"],
+    )
+    assert [other["id"] for other in headline] == [1, 2, 3, panel["id"]]
+    assert sum(other["gridPos"]["w"] for other in headline) == 24
+    defaults = panel["fieldConfig"]["defaults"]
+    assert defaults["unit"] == "percent"
+    assert defaults["noValue"] == "0"
+    assert defaults["thresholds"] == headline[0]["fieldConfig"]["defaults"]["thresholds"]
+
+
+def test_vram_row_sits_directly_below_the_headline_row(panels):
+    panel = titled(panels, "VRAM utilization per accelerator")
+    assert panel["type"] == "timeseries"
+    target, = panel["targets"]
+    assert target["expr"] == f"100 * accelerator:vram_utilization:ratio{{{LANE_MATCHER}}}"
+    assert target["instant"] is False
+    assert panel["fieldConfig"]["defaults"]["unit"] == "percent"
+    headline_bottom = max(
+        other["gridPos"]["h"] for other in panels if other["gridPos"]["y"] == 0
+    )
+    assert panel["gridPos"]["y"] == headline_bottom
+    assert panel["gridPos"]["w"] == 24
+
+
+@pytest.mark.parametrize("window", TOKEN_RATE_WINDOWS)
+def test_total_tokens_per_second_row_shows_each_recorded_window(panels, window):
+    panel = titled(panels, f"Total tokens/s · {window} mean")
+    assert panel["type"] == "stat"
+    target, = panel["targets"]
+    assert target["expr"] == (
+        f"accelerator:total_tokens_per_second:rate{window}{{{LANE_MATCHER}}}"
+    )
+    assert target["instant"] is True
+    assert target["legendFormat"] == "{{accelerator}}"
+    assert panel["fieldConfig"]["defaults"]["unit"] == "suffix:tok/s"
+
+
+def test_total_tokens_per_second_row_follows_vram_in_window_order(panels):
+    vram = titled(panels, "VRAM utilization per accelerator")
+    row = [titled(panels, f"Total tokens/s · {window} mean") for window in TOKEN_RATE_WINDOWS]
+    assert {panel["gridPos"]["y"] for panel in row} == {
+        vram["gridPos"]["y"] + vram["gridPos"]["h"]
+    }
+    positions = [panel["gridPos"]["x"] for panel in row]
+    assert positions == sorted(positions)
+    assert sum(panel["gridPos"]["w"] for panel in row) == 24
+
+
+@pytest.mark.parametrize("lane", LANES)
+def test_token_utilization_stays_as_a_secondary_stat_below_the_reference_rows(
+    panels, lane
+):
+    expression = (
+        "100 * avg_over_time(accelerator:token_utilization:ratio"
+        f'{{accelerator="{lane}"}}[4h]) or on() vector(0)'
+    )
+    matches = [
+        (panel, target)
+        for panel in panels
+        for target in panel["targets"]
+        if target["expr"] == expression
+    ]
+    assert len(matches) == 1, f"{lane} needs exactly one secondary token stat"
+    panel, target = matches[0]
+    assert panel["type"] == "stat"
+    assert panel["title"].endswith("token utilization (secondary)")
+    assert target["instant"] is True
+    reference_bottom = max(
+        reference["gridPos"]["y"] + reference["gridPos"]["h"]
+        for reference in (
+            titled(panels, f"Total tokens/s · {window} mean")
+            for window in TOKEN_RATE_WINDOWS
+        )
+    )
+    assert panel["gridPos"]["y"] >= reference_bottom
+
+
+def test_panel_ids_are_unique(panels):
+    ids = [panel["id"] for panel in panels]
+    assert len(ids) == len(set(ids))
 
 
 def test_generation_rate_draws_each_lane_maximum_as_a_dashed_ceiling(panels):

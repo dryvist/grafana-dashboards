@@ -62,7 +62,7 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     lane = uid.removeprefix("accelerator-underutilized-")
     query, threshold = rule["data"]
     assert query["model"]["expr"] == (
-        f'avg_over_time(accelerator:token_utilization:ratio{{accelerator="{lane}"}}[4h])'
+        f'avg_over_time(accelerator:slot_duty_cycle:ratio{{accelerator="{lane}"}}[4h])'
     )
     assert query["datasourceUid"] == "victoriametrics"
     assert query["relativeTimeRange"]["from"] == 14400
@@ -75,10 +75,13 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     assert rule["notification_settings"]["receiver"] == "critical-slack"
     assert rule["notification_settings"]["repeat_interval"] == "4h"
     assert "accelerator" in rule["notification_settings"]["group_by"]
+    assert "slot duty cycle" in rule["annotations"]["summary"]
+    assert "slot duty cycle" in rule["annotations"]["description"]
+    assert "token utilization" not in rule["annotations"]["summary"]
 
 
-def test_token_utilization_is_the_only_underuse_family():
-    """Below-threshold (lt) rules on accelerator: metrics form one family, reading the token KPI."""
+def test_slot_duty_cycle_is_the_only_underuse_family():
+    """Below-threshold (lt) rules on accelerator: metrics form one family, reading the slot duty cycle."""
     families = set()
     underuse_expressions = []
     for path in sorted(ALERTING.glob("*.yml")):
@@ -99,7 +102,8 @@ def test_token_utilization_is_the_only_underuse_family():
     assert families == {"accelerator-token-underuse"}
     assert len(underuse_expressions) == 3
     for expression in underuse_expressions:
-        assert "accelerator:token_utilization:ratio" in expression
+        assert "accelerator:slot_duty_cycle:ratio" in expression
+        assert "accelerator:token_utilization:ratio" not in expression
         assert "accelerator:busy_percent" not in expression
 
 
