@@ -103,6 +103,31 @@ def test_token_utilization_is_the_only_underuse_family():
         assert "accelerator:busy_percent" not in expression
 
 
+def test_retired_underuse_uid_is_deleted_from_the_grafana_database():
+    """Grafana keeps provisioned rules until deleteRules names them."""
+    document = load_provisioning("accelerator-underutilized.yml")
+    deleted = {rule["uid"] for rule in document.get("deleteRules", [])}
+    assert deleted == {"accelerator-underutilized"}
+
+
+def test_delete_rules_target_the_provisioned_org():
+    document = load_provisioning("accelerator-underutilized.yml")
+    assert {rule["orgId"] for rule in document.get("deleteRules", [])} == {
+        group["orgId"] for group in document["groups"]
+    }
+
+
+def test_delete_rules_never_name_a_provisioned_rule_uid():
+    deleted = set()
+    provisioned = set()
+    for path in sorted(ALERTING.glob("*.yml")):
+        document = load_provisioning(path.name)
+        deleted |= {rule["uid"] for rule in document.get("deleteRules", [])}
+        for group in document.get("groups", []):
+            provisioned |= {rule["uid"] for rule in group.get("rules", [])}
+    assert deleted.isdisjoint(provisioned)
+
+
 def test_busy_percent_stat_panels_cover_the_alert_lanes(rules):
     lanes = [
         re.search(r'accelerator="([^"]+)"', rules[uid]["data"][0]["model"]["expr"])[1]
