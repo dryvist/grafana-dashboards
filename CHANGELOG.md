@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/dryvist/grafana-dashboards/compare/v1.29.0...v1.30.0) (2026-11-09)
+
+
+### Features
+
+* **alerting:** alert when router health checks spend paid or subscription quota ([#102](https://github.com/dryvist/grafana-dashboards/issues/102)) ([68e3924](https://github.com/dryvist/grafana-dashboards/commit/68e39245fbc2c9cca1c74127160a77505b127564))
+
 ## [1.29.0](https://github.com/dryvist/grafana-dashboards/compare/v1.28.0...v1.29.0) (2026-11-09)
 
 
