@@ -65,9 +65,9 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
 
 
 def test_token_utilization_is_the_only_underuse_family():
-    """The below-threshold (lt) rules form one family, reading the token KPI."""
+    """Below-threshold (lt) rules on accelerator: metrics form one family, reading the token KPI."""
     families = set()
-    underuse_rules = []
+    underuse_expressions = []
     for path in sorted(ALERTING.glob("*.yml")):
         for group in load_provisioning(path.name).get("groups", []):
             for rule in group.get("rules", []):
@@ -77,13 +77,15 @@ def test_token_utilization_is_the_only_underuse_family():
                     .get("conditions", [{}])[0]
                     .get("evaluator", {})
                 )
-                if evaluator.get("type") == "lt":
+                expression = " ".join(
+                    query["model"].get("expr", "") for query in rule["data"]
+                )
+                if evaluator.get("type") == "lt" and "accelerator:" in expression:
                     families.add(group["name"])
-                    underuse_rules.append(rule)
+                    underuse_expressions.append(expression)
     assert families == {"accelerator-token-underuse"}
-    assert len(underuse_rules) == 3
-    for rule in underuse_rules:
-        expression = rule["data"][0]["model"]["expr"]
+    assert len(underuse_expressions) == 3
+    for expression in underuse_expressions:
         assert "accelerator:token_utilization:ratio" in expression
         assert "accelerator:busy_percent" not in expression
 
