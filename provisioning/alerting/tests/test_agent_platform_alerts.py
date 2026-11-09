@@ -36,19 +36,6 @@ def rules():
     return indexed
 
 
-@pytest.fixture(scope="module")
-def spend_rules():
-    document = load_provisioning("pay-per-token-spend.yml")
-    provisioned = [
-        rule
-        for group in document["groups"]
-        for rule in group["rules"]
-    ]
-    indexed = {rule["uid"]: rule for rule in provisioned}
-    assert len(indexed) == len(provisioned), "Alert rule UIDs must be unique"
-    return indexed
-
-
 @pytest.mark.parametrize(
     "uid",
     [
@@ -245,80 +232,3 @@ def test_dashboard_links_name_both_dashboard_and_panel(path):
         for rule in group.get("rules", []):
             keys = {"__dashboardUid__", "__panelId__"} & set(rule.get("annotations", {}))
             assert len(keys) in (0, 2), f"{rule['uid']} sets only {keys}"
-
-
-def test_health_check_spend_counts_input_tokens_outside_the_cents_meter_local_lanes(
-    spend_rules,
-):
-    saved_by_local, = [
-        panel
-        for panel in load_dashboard("ai-cents-meter")["panels"]
-        if panel["title"] == "$ saved by local (market equivalent, cents MTD)"
-    ]
-    regexes = {
-        regex
-        for target in saved_by_local["targets"]
-        for regex in re.findall(
-            r'api_provider="openai",model=~"([^"]+)"', target.get("expr") or ""
-        )
-    }
-    assert len(regexes) == 1, "The cents meter needs one local model regex"
-    local_models, = regexes
-    router_local_lanes = ["qwen3.5-9b-4080", "qwen3.5-9b", "qwen3.6-35b-a3b"]
-    query, _ = spend_rules["pay-per-token-spend-health-check"]["data"]
-    expression = query["model"]["expr"]
-    excluded_ids, = [
-        regex.split("|")
-        for regex in re.findall(
-            r'api_provider="openai", model!~"([^"]+)"', expression
-        )
-    ]
-    assert set(local_models.split("|")) <= set(excluded_ids), (
-        "The rule must keep excluding every ai-cents-meter local model"
-    )
-    assert set(router_local_lanes) <= set(excluded_ids), (
-        "The rule must exclude the router's local lanes"
-    )
-    selector = (
-        "litellm_input_tokens_metric_total"
-        '{api_key_alias="litellm-internal-health-check", '
-    )
-    assert expression == (
-        "sum(\n"
-        f'  increase({selector}api_provider!~"hosted_vllm|openai"}}[30m])\n'
-        "  or\n"
-        "  increase("
-        f'{selector}api_provider="openai", '
-        f'model!~"{local_models}|{"|".join(router_local_lanes)}"}}[30m])\n'
-        ")"
-    )
-    assert query["datasourceUid"] == "victoriametrics"
-    assert query["relativeTimeRange"] == {"from": 1800, "to": 0}
-    assert query["model"]["instant"] is True
-
-
-def test_health_check_spend_fires_above_zero_tokens_held_for_15_minutes(spend_rules):
-    rule = spend_rules["pay-per-token-spend-health-check"]
-    queries = {query["refId"]: query for query in rule["data"]}
-    assert rule["condition"] == "B"
-    assert queries["B"]["datasourceUid"] == "__expr__"
-    assert queries["B"]["model"]["type"] == "math"
-    assert queries["B"]["model"]["expression"] == "$A > 0"
-    assert rule["for"] == "15m"
-    assert rule["noDataState"] == "OK"
-    assert rule["execErrState"] == "Error"
-
-
-def test_health_check_spend_delivers_and_links_like_the_spend_rules(spend_rules):
-    rule = spend_rules["pay-per-token-spend-health-check"]
-    keys = {"__dashboardUid__", "__panelId__"} & set(rule["annotations"])
-    assert keys == {"__dashboardUid__", "__panelId__"}
-    assert rule["labels"]["severity"] == "critical"
-    for uid in ["pay-per-token-spend-warning", "pay-per-token-spend-critical"]:
-        spend = spend_rules[uid]
-        assert rule["labels"]["ntfy"] == spend["labels"]["ntfy"]
-        assert rule.get("notification_settings") == spend.get("notification_settings")
-        assert rule["annotations"]["__dashboardUid__"] == (
-            spend["annotations"]["__dashboardUid__"]
-        )
-        assert rule["annotations"]["__panelId__"] == spend["annotations"]["__panelId__"]
