@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Local serving lanes gpu-primary, gpu-secondary and mac-primary: token throughput against each lane's maximum generation rate, with GPU duty cycle as a secondary signal. Router requests and output tokens per hour show local (api_provider hosted_vllm) and cloud (every other provider) traffic in separate panels that are never summed. The litellm-internal-health-check team is excluded.",
+  "description": "Local serving lanes gpu-primary, gpu-secondary and mac-primary: token throughput against each lane's maximum generation rate, with GPU duty cycle as a secondary signal. Router requests and output tokens per hour show local (api_provider hosted_vllm, or api_provider openai with a model from the cents meter's local model list) and cloud (everything else) traffic in separate panels that are never summed. The litellm-internal-health-check team is excluded.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 2,
@@ -449,7 +449,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "Local requests per hour",
-      "description": "Router requests over the trailing hour for the local provider, api_provider hosted_vllm, excluding the litellm-internal-health-check team. Shown beside the cloud panel and never summed with it.",
+      "description": "Router requests over the trailing hour for local routes, one series per provider, excluding the litellm-internal-health-check team. Local means api_provider hosted_vllm, or api_provider openai with a model from the local model list the cents meter uses. Shown beside the cloud panel and never summed with it.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -494,7 +494,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (api_provider) (increase(litellm_proxy_total_requests_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1h]))",
+          "expr": "sum by (api_provider) (increase(litellm_proxy_total_requests_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1h]) or increase(litellm_proxy_total_requests_metric_total{api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1h]))",
           "legendFormat": "{{api_provider}}",
           "instant": false
         }
@@ -504,7 +504,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "Cloud requests per hour",
-      "description": "Router requests over the trailing hour for every provider other than hosted_vllm, one series per provider, excluding the litellm-internal-health-check team. Includes MLX routes, which the provider label does not separate from cloud models.",
+      "description": "Router requests over the trailing hour for every route the local panel does not count, one series per provider, excluding the litellm-internal-health-check team: providers other than hosted_vllm and openai, and openai models outside the local model list the cents meter uses.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -549,7 +549,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (api_provider) (increase(litellm_proxy_total_requests_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1h]))",
+          "expr": "sum by (api_provider) (increase(litellm_proxy_total_requests_metric_total{api_provider!~\"hosted_vllm|openai\",team!=\"litellm-internal-health-check\"}[1h]) or increase(litellm_proxy_total_requests_metric_total{api_provider=\"openai\",model!~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1h]))",
           "legendFormat": "{{api_provider}}",
           "instant": false
         }
@@ -559,7 +559,7 @@
       "id": 8,
       "type": "timeseries",
       "title": "Local output tokens per hour",
-      "description": "Router output tokens over the trailing hour for the local provider, api_provider hosted_vllm, excluding the litellm-internal-health-check team. Shown beside the cloud panel and never summed with it.",
+      "description": "Router output tokens over the trailing hour for local routes, one series per provider, excluding the litellm-internal-health-check team. Local means api_provider hosted_vllm, or api_provider openai with a model from the local model list the cents meter uses. Shown beside the cloud panel and never summed with it.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -603,7 +603,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (api_provider) (increase(litellm_output_tokens_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1h]))",
+          "expr": "sum by (api_provider) (increase(litellm_output_tokens_metric_total{api_provider=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1h]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model=~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1h]))",
           "legendFormat": "{{api_provider}}",
           "instant": false
         }
@@ -613,7 +613,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "Cloud output tokens per hour",
-      "description": "Router output tokens over the trailing hour for every provider other than hosted_vllm, one series per provider, excluding the litellm-internal-health-check team. Includes MLX routes, which the provider label does not separate from cloud models.",
+      "description": "Router output tokens over the trailing hour for every route the local panel does not count, one series per provider, excluding the litellm-internal-health-check team: providers other than hosted_vllm and openai, and openai models outside the local model list the cents meter uses.",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
@@ -657,7 +657,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (api_provider) (increase(litellm_output_tokens_metric_total{api_provider!=\"hosted_vllm\",team!=\"litellm-internal-health-check\"}[1h]))",
+          "expr": "sum by (api_provider) (increase(litellm_output_tokens_metric_total{api_provider!~\"hosted_vllm|openai\",team!=\"litellm-internal-health-check\"}[1h]) or increase(litellm_output_tokens_metric_total{api_provider=\"openai\",model!~\"mlx-community/.*|nativ-community/.*|manjunathshiva/opendecider-nano|convaiinnovations/laya-typed-decisions|qwen3-4b|embeddings|bge-m3|bge-reranker-v2-m3\",team!=\"litellm-internal-health-check\"}[1h]))",
           "legendFormat": "{{api_provider}}",
           "instant": false
         }

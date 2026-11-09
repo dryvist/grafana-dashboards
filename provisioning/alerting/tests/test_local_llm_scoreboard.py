@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 
 import pytest
 
@@ -11,6 +12,9 @@ LANE_MATCHER = 'accelerator=~"gpu-primary|gpu-secondary|mac-primary"'
 DATASOURCE = {"type": "prometheus", "uid": "victoriametrics"}
 DASHBOARD = (
     Path(__file__).resolve().parents[3] / "dashboards" / "local-llm-scoreboard.json"
+)
+CENTS_METER = (
+    Path(__file__).resolve().parents[3] / "dashboards" / "ai-cents-meter.json"
 )
 
 
@@ -23,6 +27,23 @@ def titled(panels, title):
     matches = [panel for panel in panels if panel["title"] == title]
     assert len(matches) == 1, f"Provide one {title!r} panel"
     return matches[0]
+
+
+@pytest.fixture(scope="module")
+def local_model_regex():
+    saved_by_local = titled(
+        json.loads(CENTS_METER.read_text())["panels"],
+        "$ saved by local (market equivalent, cents MTD)",
+    )
+    regexes = {
+        regex
+        for target in saved_by_local["targets"]
+        for regex in re.findall(
+            r'api_provider="openai",model=~"([^"]+)"', target.get("expr") or ""
+        )
+    }
+    assert len(regexes) == 1, "The cents meter needs one local model regex"
+    return regexes.pop()
 
 
 @pytest.mark.parametrize("lane", LANES)
@@ -88,15 +109,26 @@ def test_duty_cycle_is_the_secondary_busy_panel(panels):
         ("output tokens", "litellm_output_tokens_metric_total"),
     ],
 )
-def test_router_traffic_keeps_local_and_cloud_providers_side_by_side(panels, noun, metric):
+def test_router_traffic_splits_local_and_cloud_like_the_cents_meter(
+    panels, local_model_regex, noun, metric
+):
     local = titled(panels, f"Local {noun} per hour")
     cloud = titled(panels, f"Cloud {noun} per hour")
-    for panel, operator in ((local, "="), (cloud, "!=")):
+    local_routes = (
+        'api_provider="hosted_vllm"',
+        f'api_provider="openai",model=~"{local_model_regex}"',
+    )
+    cloud_routes = (
+        'api_provider!~"hosted_vllm|openai"',
+        f'api_provider="openai",model!~"{local_model_regex}"',
+    )
+    for panel, routes in ((local, local_routes), (cloud, cloud_routes)):
         target, = panel["targets"]
-        assert target["expr"] == (
-            f"sum by (api_provider) (increase({metric}{{api_provider{operator}"
-            '"hosted_vllm",team!="litellm-internal-health-check"}[1h]))'
+        terms = " or ".join(
+            f'increase({metric}{{{route},team!="litellm-internal-health-check"}}[1h])'
+            for route in routes
         )
+        assert target["expr"] == f"sum by (api_provider) ({terms})"
     assert cloud["gridPos"]["y"] == local["gridPos"]["y"]
     assert cloud["gridPos"]["x"] == local["gridPos"]["x"] + local["gridPos"]["w"]
 
