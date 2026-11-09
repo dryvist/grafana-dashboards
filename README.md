@@ -52,6 +52,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
 | `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
 | [llm-serving-benchmarks.json][bench] | `llm-serving-benchmarks` |
+| `dashboards/local-llm-scoreboard.json` | `local-llm-scoreboard` |
 | `dashboards/homelab-overview.json` | `homelab-overview` |
 | `dashboards/storage-capacity.json` | `storage-capacity` |
 | `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
