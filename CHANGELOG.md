@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0](https://github.com/dryvist/grafana-dashboards/compare/v1.31.0...v1.32.0) (2026-11-09)
+
+
+### Features
+
+* **dashboards:** add local LLM KPI trends dashboard ([#106](https://github.com/dryvist/grafana-dashboards/issues/106)) ([6e6d921](https://github.com/dryvist/grafana-dashboards/commit/6e6d9219355be203fd3fe47d4ea7437fb1c66ef0))
+
 ## [1.31.0](https://github.com/dryvist/grafana-dashboards/compare/v1.30.0...v1.31.0) (2026-11-09)
 
 
