@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0](https://github.com/dryvist/grafana-dashboards/compare/v1.30.0...v1.31.0) (2026-11-09)
+
+
+### Features
+
+* **alerting:** alert when the catalog agents have no runs for six hours ([#100](https://github.com/dryvist/grafana-dashboards/issues/100)) ([2db7cde](https://github.com/dryvist/grafana-dashboards/commit/2db7cde5ead5e527d73d9643a4c9548770fde760))
+
 ## [1.30.0](https://github.com/dryvist/grafana-dashboards/compare/v1.29.0...v1.30.0) (2026-11-09)
 
 
