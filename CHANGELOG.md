@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0](https://github.com/dryvist/grafana-dashboards/compare/v1.27.0...v1.28.0) (2026-11-09)
+
+
+### Features
+
+* **dashboards:** add agent completion KPI panels ([#95](https://github.com/dryvist/grafana-dashboards/issues/95)) ([8438a42](https://github.com/dryvist/grafana-dashboards/commit/8438a4219ad2fa8aff852ea5996de4a94b9afa39))
+
 ## [1.27.0](https://github.com/dryvist/grafana-dashboards/compare/v1.26.5...v1.27.0) (2026-11-08)
 
 
