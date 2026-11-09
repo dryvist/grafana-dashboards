@@ -8,7 +8,7 @@ groups:
     interval: 1m
     rules:
       - uid: catalog-agent-run-silence
-        title: Catalog agent has had no runs in six hours
+        title: Catalog agents have had no runs in six hours
         condition: B
         data:
           - refId: A
@@ -17,11 +17,14 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
-              # Same run count, agent grouping and health-check exclusion as
-              # the gpu-hardware "Router requests by key alias" agent
-              # completion panel, narrowed to the six-hour silence window.
+              # All catalog agents run through Dify and share the dify
+              # api_key_alias; the metrics expose no per-agent run series, so
+              # one aggregate covers their shared router path. or vector(0)
+              # makes a silent path return 0 instead of no data, which would
+              # take the OK noDataState path and never fire.
               expr: >-
-                sum by (api_key_alias) (increase(litellm_proxy_total_requests_metric_total{team!="litellm-internal-health-check"}[6h]))
+                sum(increase(litellm_proxy_total_requests_metric_total{api_key_alias="dify", team!="litellm-internal-health-check"}[6h]))
+                or vector(0)
               instant: true
               refId: A
           - refId: B
@@ -48,17 +51,13 @@ groups:
           ntfy: "true"
         annotations:
           monitored_agents: >-
-            Cataloged router api_key_alias agents surfaced by the
-            "Router requests by key alias" panel. The panel data exposes no
-            per-agent design interval, so the rule covers that group as the
-            set expected to run at least every six hours and excludes the
-            litellm-internal-health-check team.
+            All catalog agents, which run through the shared dify
+            api_key_alias; the metrics expose no per-agent run series yet.
           summary: >-
-            Catalog agent {{ $labels.api_key_alias }} has had no runs in six hours
+            Catalog agents' shared Dify router path has recorded no requests in six hours
           description: >-
-            The cataloged agent api_key_alias {{ $labels.api_key_alias }}
-            recorded fewer than one router request in six hours.
-            See /d/gpu-hardware.
+            The catalog agents' shared Dify router path (api_key_alias dify)
+            recorded no requests in six hours. See /d/gpu-hardware.
           __dashboardUid__: gpu-hardware
           __panelId__: "31"
         notification_settings:
@@ -66,5 +65,4 @@ groups:
           group_by:
             - grafana_folder
             - alertname
-            - api_key_alias
-          repeat_interval: 4h
+          repeat_interval: 24h

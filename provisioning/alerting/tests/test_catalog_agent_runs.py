@@ -32,16 +32,22 @@ def rule():
     return rules[0]
 
 
-def test_silence_counts_panel_runs_per_agent_over_six_hours(rule):
+def test_silence_counts_the_shared_dify_path_over_six_hours(rule):
     query, threshold = rule["data"]
     expression = query["model"]["expr"]
     match = re.fullmatch(
-        r"sum by \(api_key_alias\) \(increase\("
-        r"litellm_proxy_total_requests_metric_total\{team!=\"([^\"]+)\"\}\[6h\]\)\)",
+        r"sum\(increase\("
+        r"litellm_proxy_total_requests_metric_total\{"
+        r'api_key_alias="([^"]+)", team!="([^"]+)"'
+        r"\}\[6h\]\)\) or vector\(0\)",
         expression,
     )
-    assert match, "Use the agent completion panel's run count over the 6h window"
-    assert match[1] == "litellm-internal-health-check"
+    assert match, "Sum the shared catalog agents' path over the 6h window"
+    assert match[1] == "dify"
+    assert match[2] == "litellm-internal-health-check"
+    assert " or vector(0)" in expression, (
+        "A silent path must return 0 instead of no data, which never fires"
+    )
     assert query["datasourceUid"] == "victoriametrics"
     assert query["relativeTimeRange"]["from"] == 21600
     assert query["model"]["instant"] is True
@@ -54,31 +60,16 @@ def test_silence_counts_panel_runs_per_agent_over_six_hours(rule):
     assert rule["execErrState"] == "Error"
 
 
-def test_silence_query_and_panel_share_metric_grouping_and_exclusion(rule):
-    query, _ = rule["data"]
-    alert_expression = query["model"]["expr"]
-    panel, target = next(
-        (panel, target)
-        for panel in load_dashboard("gpu-hardware")["panels"]
-        for target in panel.get("targets", [])
-        if panel["title"] == "Router requests by key alias · 24h"
-    )
-    window = r"\[(?:\d+[dhm])+\]"
-    panel_shape = re.fullmatch(
-        r"sum by \(api_key_alias\) \(increase\("
-        r"litellm_proxy_total_requests_metric_total\{[^}]+\}" + window + r"\)\)",
-        target["expr"],
-    )
-    alert_shape = re.fullmatch(
-        r"sum by \(api_key_alias\) \(increase\("
-        r"litellm_proxy_total_requests_metric_total\{[^}]+\}" + window + r"\)\)",
-        alert_expression,
-    )
-    assert panel_shape and alert_shape, (
-        "Alert and panel must keep the same metric, agent grouping and matcher shape"
-    )
-    assert panel["datasource"]["uid"] == query["datasourceUid"]
-    assert panel["type"] == "bargauge"
+def test_silence_names_the_shared_dify_path_and_its_scope(rule):
+    annotations = rule["annotations"]
+    assert "Dify router path" in annotations["summary"]
+    assert "six hours" in annotations["summary"]
+    assert "Dify router path" in annotations["description"]
+    assert "six hours" in annotations["description"]
+    monitored = annotations["monitored_agents"]
+    assert "All catalog agents" in monitored
+    assert "api_key_alias" in monitored
+    assert "no per-agent run series" in monitored
 
 
 def test_silence_links_to_the_agent_completion_panel(rule):
@@ -96,22 +87,13 @@ def test_silence_links_to_the_agent_completion_panel(rule):
     )
 
 
-def test_silence_names_the_agent_and_the_six_hour_group(rule):
-    annotations = rule["annotations"]
-    assert "$labels.api_key_alias" in annotations["summary"]
-    assert "$labels.api_key_alias" in annotations["description"]
-    monitored = annotations["monitored_agents"]
-    assert "api_key_alias" in monitored
-    assert "litellm-internal-health-check" in monitored
-    assert "six hours" in monitored
-
-
-def test_silence_keeps_critical_delivery_per_agent(rule):
+def test_silence_keeps_critical_delivery_without_per_alias_grouping(rule):
     assert rule["labels"] == {"severity": "critical", "ntfy": "true"}
     settings = rule["notification_settings"]
     assert settings["receiver"] == "critical-slack"
-    assert settings["repeat_interval"] == "4h"
-    assert "api_key_alias" in settings["group_by"]
+    assert settings["repeat_interval"] == "24h"
+    assert settings["group_by"] == ["grafana_folder", "alertname"]
+    assert "api_key_alias" not in settings["group_by"]
     contact_points = {
         point["name"]
         for point in load_provisioning("critical-slack-contact-point.yml")["contactPoints"]
