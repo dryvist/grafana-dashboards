@@ -1,0 +1,73 @@
+# Grafana file-provisioned alert rule (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: accelerator-ratio-drift
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: accelerator-ratio-drift
+        title: Accelerator KPI ratio exceeded 1.0 for 10 minutes
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Source: dryvist/prometheus-homelab-rules, rules/accelerator_slots.yml
+              # (slot duty cycle per accelerator, fleet slot utilization); the token
+              # and VRAM utilization ratios are recorded in the same repository.
+              # Every recorded accelerator:*:ratio series is a per-slot KPI, so a
+              # value above 1.0 means the serving_slots constant behind the ratio
+              # has drifted from the engine's real configuration. The ratio is
+              # never clamped: above 1.0 is exactly the drift signal. label_replace
+              # copies __name__ into kpi because Grafana drops __name__ from the
+              # instance labels the summary templates read.
+              expr: >-
+                label_replace(
+                  max_over_time(
+                    {__name__=~"accelerator:(slot_duty_cycle|slot_utilization|token_utilization|vram_utilization):ratio"}[10m]
+                  ),
+                  "kpi", "$1", "__name__", "(.*)"
+                )
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 1.0
+              refId: B
+        for: 10m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            {{ $labels.kpi }} exceeded 1.0 on {{ if $labels.accelerator }}accelerator
+            {{ $labels.accelerator }}{{ else }}the fleet{{ end }} for 10 minutes; check
+            accelerator:serving_slots against the engine's max_num_seqs or parallel setting
+          description: >-
+            The 10-minute maximum of {{ $labels.kpi }} stayed above 1.0, so the
+            recorded slot-count constant behind the ratio no longer matches the
+            engine's real configuration.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - accelerator
+          repeat_interval: 4h
