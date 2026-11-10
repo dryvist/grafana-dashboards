@@ -1,0 +1,180 @@
+# Grafana file-provisioned ZFS capacity alert rules (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: zfs-pool-used-ratio
+    folder: Alerting
+    interval: 1m
+    rules:
+      - &pool-used-warning
+        uid: zfs-pool-used-warning
+        title: ZFS pool used ratio above 80% for 15 minutes
+        condition: B
+        data:
+          - &pool-used-query
+            refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Source: dashboards/storage-capacity.json, Pool capacity panel.
+              expr: >-
+                1 - pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
+                / (pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
+                + pve_zfs_dataset_used_bytes{dataset!~".*/.*"})
+              instant: true
+              refId: A
+          - &pool-free-query
+            refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: >-
+                pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
+              instant: true
+              refId: C
+          - &pool-used-threshold
+            refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.80
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            ZFS pool {{ $labels.dataset }} on {{ $labels.instance }} is
+            {{ humanizePercentage $values.B.Value }} full with
+            {{ humanize1024 $values.C.Value }} free
+          description: >-
+            The used ratio 1 - available / (available + used) of ZFS pool
+            {{ $labels.dataset }} on {{ $labels.instance }} has exceeded the
+            0.80 warning threshold for 15 minutes;
+            {{ humanize1024 $values.C.Value }} of pool capacity remains free.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - instance
+            - dataset
+          repeat_interval: 12h
+      - <<: *pool-used-warning
+        uid: zfs-pool-used-critical
+        title: ZFS pool used ratio above 90% for 15 minutes
+        data:
+          - *pool-used-query
+          - *pool-free-query
+          - <<: *pool-used-threshold
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.90
+              refId: B
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          summary: >-
+            ZFS pool {{ $labels.dataset }} on {{ $labels.instance }} is
+            {{ humanizePercentage $values.B.Value }} full with
+            {{ humanize1024 $values.C.Value }} free
+          description: >-
+            The used ratio 1 - available / (available + used) of ZFS pool
+            {{ $labels.dataset }} on {{ $labels.instance }} has exceeded the
+            0.90 critical threshold for 15 minutes;
+            {{ humanize1024 $values.C.Value }} of pool capacity remains free.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - instance
+            - dataset
+          repeat_interval: 4h
+  - orgId: 1
+    name: zfs-dataset-quota-headroom
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: zfs-dataset-quota-headroom
+        title: ZFS dataset quota headroom below 50 GiB for 15 minutes
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Source: dashboards/storage-capacity.json, Datasets panel.
+              # Pool-root series carry dataset without a slash; group_left
+              # matches every child dataset against its one pool root and
+              # keeps the dataset's available bytes as the result value.
+              expr: >-
+                pve_zfs_dataset_available_bytes{dataset=~".*/.*"}
+                < on (instance, pool) group_left
+                pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              # A dataset past its refquota can report negative available
+              # bytes, which a numeric existence floor would drop.
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 53687091200
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            ZFS dataset {{ $labels.dataset }} on {{ $labels.instance }} has
+            {{ humanize1024 $values.A.Value }} free (quota-limited)
+          description: >-
+            The available bytes of ZFS dataset {{ $labels.dataset }} on
+            {{ $labels.instance }} have stayed below its pool's available
+            bytes and under the 53687091200-byte (50 GiB) headroom threshold
+            for 15 minutes; the dataset cannot spend the pool's remaining
+            space.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - instance
+            - dataset
+          repeat_interval: 12h
