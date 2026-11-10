@@ -428,11 +428,34 @@
       ]
     },
     {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Dataset available bytes over time",
+      "description": "Per-dataset available bytes over the dashboard time range; the series the quota-headroom alert watches for fewer than 50 GiB free. Needs the pve_zfs_dataset_* series, which some nodes do not export.",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "gridPos": {"x": 0, "y": 69, "w": 18, "h": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "No dataset metrics on this node (pve_zfs_dataset_* not exported)",
+          "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": false}
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {"calcs": ["lastNotNull", "min"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"refId": "A", "datasource": {"type": "prometheus", "uid": "victoriametrics"}, "editorMode": "code", "instant": false, "range": true, "legendFormat": "{{instance}} {{pool}} {{dataset}}", "expr": "pve_zfs_dataset_available_bytes{instance=~\"$node(:.*)?\",pool=~\"$pool\"}"}
+      ]
+    },
+    {
       "id": 23,
       "type": "row",
       "title": "SMART drive health",
       "collapsed": false,
-      "gridPos": {"x": 0, "y": 69, "w": 24, "h": 1},
+      "gridPos": {"x": 0, "y": 78, "w": 24, "h": 1},
       "panels": []
     },
     {
@@ -441,7 +464,7 @@
       "title": "SMART summary per drive",
       "description": "Per node and drive: healthy flag, temperature, power-on hours, and the pending, reallocated and offline-uncorrectable sector counts. Non-zero sector counts turn red.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 0, "y": 70, "w": 24, "h": 10},
+      "gridPos": {"x": 0, "y": 79, "w": 24, "h": 10},
       "fieldConfig": {
         "defaults": {"noValue": "No SMART samples", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
         "overrides": [
@@ -473,7 +496,7 @@
       "title": "Drive inventory",
       "description": "Model and serial number per drive, from the smartmon device info series.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 0, "y": 80, "w": 12, "h": 7},
+      "gridPos": {"x": 0, "y": 89, "w": 12, "h": 7},
       "fieldConfig": {
         "defaults": {"noValue": "No SMART device info", "custom": {"align": "auto", "cellOptions": {"type": "auto"}}},
         "overrides": []
@@ -492,7 +515,7 @@
       "title": "Drives failing SMART",
       "description": "Drives whose SMART health flag reads failed.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 12, "y": 80, "w": 4, "h": 7},
+      "gridPos": {"x": 12, "y": 89, "w": 4, "h": 7},
       "fieldConfig": {
         "defaults": {"unit": "short", "noValue": "No SMART samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}},
         "overrides": []
@@ -508,7 +531,7 @@
       "title": "Hottest drive",
       "description": "Highest drive temperature across the selected nodes and drives.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 16, "y": 80, "w": 4, "h": 7},
+      "gridPos": {"x": 16, "y": 89, "w": 4, "h": 7},
       "fieldConfig": {
         "defaults": {"unit": "celsius", "noValue": "No temperature samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 45}, {"color": "orange", "value": 50}, {"color": "red", "value": 55}]}},
         "overrides": []
@@ -524,7 +547,7 @@
       "title": "Drives reporting",
       "description": "Drives that the smartmon collector reports as active.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 20, "y": 80, "w": 4, "h": 7},
+      "gridPos": {"x": 20, "y": 89, "w": 4, "h": 7},
       "fieldConfig": {
         "defaults": {"unit": "short", "noValue": "No SMART samples", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}},
         "overrides": []
@@ -540,7 +563,7 @@
       "title": "Drive temperature",
       "description": "Drive temperature over the dashboard time range.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 0, "y": 87, "w": 12, "h": 8},
+      "gridPos": {"x": 0, "y": 96, "w": 12, "h": 8},
       "fieldConfig": {
         "defaults": {"unit": "celsius", "min": 0, "noValue": "No temperature samples", "custom": {"drawStyle": "line", "lineWidth": 1, "fillOpacity": 5, "showPoints": "never", "spanNulls": false, "thresholdsStyle": {"mode": "dashed"}}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 50}, {"color": "red", "value": 55}]}},
         "overrides": []
@@ -556,7 +579,7 @@
       "title": "Pending, reallocated, and offline-uncorrectable sectors",
       "description": "Raw sector counts per drive. Any rise means the drive is losing sectors.",
       "datasource": {"type": "prometheus", "uid": "victoriametrics"},
-      "gridPos": {"x": 12, "y": 87, "w": 12, "h": 8},
+      "gridPos": {"x": 12, "y": 96, "w": 12, "h": 8},
       "fieldConfig": {
         "defaults": {"unit": "short", "min": 0, "noValue": "No sector samples", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 5, "showPoints": "auto", "spanNulls": false}},
         "overrides": []

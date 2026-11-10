@@ -24,6 +24,8 @@ groups:
             {{ index $values "C" }}% of cache tokens this window were writes,
             not reads. Check for a mid-session model, effort, or MCP change,
             or a pause exceeding the TTL (see the H1/H5 pause-bucket panel).
+          __dashboardUid__: claude-cache-economics
+          __panelId__: "12"
         data:
           - refId: A
             relativeTimeRange:

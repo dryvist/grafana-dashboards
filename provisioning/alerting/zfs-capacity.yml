@@ -1,0 +1,173 @@
+# Grafana file-provisioned ZFS capacity alert rules (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: zfs-pool-capacity
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: zfs-pool-used-ratio-warning
+        title: ZFS pool used ratio above 80%
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Pool roots are the datasets whose dataset label equals their
+              # pool label, so each result series is one pool's used fraction.
+              expr: >-
+                1
+                - pve_zfs_dataset_available_bytes
+                / (pve_zfs_dataset_available_bytes
+                + pve_zfs_dataset_used_bytes)
+                and on (instance, pool, dataset)
+                label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)")
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.8
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            {{ $labels.instance }} ZFS pool {{ $labels.dataset }} is
+            {{ $values.A.Value | humanizePercentage }} full.
+          description: >-
+            The used ratio of ZFS pool {{ $labels.dataset }} on
+            {{ $labels.instance }} has been above 0.8 for 15 minutes.
+          __dashboardUid__: storage-capacity
+          __panelId__: "4"
+      - uid: zfs-pool-used-ratio-critical
+        title: ZFS pool used ratio above 90%
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: >-
+                1
+                - pve_zfs_dataset_available_bytes
+                / (pve_zfs_dataset_available_bytes
+                + pve_zfs_dataset_used_bytes)
+                and on (instance, pool, dataset)
+                label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)")
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.9
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          summary: >-
+            {{ $labels.instance }} ZFS pool {{ $labels.dataset }} is
+            {{ $values.A.Value | humanizePercentage }} full.
+          description: >-
+            The used ratio of ZFS pool {{ $labels.dataset }} on
+            {{ $labels.instance }} has been above 0.9 for 15 minutes.
+          __dashboardUid__: storage-capacity
+          __panelId__: "4"
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - instance
+            - dataset
+          repeat_interval: 4h
+  - orgId: 1
+    name: zfs-dataset-headroom
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: zfs-dataset-quota-headroom-low
+        title: Quota-limited ZFS dataset has less than 50 GiB free
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Child datasets (names with a slash) keep fewer available bytes
+              # than their pool root only when the dataset quota or refquota,
+              # not the pool, is the binding limit. group_left keeps the child
+              # series' dataset label on the result, and the root side matches
+              # the series whose dataset label equals its pool label.
+              expr: >-
+                pve_zfs_dataset_available_bytes{dataset=~".*/.*"}
+                < on (instance, pool) group_left()
+                (pve_zfs_dataset_available_bytes
+                and on (instance, pool, dataset)
+                label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)"))
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 53687091200
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            {{ $labels.instance }} ZFS dataset {{ $labels.dataset }} has
+            {{ $values.A.Value | humanizeBytes }} free.
+          description: >-
+            The quota-limited dataset {{ $labels.dataset }} on
+            {{ $labels.instance }} has had less than 50 GiB available for
+            15 minutes, with fewer available bytes than its pool root.
+          __dashboardUid__: storage-capacity
+          __panelId__: "31"

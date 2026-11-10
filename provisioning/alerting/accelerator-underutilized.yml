@@ -55,6 +55,8 @@ groups:
             {{ $labels.accelerator }} slot duty cycle 4-hour average is below 50%
           description: >-
             The 4-hour average slot duty cycle (accelerator:slot_duty_cycle:ratio) of {{ $labels.accelerator }} has been below 0.5.
+          __dashboardUid__: llm-serving-signals
+          __panelId__: "1"
         notification_settings:
           receiver: critical-slack
           group_by:
@@ -130,6 +132,8 @@ groups:
             {{ $labels.accelerator }} token utilization KPI is absent for 30 minutes
           description: >-
             The serving lane has no accelerator:token_utilization:ratio samples in the last 30 minutes.
+          __dashboardUid__: gpu-hardware
+          __panelId__: "20"
   - orgId: 1
     name: accelerator-busy-kpi
     folder: Alerting
@@ -155,6 +159,8 @@ groups:
             {{ $labels.accelerator }} busy percent KPI is absent for 30 minutes
           description: >-
             The serving lane has no accelerator:busy_percent:avg5m samples in the last 30 minutes.
+          __dashboardUid__: gpu-hardware
+          __panelId__: "19"
   - orgId: 1
     name: router-saturation
     folder: Alerting
@@ -188,6 +194,8 @@ groups:
           summary: Router HTTP 429 responses exceed the configured rate threshold
           description: >-
             The 5-minute HTTP 429 response rate exceeds the threshold input in data.B.model.conditions[0].evaluator.params[0].
+          __dashboardUid__: local-llm-kpi-trends
+          __panelId__: "7"
   - orgId: 1
     name: serving-queue
     folder: Alerting
@@ -214,6 +222,8 @@ groups:
           summary: Total waiting requests across instrumented serving lanes is at least 120
           description: >-
             Total llm:requests_waiting across all serving lanes has reached 120.
+          __dashboardUid__: llm-serving-signals
+          __panelId__: "3"
       - <<: *critical-alert
         uid: serving-queue-growing
         title: Serving queue arrivals outpace completions over 15 minutes
@@ -232,3 +242,5 @@ groups:
           summary: Total serving queue grows for 15 minutes
           description: >-
             The 5-minute slope of total llm:requests_waiting across all serving lanes stays positive for 15 minutes.
+          __dashboardUid__: llm-serving-signals
+          __panelId__: "3"

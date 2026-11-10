@@ -1,0 +1,148 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 42,
+  "tags": ["llm", "accelerators", "alerting"],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Slot duty cycle per serving lane",
+      "description": "accelerator:slot_duty_cycle:ratio per serving lane over the dashboard time range; the series the underuse alerts average over 4 hours against the 50% threshold.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "noValue": "No slot duty cycle samples",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": false,
+            "thresholdsStyle": { "mode": "dashed" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{accelerator}}",
+          "expr": "accelerator:slot_duty_cycle:ratio{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Utilization KPI ratios per accelerator",
+      "description": "The four recorded utilization ratios (slot duty cycle, slot utilization, token utilization, VRAM utilization) over the dashboard time range. A ratio above 1.0, or sustained drift between KPIs, means the accelerator:serving_slots constant no longer matches the engine's real configuration; the ratio-drift alert watches their 10-minute maximum.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "noValue": "No utilization KPI samples",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": false,
+            "thresholdsStyle": { "mode": "dashed" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "slot_duty_cycle {{accelerator}}",
+          "expr": "label_replace(accelerator:slot_duty_cycle:ratio, \"kpi\", \"slot_duty_cycle\", \"\", \"\")"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "slot_utilization {{accelerator}}",
+          "expr": "label_replace(accelerator:slot_utilization:ratio, \"kpi\", \"slot_utilization\", \"\", \"\")"
+        },
+        {
+          "refId": "C",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "token_utilization {{accelerator}}",
+          "expr": "label_replace(accelerator:token_utilization:ratio, \"kpi\", \"token_utilization\", \"\", \"\")"
+        },
+        {
+          "refId": "D",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "vram_utilization {{accelerator}}",
+          "expr": "label_replace(accelerator:vram_utilization:ratio, \"kpi\", \"vram_utilization\", \"\", \"\")"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Waiting requests across serving lanes",
+      "description": "llm:requests_waiting summed across instrumented serving lanes, with its 5-minute slope; the two series the serving-queue alerts evaluate against the 120-request threshold and the positive-slope condition.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0, "noValue": "No llm:requests_waiting samples" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "total waiting",
+          "expr": "sum(llm:requests_waiting)"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "5m slope",
+          "expr": "deriv(sum(llm:requests_waiting)[5m:1m])"
+        }
+      ]
+    }
+  ],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LLM Serving — alert signals",
+  "uid": "llm-serving-signals",
+  "weekStart": "",
+  "id": null,
+  "version": 1
+}
