@@ -1,0 +1,105 @@
+# Grafana file-provisioned alert rules (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: zfs-pool-capacity
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: zfs-pool-capacity-warning
+        title: Pool fill is above 80 percent for 15 minutes
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Same gauge the storage-capacity Pool capacity row plots; no
+              # aggregation, so every alert keeps its instance and pool.
+              expr: >-
+                pve_zpool_cap_percent
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 80
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Pool {{ $labels.pool }} on {{ $labels.instance }} is
+            {{ printf "%.1f" $values.A.Value }} percent full
+          description: >-
+            pve_zpool_cap_percent has been above 80 for 15 minutes for pool
+            {{ $labels.pool }} on {{ $labels.instance }}. See /d/storage-capacity.
+          __dashboardUid__: storage-capacity
+          __panelId__: "4"
+      - uid: zfs-pool-capacity-critical
+        title: Pool fill is above 90 percent for 15 minutes
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: >-
+                pve_zpool_cap_percent
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 90
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Pool {{ $labels.pool }} on {{ $labels.instance }} is
+            {{ printf "%.1f" $values.A.Value }} percent full
+          description: >-
+            pve_zpool_cap_percent has been above 90 for 15 minutes for pool
+            {{ $labels.pool }} on {{ $labels.instance }}. See /d/storage-capacity.
+          __dashboardUid__: storage-capacity
+          __panelId__: "4"
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - instance
+            - pool
+          repeat_interval: 4h
