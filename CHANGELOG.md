@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.36.0](https://github.com/dryvist/grafana-dashboards/compare/v1.35.0...v1.36.0) (2026-11-11)
+
+
+### Features
+
+* **agent:** autonomous zcode run j-49947c87e5e6970e ([#124](https://github.com/dryvist/grafana-dashboards/issues/124)) ([19efcee](https://github.com/dryvist/grafana-dashboards/commit/19efcee60077822c740b4dfddc2fcb4dcf012c94))
+* **agent:** zcode run j-49947c87e5e6970e ([19efcee](https://github.com/dryvist/grafana-dashboards/commit/19efcee60077822c740b4dfddc2fcb4dcf012c94))
+
 ## [1.35.0](https://github.com/dryvist/grafana-dashboards/compare/v1.34.0...v1.35.0) (2026-11-11)
 
 
