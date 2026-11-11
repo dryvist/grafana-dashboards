@@ -11,26 +11,20 @@ import pytest
 
 ALERTING = Path(__file__).resolve().parents[1]
 
-# Every recorded ratio series the recording rules and dashboards carry:
-# the slot duty cycle per accelerator, the fleet slot utilization, plus the
-# token and VRAM utilization ratios.
+# Ratios that can indicate accelerator:serving_slots drift. Token utilization
+# is omitted because the dashboard documents values above 100% as normal.
 RATIO_SERIES = (
     "accelerator:slot_duty_cycle:ratio",
     "accelerator:slot_utilization:ratio",
-    "accelerator:token_utilization:ratio",
     "accelerator:vram_utilization:ratio",
 )
 
-# The kpi label must land on the raw series, before the range function:
-# range functions drop __name__, so the summary cannot recover the series
-# name from the evaluated result.
-EXPECTED_EXPRESSION = (
-    "max_over_time( ( "
-    + " or ".join(
-        f'label_replace({series}, "kpi", "{series}", "", "")'
-        for series in RATIO_SERIES
-    )
-    + " )[10m:1m] )"
+DOCUMENTED_NORMAL_RATIOS = {"accelerator:token_utilization:ratio"}
+
+# The kpi label identifies each merged series in the alert summary.
+EXPECTED_EXPRESSION = " or ".join(
+    f'label_replace({series}, "kpi", "{series}", "", "")'
+    for series in RATIO_SERIES
 )
 
 
@@ -71,20 +65,19 @@ def test_drift_rule_keeps_the_provisioning_file_convention():
     assert "deleteRules" not in document, "A new uid needs no deletion entry"
 
 
-def test_drift_targets_every_recorded_ratio_series_above_one(rule):
-    """The rule reads the raw series through one 10-minute maximum each."""
+def test_drift_targets_eligible_recorded_ratio_series_above_one(rule):
+    """The rule reads eligible ratios directly at each evaluation."""
     query, threshold = rule["data"]
     expression = query["model"]["expr"]
     assert expression == EXPECTED_EXPRESSION
     targeted = set(
         re.findall(r"label_replace\((accelerator:[a-z_]+:ratio),", expression)
     )
-    assert targeted == set(RATIO_SERIES), "Stamp every ratio series with a kpi label"
-    assert targeted == recorded_ratio_series(), (
-        "Cover every recorded ratio series; extend RATIO_SERIES for a new one"
+    assert targeted == set(RATIO_SERIES), (
+        "Stamp every eligible ratio series with a kpi label"
     )
-    assert "__name__" not in expression, (
-        "The range function drops __name__, so never read it after it"
+    assert recorded_ratio_series() - targeted == DOCUMENTED_NORMAL_RATIOS, (
+        "Only token utilization, which can normally exceed 100%, is excluded"
     )
     assert "clamp" not in expression, "Never clamp the ratio"
     assert query["datasourceUid"] == "victoriametrics"
