@@ -52,6 +52,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
 | `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
 | [llm-serving-benchmarks.json][bench] | `llm-serving-benchmarks` |
+| [Local inference load proof][load-proof] | `local-inference-load-proof` |
 | `dashboards/local-llm-kpi-trends.json` | `local-llm-kpi-trends` |
 | `dashboards/local-llm-scoreboard.json` | `local-llm-scoreboard` |
 | `dashboards/homelab-overview.json` | `homelab-overview` |
@@ -64,6 +65,13 @@ provisioning files. A consumer copies those files into Grafana's
 [all-metrics]: dashboards/litellm-all-prometheus-metrics.json
 
 [bench]: dashboards/llm-serving-benchmarks.json
+[load-proof]: dashboards/local-inference-load-proof.json
+
+Local inference load proof combines slot duty per accelerator, request and
+failure totals by consuming key, agent queue share at or under 1 second with
+request counts, and engine queue depth. Select a 15m, 1h, 4h (default), or 24h
+window. Accelerator and tier choices come from metric labels. Key totals include
+all router traffic; engine queues follow the dashboard time range.
 
 Community dashboards (Node Exporter, Blackbox, Traefik) are still fetched from
 grafana.com by ID and revision inside the Ansible role. They do not live here.
