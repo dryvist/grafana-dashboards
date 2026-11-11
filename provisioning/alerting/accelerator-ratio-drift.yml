@@ -17,9 +17,9 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
-              # Source: dryvist/prometheus-homelab-rules, rules/accelerator_slots.yml
-              # (slot duty cycle per accelerator, fleet slot utilization); the token
-              # and VRAM utilization ratios are recorded in the same repository.
+              # The recorded accelerator ratio series: slot duty cycle per
+              # accelerator, fleet slot utilization, plus the token and VRAM
+              # utilization ratios.
               # label_replace stamps each raw series with its kpi name before the
               # range function, which drops __name__ from the labels the summary
               # reads. A ratio above 1.0 means the accelerator:serving_slots
