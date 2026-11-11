@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.0](https://github.com/dryvist/grafana-dashboards/compare/v1.34.0...v1.35.0) (2026-11-11)
+
+
+### Features
+
+* **dashboards:** add local inference load proof dashboard ([#135](https://github.com/dryvist/grafana-dashboards/issues/135)) ([38f968f](https://github.com/dryvist/grafana-dashboards/commit/38f968f36d392f28e78757911f77baa83407700b))
+
 ## [1.34.0](https://github.com/dryvist/grafana-dashboards/compare/v1.33.0...v1.34.0) (2026-11-11)
 
 
