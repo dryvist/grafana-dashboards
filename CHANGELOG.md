@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.0](https://github.com/dryvist/grafana-dashboards/compare/v1.37.0...v1.38.0) (2026-11-11)
+
+
+### Features
+
+* **alerting:** alert when an accelerator KPI ratio exceeds 1.0 ([#134](https://github.com/dryvist/grafana-dashboards/issues/134)) ([cb4b247](https://github.com/dryvist/grafana-dashboards/commit/cb4b247de50513c255988a34ecfc40e72936db20))
+
 ## [1.37.0](https://github.com/dryvist/grafana-dashboards/compare/v1.36.0...v1.37.0) (2026-11-11)
 
 
