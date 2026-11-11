@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.37.0](https://github.com/dryvist/grafana-dashboards/compare/v1.36.0...v1.37.0) (2026-11-11)
+
+
+### Features
+
+* **alerting:** alert on ZFS replica dataset headroom ([#133](https://github.com/dryvist/grafana-dashboards/issues/133)) ([0459cfa](https://github.com/dryvist/grafana-dashboards/commit/0459cfa6068a7418a13cc2050473b547d4a1d7cb))
+
+## [1.36.0](https://github.com/dryvist/grafana-dashboards/compare/v1.35.0...v1.36.0) (2026-11-11)
+
+
+### Features
+
+* **agent:** autonomous zcode run j-49947c87e5e6970e ([#124](https://github.com/dryvist/grafana-dashboards/issues/124)) ([19efcee](https://github.com/dryvist/grafana-dashboards/commit/19efcee60077822c740b4dfddc2fcb4dcf012c94))
+* **agent:** zcode run j-49947c87e5e6970e ([19efcee](https://github.com/dryvist/grafana-dashboards/commit/19efcee60077822c740b4dfddc2fcb4dcf012c94))
+
+## [1.35.0](https://github.com/dryvist/grafana-dashboards/compare/v1.34.0...v1.35.0) (2026-11-11)
+
+
+### Features
+
+* **dashboards:** add local inference load proof dashboard ([#135](https://github.com/dryvist/grafana-dashboards/issues/135)) ([38f968f](https://github.com/dryvist/grafana-dashboards/commit/38f968f36d392f28e78757911f77baa83407700b))
+
 ## [1.34.0](https://github.com/dryvist/grafana-dashboards/compare/v1.33.0...v1.34.0) (2026-11-11)
 
 

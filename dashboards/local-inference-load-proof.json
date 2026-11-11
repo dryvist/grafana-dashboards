@@ -1,0 +1,454 @@
+{
+  "uid": "local-inference-load-proof",
+  "title": "Local Inference Load Proof",
+  "description": "Windowed slot duty, requests by consuming key, agent queue time, and engine queue depth. Accelerator and tier selectors scope their respective panels. Key totals and engine queues include all reported series. Windowed panels evaluate at the dashboard range end; engine queues use the dashboard time range.",
+  "tags": [
+    "llm",
+    "serving",
+    "load-proof"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 42,
+  "version": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-4h",
+    "to": "now"
+  },
+  "editable": true,
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "window",
+        "label": "Window",
+        "type": "interval",
+        "query": "15m,1h,4h,24h",
+        "auto": false,
+        "current": {
+          "text": "4h",
+          "value": "4h"
+        },
+        "options": [
+          {
+            "text": "15m",
+            "value": "15m",
+            "selected": false
+          },
+          {
+            "text": "1h",
+            "value": "1h",
+            "selected": false
+          },
+          {
+            "text": "4h",
+            "value": "4h",
+            "selected": true
+          },
+          {
+            "text": "24h",
+            "value": "24h",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "accelerator",
+        "label": "Accelerator",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "query": "label_values(accelerator:slot_duty_cycle:ratio, accelerator)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": []
+      },
+      {
+        "name": "team",
+        "label": "Tier",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "query": "label_values(litellm_request_queue_time_seconds_bucket, team)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Slot duty per runner · $window",
+      "description": "Average slot duty for each selected accelerator. Green marks at least 90% duty over the selected window.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "avg_over_time(accelerator:slot_duty_cycle:ratio{accelerator=~\"$accelerator\"}[$window])",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{accelerator}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Requests by consuming key · $window",
+      "description": "All router requests grouped by consuming key over the selected window.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum by (api_key_alias) (increase(litellm_proxy_total_requests_metric_total[$window]))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "api_key_alias": "Consuming key",
+              "Value": "Requests"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Failed requests by consuming key · $window",
+      "description": "All failed router requests grouped by consuming key over the selected window.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum by (api_key_alias) (increase(litellm_proxy_failed_requests_metric_total[$window]))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "api_key_alias": "Consuming key",
+              "Value": "Failed requests"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No data"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Failed requests",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Agent queue · share ≤ 1 s and requests · $window",
+      "description": "One row per selected team. Share uses the inclusive 1-second bucket divided by the +Inf bucket; requests come from the +Inf bucket. Zero observations leave the share unavailable.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "sum by (team) (increase(litellm_request_queue_time_seconds_bucket{team=~\"$team\",le=\"1.0\"}[$window])) / sum by (team) (increase(litellm_request_queue_time_seconds_bucket{team=~\"$team\",le=\"+Inf\"}[$window]))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "sum by (team) (increase(litellm_request_queue_time_seconds_bucket{team=~\"$team\",le=\"+Inf\"}[$window]))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "team",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "team",
+                "Value #A",
+                "Value #B"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "team": 0,
+              "Value #A": 1,
+              "Value #B": 2
+            },
+            "renameByName": {
+              "team": "Team",
+              "Value #A": "Share ≤ 1 s",
+              "Value #B": "Requests"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No data"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Share ≤ 1 s"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Team",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Engine queue",
+      "description": "Waiting and running vLLM requests per instance over the dashboard time range.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "expr": "max by (instance) (vllm:num_requests_waiting)",
+          "legendFormat": "{{instance}} · waiting",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "editorMode": "code",
+          "expr": "max by (instance) (vllm:num_requests_running)",
+          "legendFormat": "{{instance}} · running",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "decimals": 0,
+          "noValue": "No data",
+          "custom": {
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}
