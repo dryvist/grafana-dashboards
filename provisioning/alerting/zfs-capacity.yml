@@ -17,13 +17,15 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
-              # Root datasets carry no slash in their name, so each series is
-              # one pool and the ratio is that pool's used fraction.
+              # Pool roots are the datasets whose dataset label equals their
+              # pool label, so each result series is one pool's used fraction.
               expr: >-
                 1
-                - pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
-                / (pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
-                + pve_zfs_dataset_used_bytes{dataset!~".*/.*"})
+                - pve_zfs_dataset_available_bytes
+                / (pve_zfs_dataset_available_bytes
+                + pve_zfs_dataset_used_bytes)
+                and on (instance, pool, dataset)
+                label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)")
               instant: true
               refId: A
           - refId: B
@@ -65,9 +67,11 @@ groups:
             model:
               expr: >-
                 1
-                - pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
-                / (pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
-                + pve_zfs_dataset_used_bytes{dataset!~".*/.*"})
+                - pve_zfs_dataset_available_bytes
+                / (pve_zfs_dataset_available_bytes
+                + pve_zfs_dataset_used_bytes)
+                and on (instance, pool, dataset)
+                label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)")
               instant: true
               refId: A
           - refId: B
@@ -122,11 +126,15 @@ groups:
             model:
               # Child datasets (names with a slash) keep fewer available bytes
               # than their pool root only when the dataset quota or refquota,
-              # not the pool, is the binding limit.
+              # not the pool, is the binding limit. group_left keeps the child
+              # series' dataset label on the result, and the root side matches
+              # the series whose dataset label equals its pool label.
               expr: >-
                 pve_zfs_dataset_available_bytes{dataset=~".*/.*"}
-                < on (instance, pool)
-                pve_zfs_dataset_available_bytes{dataset!~".*/.*"}
+                < on (instance, pool) group_left()
+                (pve_zfs_dataset_available_bytes
+                and on (instance, pool, dataset)
+                label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)"))
               instant: true
               refId: A
           - refId: B

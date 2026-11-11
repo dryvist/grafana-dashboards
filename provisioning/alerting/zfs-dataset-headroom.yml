@@ -1,0 +1,115 @@
+# Grafana file-provisioned alert rules (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: zfs-dataset-headroom
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: zfs-dataset-headroom-warning
+        title: Dataset headroom is projected to run out within 24 hours
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # The metrics store has no dataset quota series (no
+              # pve_zfs_dataset_quota_bytes or equivalent), so headroom is the
+              # dataset's available bytes and the 10%-of-quota leg has no
+              # input. The bare metric selector matches every dataset the
+              # storage-capacity dashboard queries and keeps the instance and
+              # dataset labels.
+              expr: >-
+                predict_linear(pve_zfs_dataset_available_bytes[6h], 86400)
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0
+              refId: B
+        for: 30m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Dataset {{ $labels.dataset }} on {{ $labels.instance }} is
+            projected to run out of space within 24 hours
+          description: >-
+            A linear projection of pve_zfs_dataset_available_bytes over the
+            last 6 hours reaches zero within 24 hours for dataset
+            {{ $labels.dataset }} on {{ $labels.instance }}. The metrics store
+            has no dataset quota series, so headroom is available bytes.
+            See /d/storage-capacity.
+          __dashboardUid__: storage-capacity
+          __panelId__: "31"
+      - uid: zfs-dataset-headroom-critical
+        title: Dataset headroom is projected to run out within 6 hours
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: >-
+                predict_linear(pve_zfs_dataset_available_bytes[6h], 21600)
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Dataset {{ $labels.dataset }} on {{ $labels.instance }} is
+            projected to run out of space within 6 hours
+          description: >-
+            A linear projection of pve_zfs_dataset_available_bytes over the
+            last 6 hours reaches zero within 6 hours for dataset
+            {{ $labels.dataset }} on {{ $labels.instance }}. The metrics store
+            has no dataset quota series, so headroom is available bytes.
+            See /d/storage-capacity.
+          __dashboardUid__: storage-capacity
+          __panelId__: "31"
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - instance
+            - dataset
+          repeat_interval: 4h

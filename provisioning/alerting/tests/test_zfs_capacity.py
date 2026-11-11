@@ -10,15 +10,21 @@ import pytest
 
 ALERTING = Path(__file__).resolve().parents[1]
 
+POOL_ROOT_SELECTOR = (
+    "and on (instance, pool, dataset) "
+    'label_replace(pve_zfs_dataset_available_bytes, "dataset", "$1", "pool", "(.*)")'
+)
 POOL_RATIO_EXPRESSION = (
-    '1 - pve_zfs_dataset_available_bytes{dataset!~".*/.*"} / '
-    '(pve_zfs_dataset_available_bytes{dataset!~".*/.*"} '
-    '+ pve_zfs_dataset_used_bytes{dataset!~".*/.*"})'
+    "1 - pve_zfs_dataset_available_bytes / "
+    "(pve_zfs_dataset_available_bytes + pve_zfs_dataset_used_bytes) "
+    + POOL_ROOT_SELECTOR
 )
 QUOTA_HEADROOM_EXPRESSION = (
     'pve_zfs_dataset_available_bytes{dataset=~".*/.*"} '
-    "< on (instance, pool) "
-    'pve_zfs_dataset_available_bytes{dataset!~".*/.*"}'
+    "< on (instance, pool) group_left() "
+    "(pve_zfs_dataset_available_bytes "
+    + POOL_ROOT_SELECTOR
+    + ")"
 )
 
 
@@ -86,6 +92,29 @@ def test_pool_ratio_summaries_print_the_query_value_as_a_percent(rules, uid):
     assert "$values.B" not in summary
 
 
+@pytest.mark.parametrize(
+    "uid",
+    [
+        "zfs-pool-used-ratio-warning",
+        "zfs-pool-used-ratio-critical",
+        "zfs-dataset-quota-headroom-low",
+    ],
+)
+def test_pool_roots_are_series_whose_dataset_label_equals_their_pool_label(
+    rules, uid,
+):
+    """The dataset == pool join picks real pool roots, not slash-free non-roots."""
+    expr = rules[uid]["data"][0]["model"]["expr"]
+    assert POOL_ROOT_SELECTOR in expr
+    assert 'dataset!~".*/.*"' not in expr
+
+
+def test_quota_headroom_join_keeps_the_dataset_label(rules):
+    """group_left carries the child dataset's labels through the < join."""
+    expr = rules["zfs-dataset-quota-headroom-low"]["data"][0]["model"]["expr"]
+    assert "< on (instance, pool) group_left()" in expr
+
+
 def test_quota_headroom_rule_threshold_and_delivery(rules):
     rule = rules["zfs-dataset-quota-headroom-low"]
     query, expression = rule["data"]
@@ -104,8 +133,8 @@ def test_quota_headroom_rule_threshold_and_delivery(rules):
     summary = rule["annotations"]["summary"]
     assert "$labels.instance" in summary
     assert "$labels.dataset" in summary
-    assert "$values.A.Value" in summary
-    assert "humanizeBytes" in summary
+    assert "$values.A.Value | humanizeBytes" in summary
+    assert "free" in summary
 
 
 def test_critical_ratio_rule_delivers_to_the_critical_slack_contact_point(rules):
