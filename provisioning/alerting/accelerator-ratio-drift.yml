@@ -1,0 +1,69 @@
+# Grafana file-provisioned alert rule (unified alerting).
+# The deployment role copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: accelerator-ratio-drift
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: accelerator-ratio-drift
+        title: Accelerator KPI ratio exceeds 1.0 for 10 minutes
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Slot duty cycle per accelerator, fleet slot utilization, and
+              # VRAM utilization detect accelerator:serving_slots drift.
+              # Token utilization is excluded because it can normally exceed
+              # 1.0. label_replace gives each series a kpi label for the summary.
+              expr: >-
+                label_replace(accelerator:slot_duty_cycle:ratio,
+                "kpi", "accelerator:slot_duty_cycle:ratio", "", "")
+                or label_replace(accelerator:slot_utilization:ratio,
+                "kpi", "accelerator:slot_utilization:ratio", "", "")
+                or label_replace(accelerator:vram_utilization:ratio,
+                "kpi", "accelerator:vram_utilization:ratio", "", "")
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 1.0
+              refId: B
+        for: 10m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            {{ $labels.kpi }} exceeded 1.0 on
+            {{ if $labels.accelerator }}accelerator {{ $labels.accelerator }}{{ else }}the fleet{{ end }}
+            for 10 minutes; check accelerator:serving_slots against the
+            engine's max_num_seqs or parallel setting
+          description: >-
+            The {{ $labels.kpi }} ratio stayed above 1.0 for 10 minutes, so the
+            recorded slot-count constant behind the ratio no longer matches
+            the engine's real configuration.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - accelerator
+          repeat_interval: 4h

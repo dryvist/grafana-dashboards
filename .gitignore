@@ -3,4 +3,5 @@ __pycache__/
 result
 result-*
 .DS_Store
+*.pyc
 __pycache__/
