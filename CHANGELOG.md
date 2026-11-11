@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.37.0](https://github.com/dryvist/grafana-dashboards/compare/v1.36.0...v1.37.0) (2026-11-11)
+
+
+### Features
+
+* **alerting:** alert on ZFS replica dataset headroom ([#133](https://github.com/dryvist/grafana-dashboards/issues/133)) ([0459cfa](https://github.com/dryvist/grafana-dashboards/commit/0459cfa6068a7418a13cc2050473b547d4a1d7cb))
+
 ## [1.36.0](https://github.com/dryvist/grafana-dashboards/compare/v1.35.0...v1.36.0) (2026-11-11)
 
 
