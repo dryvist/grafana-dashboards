@@ -383,7 +383,7 @@ def test_router_uses_dashboard_status_label_and_native_threshold_input(rules):
     assert isinstance(evaluator["params"][0], (int, float))
     assert evaluator["params"][0] >= 0
     assert "${" not in expression
-    assert rule["noDataState"] == "NoData"
+    assert rule["noDataState"] == "OK"
 
 
 def test_queue_sums_recorded_lane_waiters_and_includes_the_120_boundary(rules):
