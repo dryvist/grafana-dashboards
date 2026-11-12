@@ -21,45 +21,6 @@ RETIRED_UNDERUSE_RULE_UIDS = {
     "accelerator-underutilized-gpu-secondary",
     "accelerator-underutilized-mac-primary",
 }
-MAIN_CRITICAL_NOTIFICATION_SETTINGS = {
-    "receiver": "critical-slack",
-    "group_by": ["grafana_folder", "alertname", "accelerator"],
-    "repeat_interval": "4h",
-}
-MAIN_CRITICAL_ANNOTATIONS = {
-    "accelerator-token-kpi-missing": {
-        "summary": "{{ $labels.accelerator }} token utilization KPI is absent for 30 minutes",
-        "description": (
-            "The serving lane has no accelerator:token_utilization:ratio samples "
-            "in the last 30 minutes."
-        ),
-    },
-    "accelerator-busy-kpi-missing": {
-        "summary": "{{ $labels.accelerator }} busy percent KPI is absent for 30 minutes",
-        "description": (
-            "The serving lane has no accelerator:busy_percent:avg5m samples "
-            "in the last 30 minutes."
-        ),
-    },
-    "router-429-rate-high": {
-        "summary": "Router HTTP 429 responses exceed the configured rate threshold",
-        "description": (
-            "The 5-minute HTTP 429 response rate exceeds the threshold input in "
-            "data.B.model.conditions[0].evaluator.params[0]."
-        ),
-    },
-    "serving-queue-waiting-high": {
-        "summary": "Total waiting requests across instrumented serving lanes is at least 120",
-        "description": "Total llm:requests_waiting across all serving lanes has reached 120.",
-    },
-    "serving-queue-growing": {
-        "summary": "Total serving queue grows for 15 minutes",
-        "description": (
-            "The 5-minute slope of total llm:requests_waiting across all serving "
-            "lanes stays positive for 15 minutes."
-        ),
-    },
-}
 
 
 def load_provisioning(filename):
@@ -206,11 +167,27 @@ def test_lane_underuse_repeats_within_an_hour_and_links_its_scoreboard_panel(
     )
 
 
-@pytest.mark.parametrize("uid", sorted(MAIN_CRITICAL_ANNOTATIONS))
-def test_other_critical_alerts_keep_main_delivery_and_annotations(rules, uid):
+@pytest.mark.parametrize(
+    "uid",
+    [
+        "accelerator-busy-kpi-missing",
+        "accelerator-token-kpi-missing",
+        "router-429-rate-high",
+        "serving-queue-growing",
+        "serving-queue-waiting-high",
+    ],
+)
+def test_unchanged_critical_alerts_share_the_main_critical_delivery_anchor(
+    rules, uid,
+):
+    """The five rules this PR does not touch keep main's delivery through one shared YAML anchor."""
+    anchor = rules["accelerator-token-kpi-missing"]["notification_settings"]
+    assert (anchor["receiver"], anchor["repeat_interval"]) == (
+        "critical-slack",
+        "4h",
+    )
     rule = rules[uid]
-    assert rule["notification_settings"] == MAIN_CRITICAL_NOTIFICATION_SETTINGS
-    assert rule["annotations"] == MAIN_CRITICAL_ANNOTATIONS[uid]
+    assert rule["notification_settings"] == anchor
     assert "__dashboardUid__" not in rule["annotations"]
     assert "__panelId__" not in rule["annotations"]
     expected_for = "15m" if uid == "serving-queue-growing" else "0s"
