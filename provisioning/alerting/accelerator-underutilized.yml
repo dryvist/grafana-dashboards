@@ -213,7 +213,7 @@ groups:
                     params:
                       - 1
               refId: B
-        noDataState: NoData
+        noDataState: OK
         notification_settings: *main-critical-notification-settings
         annotations:
           summary: Router HTTP 429 responses exceed the configured rate threshold
