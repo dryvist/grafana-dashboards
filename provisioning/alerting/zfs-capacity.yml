@@ -49,6 +49,8 @@ groups:
           severity: warning
           ntfy: "true"
         annotations:
+          __dashboardUid__: storage-capacity
+          __panelId__: "4"
           summary: >-
             {{ $labels.instance }} ZFS pool {{ $labels.dataset }} is
             {{ $values.A.Value | humanizePercentage }} full.
@@ -95,6 +97,8 @@ groups:
           severity: critical
           ntfy: "true"
         annotations:
+          __dashboardUid__: storage-capacity
+          __panelId__: "4"
           summary: >-
             {{ $labels.instance }} ZFS pool {{ $labels.dataset }} is
             {{ $values.A.Value | humanizePercentage }} full.
@@ -158,6 +162,8 @@ groups:
           severity: warning
           ntfy: "true"
         annotations:
+          __dashboardUid__: storage-capacity
+          __panelId__: "31"
           summary: >-
             {{ $labels.instance }} ZFS dataset {{ $labels.dataset }} has
             {{ $values.A.Value | humanizeBytes }} free.

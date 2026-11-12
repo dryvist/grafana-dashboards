@@ -15,6 +15,8 @@ groups:
         labels:
           severity: warning
         annotations:
+          __dashboardUid__: claude-cache-economics
+          __panelId__: "4"
           summary: >-
             A session's cache-write share is above the 20% threshold that
             G2 flags as anomalous (mid-session model/effort/MCP change, or a
