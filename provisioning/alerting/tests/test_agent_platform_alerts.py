@@ -1,15 +1,13 @@
 """Validate model-serving alert provisioning with yq and pytest."""
 
 import json
-import os
-from pathlib import Path
 import re
-import subprocess
 
 import pytest
 
+from conftest import ALERTING, dashboard_uids, load_provisioning
 
-ALERTING = Path(__file__).resolve().parents[1]
+
 UNDERUSE_RULE_UIDS = {
     "accelerator-slot-underuse-gpu-primary",
     "accelerator-slot-underuse-gpu-secondary",
@@ -28,6 +26,8 @@ MAIN_CRITICAL_NOTIFICATION_SETTINGS = {
 }
 MAIN_CRITICAL_ANNOTATIONS = {
     "accelerator-token-kpi-missing": {
+        "__dashboardUid__": "local-llm-kpi-trends",
+        "__panelId__": "1",
         "summary": "{{ $labels.accelerator }} token utilization KPI is absent for 30 minutes",
         "description": (
             "The serving lane has no accelerator:token_utilization:ratio samples "
@@ -35,6 +35,8 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
     "accelerator-busy-kpi-missing": {
+        "__dashboardUid__": "local-llm-kpi-trends",
+        "__panelId__": "6",
         "summary": "{{ $labels.accelerator }} busy percent KPI is absent for 30 minutes",
         "description": (
             "The serving lane has no accelerator:busy_percent:avg5m samples "
@@ -42,6 +44,8 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
     "router-429-rate-high": {
+        "__dashboardUid__": "local-llm-kpi-trends",
+        "__panelId__": "7",
         "summary": "Router HTTP 429 responses exceed the configured rate threshold",
         "description": (
             "The 5-minute HTTP 429 response rate exceeds the threshold input in "
@@ -49,10 +53,14 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
     "serving-queue-waiting-high": {
+        "__dashboardUid__": "local-inference-load-proof",
+        "__panelId__": "5",
         "summary": "Total waiting requests across instrumented serving lanes is at least 120",
         "description": "Total llm:requests_waiting across all serving lanes has reached 120.",
     },
     "serving-queue-growing": {
+        "__dashboardUid__": "local-inference-load-proof",
+        "__panelId__": "5",
         "summary": "Total serving queue grows for 15 minutes",
         "description": (
             "The 5-minute slope of total llm:requests_waiting across all serving "
@@ -60,13 +68,6 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
 }
-
-
-def load_provisioning(filename):
-    return json.loads(subprocess.check_output(
-        [os.environ.get("YQ", "yq"), ".", str(ALERTING / filename)],
-        text=True,
-    ))
 
 
 def load_dashboard(uid):
@@ -189,12 +190,7 @@ def test_lane_underuse_repeats_within_an_hour_and_links_its_scoreboard_panel(
     assert seconds <= 60 * 60
 
     dashboard_uid = rule["annotations"]["__dashboardUid__"]
-    dashboards = ALERTING.parents[1] / "dashboards"
-    dashboard_uids = {
-        json.loads(path.read_text()).get("uid")
-        for path in dashboards.glob("*.json")
-    }
-    assert dashboard_uid in dashboard_uids
+    assert dashboard_uid in dashboard_uids()
     assert rule["annotations"]["__panelId__"] == panel_id
     dashboard = load_dashboard(dashboard_uid)
     panel = next(
@@ -211,8 +207,6 @@ def test_other_critical_alerts_keep_main_delivery_and_annotations(rules, uid):
     rule = rules[uid]
     assert rule["notification_settings"] == MAIN_CRITICAL_NOTIFICATION_SETTINGS
     assert rule["annotations"] == MAIN_CRITICAL_ANNOTATIONS[uid]
-    assert "__dashboardUid__" not in rule["annotations"]
-    assert "__panelId__" not in rule["annotations"]
     expected_for = "15m" if uid == "serving-queue-growing" else "0s"
     assert rule["for"] == expected_for
     assert "keep_firing_for" not in rule
@@ -383,7 +377,7 @@ def test_router_uses_dashboard_status_label_and_native_threshold_input(rules):
     assert isinstance(evaluator["params"][0], (int, float))
     assert evaluator["params"][0] >= 0
     assert "${" not in expression
-    assert rule["noDataState"] == "OK"
+    assert rule["noDataState"] == "NoData"
 
 
 def test_queue_sums_recorded_lane_waiters_and_includes_the_120_boundary(rules):

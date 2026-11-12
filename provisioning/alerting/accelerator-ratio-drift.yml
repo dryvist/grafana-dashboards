@@ -51,6 +51,8 @@ groups:
           severity: warning
           ntfy: "true"
         annotations:
+          __dashboardUid__: local-llm-scoreboard
+          __panelId__: "10"
           summary: >-
             {{ $labels.kpi }} exceeded 1.0 on
             {{ if $labels.accelerator }}accelerator {{ $labels.accelerator }}{{ else }}the fleet{{ end }}
