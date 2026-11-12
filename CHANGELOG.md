@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.0](https://github.com/dryvist/grafana-dashboards/compare/v1.38.1...v1.39.0) (2026-11-12)
+
+
+### Features
+
+* **alerting:** repeat the slot underuse alert hourly and link its dashboard ([#142](https://github.com/dryvist/grafana-dashboards/issues/142)) ([afa524f](https://github.com/dryvist/grafana-dashboards/commit/afa524f43e244cfae18230561046f8fe33bb9876))
+
 ## [1.38.1](https://github.com/dryvist/grafana-dashboards/compare/v1.38.0...v1.38.1) (2026-11-12)
 
 
