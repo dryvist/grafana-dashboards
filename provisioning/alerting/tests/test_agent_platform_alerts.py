@@ -71,13 +71,49 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     }
     assert rule["for"] == "0s"
     assert rule["noDataState"] == "OK"
-    assert rule["labels"]["severity"] == "critical"
+    assert rule["labels"] == {"severity": "critical", "ntfy": "true"}
     assert rule["notification_settings"]["receiver"] == "critical-slack"
-    assert rule["notification_settings"]["repeat_interval"] == "4h"
+    assert rule["notification_settings"]["repeat_interval"] == "55m"
     assert "accelerator" in rule["notification_settings"]["group_by"]
     assert "slot duty cycle" in rule["annotations"]["summary"]
     assert "slot duty cycle" in rule["annotations"]["description"]
     assert "token utilization" not in rule["annotations"]["summary"]
+
+
+@pytest.mark.parametrize(
+    "uid,panel_id",
+    [
+        ("accelerator-underutilized-gpu-primary", "1"),
+        ("accelerator-underutilized-gpu-secondary", "2"),
+        ("accelerator-underutilized-mac-primary", "3"),
+    ],
+)
+def test_lane_underuse_repeats_within_an_hour_and_links_its_scoreboard_panel(
+    rules, uid, panel_id,
+):
+    rule = rules[uid]
+    repeat_interval = rule["notification_settings"]["repeat_interval"]
+    match = re.fullmatch(r"(\d+)([smhd])", repeat_interval)
+    assert match, f"Unsupported Grafana repeat interval: {repeat_interval}"
+    seconds = int(match[1]) * {"s": 1, "m": 60, "h": 3600, "d": 86400}[match[2]]
+    assert seconds <= 60 * 60
+
+    dashboard_uid = rule["annotations"]["__dashboardUid__"]
+    dashboards = ALERTING.parents[1] / "dashboards"
+    dashboard_uids = {
+        json.loads(path.read_text()).get("uid")
+        for path in dashboards.glob("*.json")
+    }
+    assert dashboard_uid in dashboard_uids
+    assert rule["annotations"]["__panelId__"] == panel_id
+    dashboard = load_dashboard(dashboard_uid)
+    panel = next(
+        panel for panel in dashboard["panels"] if str(panel["id"]) == panel_id
+    )
+    assert any(
+        "accelerator:slot_duty_cycle:ratio" in target.get("expr", "")
+        for target in panel.get("targets", [])
+    )
 
 
 def test_slot_duty_cycle_is_the_only_underuse_family():

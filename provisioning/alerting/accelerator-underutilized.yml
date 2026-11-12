@@ -50,7 +50,9 @@ groups:
         labels:
           severity: critical
           ntfy: "true"
-        annotations:
+        annotations: &slot-duty-annotations
+          __dashboardUid__: local-llm-scoreboard
+          __panelId__: "1"
           summary: >-
             {{ $labels.accelerator }} slot duty cycle 4-hour average is below 50%
           description: >-
@@ -61,10 +63,13 @@ groups:
             - grafana_folder
             - alertname
             - accelerator
-          repeat_interval: 4h
+          repeat_interval: 55m
       - <<: *critical-alert
         uid: accelerator-underutilized-gpu-secondary
         title: Serving lane gpu-secondary token utilization below 50% over 4 hours
+        annotations:
+          <<: *slot-duty-annotations
+          __panelId__: "2"
         noDataState: OK
         data:
           - <<: *duty-query
@@ -77,6 +82,9 @@ groups:
       - <<: *critical-alert
         uid: accelerator-underutilized-mac-primary
         title: Serving lane mac-primary token utilization below 50% over 4 hours
+        annotations:
+          <<: *slot-duty-annotations
+          __panelId__: "3"
         noDataState: OK
         data:
           - <<: *duty-query
