@@ -28,6 +28,8 @@ MAIN_CRITICAL_NOTIFICATION_SETTINGS = {
 }
 MAIN_CRITICAL_ANNOTATIONS = {
     "accelerator-token-kpi-missing": {
+        "__dashboardUid__": "local-llm-kpi-trends",
+        "__panelId__": "1",
         "summary": "{{ $labels.accelerator }} token utilization KPI is absent for 30 minutes",
         "description": (
             "The serving lane has no accelerator:token_utilization:ratio samples "
@@ -35,6 +37,8 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
     "accelerator-busy-kpi-missing": {
+        "__dashboardUid__": "local-llm-kpi-trends",
+        "__panelId__": "6",
         "summary": "{{ $labels.accelerator }} busy percent KPI is absent for 30 minutes",
         "description": (
             "The serving lane has no accelerator:busy_percent:avg5m samples "
@@ -42,6 +46,8 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
     "router-429-rate-high": {
+        "__dashboardUid__": "local-llm-kpi-trends",
+        "__panelId__": "7",
         "summary": "Router HTTP 429 responses exceed the configured rate threshold",
         "description": (
             "The 5-minute HTTP 429 response rate exceeds the threshold input in "
@@ -49,10 +55,14 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
     "serving-queue-waiting-high": {
+        "__dashboardUid__": "local-inference-load-proof",
+        "__panelId__": "5",
         "summary": "Total waiting requests across instrumented serving lanes is at least 120",
         "description": "Total llm:requests_waiting across all serving lanes has reached 120.",
     },
     "serving-queue-growing": {
+        "__dashboardUid__": "local-inference-load-proof",
+        "__panelId__": "5",
         "summary": "Total serving queue grows for 15 minutes",
         "description": (
             "The 5-minute slope of total llm:requests_waiting across all serving "
@@ -211,8 +221,6 @@ def test_other_critical_alerts_keep_main_delivery_and_annotations(rules, uid):
     rule = rules[uid]
     assert rule["notification_settings"] == MAIN_CRITICAL_NOTIFICATION_SETTINGS
     assert rule["annotations"] == MAIN_CRITICAL_ANNOTATIONS[uid]
-    assert "__dashboardUid__" not in rule["annotations"]
-    assert "__panelId__" not in rule["annotations"]
     expected_for = "15m" if uid == "serving-queue-growing" else "0s"
     assert rule["for"] == expected_for
     assert "keep_firing_for" not in rule
