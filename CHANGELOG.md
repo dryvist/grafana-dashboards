@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.1](https://github.com/dryvist/grafana-dashboards/compare/v1.39.0...v1.39.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **alerting:** treat no data as OK on the router 429 rate rule ([#145](https://github.com/dryvist/grafana-dashboards/issues/145)) ([c70f4d8](https://github.com/dryvist/grafana-dashboards/commit/c70f4d8044a28555f1c393f5ac20fe03e19ee43c))
+
 ## [1.39.0](https://github.com/dryvist/grafana-dashboards/compare/v1.38.1...v1.39.0) (2026-11-12)
 
 
