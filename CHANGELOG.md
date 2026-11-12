@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.1](https://github.com/dryvist/grafana-dashboards/compare/v1.38.0...v1.38.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **alerting:** name slot drift and memory headroom in ratio alert description ([#140](https://github.com/dryvist/grafana-dashboards/issues/140)) ([11cd07f](https://github.com/dryvist/grafana-dashboards/commit/11cd07f880a0facea80ad0b6180aeb5f8cc5b5b6))
+
 ## [1.38.0](https://github.com/dryvist/grafana-dashboards/compare/v1.37.0...v1.38.0) (2026-11-11)
 
 
