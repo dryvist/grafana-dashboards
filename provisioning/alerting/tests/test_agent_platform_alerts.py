@@ -10,6 +10,45 @@ import pytest
 
 
 ALERTING = Path(__file__).resolve().parents[1]
+MAIN_CRITICAL_NOTIFICATION_SETTINGS = {
+    "receiver": "critical-slack",
+    "group_by": ["grafana_folder", "alertname", "accelerator"],
+    "repeat_interval": "4h",
+}
+MAIN_CRITICAL_ANNOTATIONS = {
+    "accelerator-token-kpi-missing": {
+        "summary": "{{ $labels.accelerator }} token utilization KPI is absent for 30 minutes",
+        "description": (
+            "The serving lane has no accelerator:token_utilization:ratio samples "
+            "in the last 30 minutes."
+        ),
+    },
+    "accelerator-busy-kpi-missing": {
+        "summary": "{{ $labels.accelerator }} busy percent KPI is absent for 30 minutes",
+        "description": (
+            "The serving lane has no accelerator:busy_percent:avg5m samples "
+            "in the last 30 minutes."
+        ),
+    },
+    "router-429-rate-high": {
+        "summary": "Router HTTP 429 responses exceed the configured rate threshold",
+        "description": (
+            "The 5-minute HTTP 429 response rate exceeds the threshold input in "
+            "data.B.model.conditions[0].evaluator.params[0]."
+        ),
+    },
+    "serving-queue-waiting-high": {
+        "summary": "Total waiting requests across instrumented serving lanes is at least 120",
+        "description": "Total llm:requests_waiting across all serving lanes has reached 120.",
+    },
+    "serving-queue-growing": {
+        "summary": "Total serving queue grows for 15 minutes",
+        "description": (
+            "The 5-minute slope of total llm:requests_waiting across all serving "
+            "lanes stays positive for 15 minutes."
+        ),
+    },
+}
 
 
 def load_provisioning(filename):
@@ -114,6 +153,15 @@ def test_lane_underuse_repeats_within_an_hour_and_links_its_scoreboard_panel(
         "accelerator:slot_duty_cycle:ratio" in target.get("expr", "")
         for target in panel.get("targets", [])
     )
+
+
+@pytest.mark.parametrize("uid", sorted(MAIN_CRITICAL_ANNOTATIONS))
+def test_other_critical_alerts_keep_main_delivery_and_annotations(rules, uid):
+    rule = rules[uid]
+    assert rule["notification_settings"] == MAIN_CRITICAL_NOTIFICATION_SETTINGS
+    assert rule["annotations"] == MAIN_CRITICAL_ANNOTATIONS[uid]
+    assert "__dashboardUid__" not in rule["annotations"]
+    assert "__panelId__" not in rule["annotations"]
 
 
 def test_slot_duty_cycle_is_the_only_underuse_family():
@@ -251,13 +299,10 @@ def test_busy_series_absence_is_independent_for_each_serving_lane(rules):
     }
 
 
-def test_shared_critical_delivery_and_condition_references(rules):
+def test_critical_labels_and_condition_references(rules):
     for rule in rules.values():
         assert rule["labels"] == (
             rules["accelerator-underutilized-gpu-primary"]["labels"]
-        )
-        assert rule["notification_settings"] == (
-            rules["accelerator-underutilized-gpu-primary"]["notification_settings"]
         )
         assert rule["execErrState"] == "Error"
         queries = {query["refId"]: query for query in rule["data"]}

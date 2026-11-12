@@ -133,6 +133,13 @@ groups:
                       - 0
               refId: B
         noDataState: OK
+        notification_settings: &main-critical-notification-settings
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - accelerator
+          repeat_interval: 4h
         annotations:
           summary: >-
             {{ $labels.accelerator }} token utilization KPI is absent for 30 minutes
@@ -158,6 +165,7 @@ groups:
               refId: A
           - *positive-result
         noDataState: OK
+        notification_settings: *main-critical-notification-settings
         annotations:
           summary: >-
             {{ $labels.accelerator }} busy percent KPI is absent for 30 minutes
@@ -192,6 +200,7 @@ groups:
                       - 1
               refId: B
         noDataState: NoData
+        notification_settings: *main-critical-notification-settings
         annotations:
           summary: Router HTTP 429 responses exceed the configured rate threshold
           description: >-
@@ -218,6 +227,7 @@ groups:
               expression: $A >= 120
               refId: B
         noDataState: OK
+        notification_settings: *main-critical-notification-settings
         annotations:
           summary: Total waiting requests across instrumented serving lanes is at least 120
           description: >-
@@ -236,6 +246,7 @@ groups:
           - *positive-result
         for: 15m
         noDataState: OK
+        notification_settings: *main-critical-notification-settings
         annotations:
           summary: Total serving queue grows for 15 minutes
           description: >-
