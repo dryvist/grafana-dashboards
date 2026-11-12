@@ -57,9 +57,14 @@ groups:
             for 10 minutes; check accelerator:serving_slots against the
             engine's max_num_seqs or parallel setting
           description: >-
-            The {{ $labels.kpi }} ratio stayed above 1.0 for 10 minutes, so the
-            recorded slot-count constant behind the ratio no longer matches
-            the engine's real configuration.
+            The {{ $labels.kpi }} ratio stayed above 1.0 for 10 minutes.
+            {{ if eq $labels.kpi "accelerator:vram_utilization:ratio" }}VRAM
+            utilization is memory used over used plus free, with no
+            serving-slot denominator, so this points at shrinking memory
+            headroom rather than serving-slot drift.{{ else }}The recorded
+            slot-count constant behind the ratio no longer matches the
+            engine's real configuration, so this points at serving-slot
+            drift.{{ end }}
         notification_settings:
           receiver: critical-slack
           group_by:
