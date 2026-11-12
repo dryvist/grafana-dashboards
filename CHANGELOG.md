@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.0](https://github.com/dryvist/grafana-dashboards/compare/v1.39.1...v1.40.0) (2026-11-12)
+
+
+### Features
+
+* **alerting:** link KPI-absent alert rules to dashboards ([#147](https://github.com/dryvist/grafana-dashboards/issues/147)) ([e117913](https://github.com/dryvist/grafana-dashboards/commit/e117913a05afa22ece44ff0c6f570117f6cfcbeb))
+
 ## [1.39.1](https://github.com/dryvist/grafana-dashboards/compare/v1.39.0...v1.39.1) (2026-11-12)
 
 
