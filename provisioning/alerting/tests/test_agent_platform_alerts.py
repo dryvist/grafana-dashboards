@@ -10,6 +10,56 @@ import pytest
 
 
 ALERTING = Path(__file__).resolve().parents[1]
+UNDERUSE_RULE_UIDS = {
+    "accelerator-slot-underuse-gpu-primary",
+    "accelerator-slot-underuse-gpu-secondary",
+    "accelerator-slot-underuse-mac-primary",
+}
+RETIRED_UNDERUSE_RULE_UIDS = {
+    "accelerator-underutilized",
+    "accelerator-underutilized-gpu-primary",
+    "accelerator-underutilized-gpu-secondary",
+    "accelerator-underutilized-mac-primary",
+}
+MAIN_CRITICAL_NOTIFICATION_SETTINGS = {
+    "receiver": "critical-slack",
+    "group_by": ["grafana_folder", "alertname", "accelerator"],
+    "repeat_interval": "4h",
+}
+MAIN_CRITICAL_ANNOTATIONS = {
+    "accelerator-token-kpi-missing": {
+        "summary": "{{ $labels.accelerator }} token utilization KPI is absent for 30 minutes",
+        "description": (
+            "The serving lane has no accelerator:token_utilization:ratio samples "
+            "in the last 30 minutes."
+        ),
+    },
+    "accelerator-busy-kpi-missing": {
+        "summary": "{{ $labels.accelerator }} busy percent KPI is absent for 30 minutes",
+        "description": (
+            "The serving lane has no accelerator:busy_percent:avg5m samples "
+            "in the last 30 minutes."
+        ),
+    },
+    "router-429-rate-high": {
+        "summary": "Router HTTP 429 responses exceed the configured rate threshold",
+        "description": (
+            "The 5-minute HTTP 429 response rate exceeds the threshold input in "
+            "data.B.model.conditions[0].evaluator.params[0]."
+        ),
+    },
+    "serving-queue-waiting-high": {
+        "summary": "Total waiting requests across instrumented serving lanes is at least 120",
+        "description": "Total llm:requests_waiting across all serving lanes has reached 120.",
+    },
+    "serving-queue-growing": {
+        "summary": "Total serving queue grows for 15 minutes",
+        "description": (
+            "The 5-minute slope of total llm:requests_waiting across all serving "
+            "lanes stays positive for 15 minutes."
+        ),
+    },
+}
 
 
 def load_provisioning(filename):
@@ -52,14 +102,14 @@ def spend_rules():
 @pytest.mark.parametrize(
     "uid",
     [
-        "accelerator-underutilized-gpu-primary",
-        "accelerator-underutilized-gpu-secondary",
-        "accelerator-underutilized-mac-primary",
+        "accelerator-slot-underuse-gpu-primary",
+        "accelerator-slot-underuse-gpu-secondary",
+        "accelerator-slot-underuse-mac-primary",
     ],
 )
 def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     rule = rules[uid]
-    lane = uid.removeprefix("accelerator-underutilized-")
+    lane = uid.removeprefix("accelerator-slot-underuse-")
     query, threshold = rule["data"]
     assert query["model"]["expr"] == (
         f'avg_over_time(accelerator:slot_duty_cycle:ratio{{accelerator="{lane}"}}[4h])'
@@ -69,15 +119,103 @@ def test_lane_underuse_window_threshold_and_delivery(rules, uid):
     assert threshold["model"]["conditions"][0]["evaluator"] == {
         "type": "lt", "params": [0.5],
     }
-    assert rule["for"] == "0s"
+    assert rule["for"] == "15m"
+    assert rule["keep_firing_for"] == "30m"
     assert rule["noDataState"] == "OK"
-    assert rule["labels"]["severity"] == "critical"
-    assert rule["notification_settings"]["receiver"] == "critical-slack"
-    assert rule["notification_settings"]["repeat_interval"] == "4h"
+    assert rule["labels"] == {"severity": "critical", "ntfy": "true"}
+    assert rule["notification_settings"]["receiver"] == "critical-slack-underuse"
+    assert rule["notification_settings"]["repeat_interval"] == "55m"
     assert "accelerator" in rule["notification_settings"]["group_by"]
     assert "slot duty cycle" in rule["annotations"]["summary"]
     assert "slot duty cycle" in rule["annotations"]["description"]
     assert "token utilization" not in rule["annotations"]["summary"]
+    assert "slot duty cycle" in rule["title"]
+    assert "busy percent" not in rule["title"]
+
+
+def test_one_slot_duty_underuse_rule_per_serving_lane(rules):
+    underuse_rules = [
+        rule for rule in rules.values()
+        if rule["uid"].startswith("accelerator-slot-underuse-")
+    ]
+    lanes = {
+        re.search(r'accelerator="([^"]+)"', rule["data"][0]["model"]["expr"])[1]
+        for rule in underuse_rules
+    }
+    assert {rule["uid"] for rule in underuse_rules} == UNDERUSE_RULE_UIDS
+    assert len(underuse_rules) == 3
+    assert lanes == {"gpu-primary", "gpu-secondary", "mac-primary"}
+
+
+def test_underuse_contact_point_suppresses_resolved_messages_and_is_exclusive():
+    contact_points = load_provisioning("critical-slack-contact-point.yml")["contactPoints"]
+    underuse_contact_point = next(
+        contact_point
+        for contact_point in contact_points
+        if contact_point["name"] == "critical-slack-underuse"
+    )
+    receiver, = underuse_contact_point["receivers"]
+    assert receiver["uid"] == "critical-slack-underuse"
+    assert receiver["type"] == "slack"
+    assert receiver["disableResolveMessage"] is True
+    assert receiver["settings"] == contact_points[0]["receivers"][0]["settings"]
+
+    using_contact_point = set()
+    for path in sorted(ALERTING.glob("*.yml")):
+        document = load_provisioning(path.name)
+        for group in document.get("groups", []):
+            for rule in group.get("rules", []):
+                if rule.get("notification_settings", {}).get("receiver") == "critical-slack-underuse":
+                    using_contact_point.add(rule["uid"])
+    assert using_contact_point == UNDERUSE_RULE_UIDS
+
+
+@pytest.mark.parametrize(
+    "uid,panel_id",
+    [
+        ("accelerator-slot-underuse-gpu-primary", "1"),
+        ("accelerator-slot-underuse-gpu-secondary", "2"),
+        ("accelerator-slot-underuse-mac-primary", "3"),
+    ],
+)
+def test_lane_underuse_repeats_within_an_hour_and_links_its_scoreboard_panel(
+    rules, uid, panel_id,
+):
+    rule = rules[uid]
+    repeat_interval = rule["notification_settings"]["repeat_interval"]
+    match = re.fullmatch(r"(\d+)([smhd])", repeat_interval)
+    assert match, f"Unsupported Grafana repeat interval: {repeat_interval}"
+    seconds = int(match[1]) * {"s": 1, "m": 60, "h": 3600, "d": 86400}[match[2]]
+    assert seconds <= 60 * 60
+
+    dashboard_uid = rule["annotations"]["__dashboardUid__"]
+    dashboards = ALERTING.parents[1] / "dashboards"
+    dashboard_uids = {
+        json.loads(path.read_text()).get("uid")
+        for path in dashboards.glob("*.json")
+    }
+    assert dashboard_uid in dashboard_uids
+    assert rule["annotations"]["__panelId__"] == panel_id
+    dashboard = load_dashboard(dashboard_uid)
+    panel = next(
+        panel for panel in dashboard["panels"] if str(panel["id"]) == panel_id
+    )
+    assert any(
+        "accelerator:slot_duty_cycle:ratio" in target.get("expr", "")
+        for target in panel.get("targets", [])
+    )
+
+
+@pytest.mark.parametrize("uid", sorted(MAIN_CRITICAL_ANNOTATIONS))
+def test_other_critical_alerts_keep_main_delivery_and_annotations(rules, uid):
+    rule = rules[uid]
+    assert rule["notification_settings"] == MAIN_CRITICAL_NOTIFICATION_SETTINGS
+    assert rule["annotations"] == MAIN_CRITICAL_ANNOTATIONS[uid]
+    assert "__dashboardUid__" not in rule["annotations"]
+    assert "__panelId__" not in rule["annotations"]
+    expected_for = "15m" if uid == "serving-queue-growing" else "0s"
+    assert rule["for"] == expected_for
+    assert "keep_firing_for" not in rule
 
 
 def test_slot_duty_cycle_is_the_only_underuse_family():
@@ -111,7 +249,7 @@ def test_retired_underuse_uid_is_deleted_from_the_grafana_database():
     """Grafana keeps provisioned rules until deleteRules names them."""
     document = load_provisioning("accelerator-underutilized.yml")
     deleted = {rule["uid"] for rule in document.get("deleteRules", [])}
-    assert deleted == {"accelerator-underutilized"}
+    assert deleted == RETIRED_UNDERUSE_RULE_UIDS
 
 
 def test_delete_rules_target_the_provisioned_org():
@@ -136,9 +274,9 @@ def test_busy_percent_stat_panels_cover_the_alert_lanes(rules):
     lanes = [
         re.search(r'accelerator="([^"]+)"', rules[uid]["data"][0]["model"]["expr"])[1]
         for uid in [
-            "accelerator-underutilized-gpu-primary",
-            "accelerator-underutilized-gpu-secondary",
-            "accelerator-underutilized-mac-primary",
+            "accelerator-slot-underuse-gpu-primary",
+            "accelerator-slot-underuse-gpu-secondary",
+            "accelerator-slot-underuse-mac-primary",
         ]
     ]
     panels = {}
@@ -215,13 +353,10 @@ def test_busy_series_absence_is_independent_for_each_serving_lane(rules):
     }
 
 
-def test_shared_critical_delivery_and_condition_references(rules):
+def test_critical_labels_and_condition_references(rules):
     for rule in rules.values():
         assert rule["labels"] == (
-            rules["accelerator-underutilized-gpu-primary"]["labels"]
-        )
-        assert rule["notification_settings"] == (
-            rules["accelerator-underutilized-gpu-primary"]["notification_settings"]
+            rules["accelerator-slot-underuse-gpu-primary"]["labels"]
         )
         assert rule["execErrState"] == "Error"
         queries = {query["refId"]: query for query in rule["data"]}
