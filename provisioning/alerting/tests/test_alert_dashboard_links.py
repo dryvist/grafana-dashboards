@@ -1,26 +1,6 @@
 """Every provisioned alert rule must link a dashboard that exists in this repo."""
 
-import json
-import os
-from pathlib import Path
-import subprocess
-
-
-ALERTING = Path(__file__).resolve().parents[1]
-
-
-def load_provisioning(filename):
-    return json.loads(subprocess.check_output(
-        [os.environ.get("YQ", "yq"), ".", str(ALERTING / filename)],
-        text=True,
-    ))
-
-
-def dashboard_uids():
-    return {
-        json.loads(path.read_text())["uid"]
-        for path in (ALERTING.parents[1] / "dashboards").glob("*.json")
-    }
+from conftest import ALERTING, dashboard_uids, load_provisioning
 
 
 def test_every_rule_names_a_non_empty_provisioned_dashboard_uid():

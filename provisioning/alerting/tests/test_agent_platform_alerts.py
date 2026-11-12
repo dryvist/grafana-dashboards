@@ -1,15 +1,13 @@
 """Validate model-serving alert provisioning with yq and pytest."""
 
 import json
-import os
-from pathlib import Path
 import re
-import subprocess
 
 import pytest
 
+from conftest import ALERTING, dashboard_uids, load_provisioning
 
-ALERTING = Path(__file__).resolve().parents[1]
+
 UNDERUSE_RULE_UIDS = {
     "accelerator-slot-underuse-gpu-primary",
     "accelerator-slot-underuse-gpu-secondary",
@@ -70,13 +68,6 @@ MAIN_CRITICAL_ANNOTATIONS = {
         ),
     },
 }
-
-
-def load_provisioning(filename):
-    return json.loads(subprocess.check_output(
-        [os.environ.get("YQ", "yq"), ".", str(ALERTING / filename)],
-        text=True,
-    ))
 
 
 def load_dashboard(uid):
@@ -199,12 +190,7 @@ def test_lane_underuse_repeats_within_an_hour_and_links_its_scoreboard_panel(
     assert seconds <= 60 * 60
 
     dashboard_uid = rule["annotations"]["__dashboardUid__"]
-    dashboards = ALERTING.parents[1] / "dashboards"
-    dashboard_uids = {
-        json.loads(path.read_text()).get("uid")
-        for path in dashboards.glob("*.json")
-    }
-    assert dashboard_uid in dashboard_uids
+    assert dashboard_uid in dashboard_uids()
     assert rule["annotations"]["__panelId__"] == panel_id
     dashboard = load_dashboard(dashboard_uid)
     panel = next(
