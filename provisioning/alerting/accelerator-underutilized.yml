@@ -6,16 +6,28 @@ apiVersion: 1
 deleteRules:
   - orgId: 1
     uid: accelerator-underutilized
+  - orgId: 1
+    uid: accelerator-underutilized-gpu-primary
+  - orgId: 1
+    uid: accelerator-underutilized-gpu-secondary
+  - orgId: 1
+    uid: accelerator-underutilized-mac-primary
 groups:
   - orgId: 1
     name: accelerator-token-underuse
     folder: Alerting
     interval: 1m
     rules:
-      - &critical-alert
-        uid: accelerator-underutilized-gpu-primary
-        title: Serving lane gpu-primary token utilization below 50% over 4 hours
-        condition: B
+      - <<: &critical-alert-defaults
+          condition: B
+          for: 0s
+          noDataState: OK
+          execErrState: Error
+          labels:
+            severity: critical
+            ntfy: "true"
+        uid: accelerator-slot-underuse-gpu-primary
+        title: Serving lane gpu-primary slot duty cycle below 50% over 4 hours
         data:
           - &duty-query
             refId: A
@@ -44,12 +56,8 @@ groups:
                     params:
                       - 0.5
               refId: B
-        for: 0s
-        noDataState: OK
-        execErrState: Error
-        labels:
-          severity: critical
-          ntfy: "true"
+        for: 15m
+        keep_firing_for: 30m
         annotations: &slot-duty-annotations
           __dashboardUid__: local-llm-scoreboard
           __panelId__: "1"
@@ -57,16 +65,19 @@ groups:
             {{ $labels.accelerator }} slot duty cycle 4-hour average is below 50%
           description: >-
             The 4-hour average slot duty cycle (accelerator:slot_duty_cycle:ratio) of {{ $labels.accelerator }} has been below 0.5.
-        notification_settings:
-          receiver: critical-slack
+        notification_settings: &underuse-notification-settings
+          receiver: critical-slack-underuse
           group_by:
             - grafana_folder
             - alertname
             - accelerator
           repeat_interval: 55m
-      - <<: *critical-alert
-        uid: accelerator-underutilized-gpu-secondary
-        title: Serving lane gpu-secondary token utilization below 50% over 4 hours
+      - <<: *critical-alert-defaults
+        uid: accelerator-slot-underuse-gpu-secondary
+        title: Serving lane gpu-secondary slot duty cycle below 50% over 4 hours
+        for: 15m
+        keep_firing_for: 30m
+        notification_settings: *underuse-notification-settings
         annotations:
           <<: *slot-duty-annotations
           __panelId__: "2"
@@ -79,9 +90,12 @@ groups:
               instant: true
               refId: A
           - *duty-threshold
-      - <<: *critical-alert
-        uid: accelerator-underutilized-mac-primary
-        title: Serving lane mac-primary token utilization below 50% over 4 hours
+      - <<: *critical-alert-defaults
+        uid: accelerator-slot-underuse-mac-primary
+        title: Serving lane mac-primary slot duty cycle below 50% over 4 hours
+        for: 15m
+        keep_firing_for: 30m
+        notification_settings: *underuse-notification-settings
         annotations:
           <<: *slot-duty-annotations
           __panelId__: "3"
@@ -99,7 +113,7 @@ groups:
     folder: Alerting
     interval: 1m
     rules:
-      - <<: *critical-alert
+      - <<: *critical-alert-defaults
         uid: accelerator-token-kpi-missing
         title: Serving lane token utilization KPI absent for 30 minutes
         data:
@@ -150,7 +164,7 @@ groups:
     folder: Alerting
     interval: 1m
     rules:
-      - <<: *critical-alert
+      - <<: *critical-alert-defaults
         uid: accelerator-busy-kpi-missing
         title: Serving lane busy percent KPI absent for 30 minutes
         data:
@@ -176,7 +190,7 @@ groups:
     folder: Alerting
     interval: 1m
     rules:
-      - <<: *critical-alert
+      - <<: *critical-alert-defaults
         uid: router-429-rate-high
         title: Router HTTP 429 rate exceeds configured threshold
         data:
@@ -210,7 +224,7 @@ groups:
     folder: Alerting
     interval: 1m
     rules:
-      - <<: *critical-alert
+      - <<: *critical-alert-defaults
         uid: serving-queue-waiting-high
         title: Serving lanes have at least 120 waiting requests
         data:
@@ -232,7 +246,7 @@ groups:
           summary: Total waiting requests across instrumented serving lanes is at least 120
           description: >-
             Total llm:requests_waiting across all serving lanes has reached 120.
-      - <<: *critical-alert
+      - <<: *critical-alert-defaults
         uid: serving-queue-growing
         title: Serving queue arrivals outpace completions over 15 minutes
         data:

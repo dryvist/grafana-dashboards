@@ -9,6 +9,13 @@ contactPoints:
     receivers:
       - uid: critical-slack
         type: slack
-        settings:
+        settings: &critical-slack-settings
           token: ${GRAFANA_ALERT_SLACK_BOT_TOKEN}
           recipient: ${GRAFANA_ALERT_SLACK_CRITICAL_CHANNEL_ID}
+  - orgId: 1
+    name: critical-slack-underuse
+    receivers:
+      - uid: critical-slack-underuse
+        type: slack
+        disableResolveMessage: true
+        settings: *critical-slack-settings
