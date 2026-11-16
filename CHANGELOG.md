@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.41.0](https://github.com/dryvist/grafana-dashboards/compare/v1.40.0...v1.41.0) (2026-11-16)
+
+
+### Features
+
+* **alerting:** alert when Claude usage passes its daily line ([#155](https://github.com/dryvist/grafana-dashboards/issues/155)) ([bfb57c1](https://github.com/dryvist/grafana-dashboards/commit/bfb57c143ec55a45313054b056315315985cc0ae))
+
 ## [1.40.0](https://github.com/dryvist/grafana-dashboards/compare/v1.39.1...v1.40.0) (2026-11-12)
 
 
