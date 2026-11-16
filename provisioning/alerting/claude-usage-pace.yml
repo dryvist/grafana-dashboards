@@ -1,0 +1,59 @@
+---
+# Grafana unified alerting. Claude usage cost over the last 24 hours
+# against a declared daily line; alert only.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: claude-usage-pace
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: claude-usage-pace-over-line
+        title: Claude usage over the daily line
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: sum(increase(claude_code_cost_usage_total{model=~"claude-.*"}[24h]))
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $A > 550
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: $A / 550 * 100
+              refId: C
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          summary: >-
+            Claude usage is {{ printf "%.0f" $values.C.Value }}% of the
+            daily line over the last 24 hours.
+          description: >-
+            Claude usage cost {{ printf "%.0f" $values.A.Value }}
+            US dollars in the last 24 hours.
+            The daily line is 550 US dollars.
+            Models matching claude-.* count.
+            See /d/claude-subscription-burn.
+          __dashboardUid__: claude-subscription-burn
+          __panelId__: "2"
