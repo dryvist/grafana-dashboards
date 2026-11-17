@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.0](https://github.com/dryvist/grafana-dashboards/compare/v1.41.0...v1.42.0) (2026-11-17)
+
+
+### Features
+
+* **alerting:** alert on stale or failed pgBackRest backups per stanza ([#158](https://github.com/dryvist/grafana-dashboards/issues/158)) ([b6b68ec](https://github.com/dryvist/grafana-dashboards/commit/b6b68ec38185083f7bf4acb555061547a22daec2))
+
 ## [1.41.0](https://github.com/dryvist/grafana-dashboards/compare/v1.40.0...v1.41.0) (2026-11-16)
 
 
