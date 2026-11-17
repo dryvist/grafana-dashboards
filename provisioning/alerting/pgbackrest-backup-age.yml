@@ -1,0 +1,69 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: pgbackrest-backups
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: pgbackrest-backup-stale
+        title: pgBackRest backup stale or has errors
+        condition: B
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          __dashboardUid__: pgbackrest-backups
+          __panelId__: '{{ index $labels "panel_id" }}'
+          summary: >-
+            pgBackRest stanza {{ index $labels "stanza" }}: {{ index $labels "condition" }}.
+          description: >-
+            Stanza {{ index $labels "stanza" }} met the {{ index $labels "condition" }} condition.
+            Review the linked pgBackRest backups panel.
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: >-
+                label_replace(
+                  label_replace(
+                    min by (stanza) (pgbackrest_backup_since_last_completion_seconds{backup_type="full"}) > bool 691200,
+                    "condition", "full backup older than 8 days", "stanza", ".*"
+                  ),
+                  "panel_id", "1", "stanza", ".*"
+                )
+                or
+                label_replace(
+                  label_replace(
+                    min by (stanza) (pgbackrest_backup_since_last_completion_seconds) > bool 108000,
+                    "condition", "newest backup older than 30 hours", "stanza", ".*"
+                  ),
+                  "panel_id", "2", "stanza", ".*"
+                )
+                or
+                label_replace(
+                  label_replace(
+                    max by (stanza) (pgbackrest_backup_last_error_status{backup_type="incr"}) > bool 0,
+                    "condition", "last backup error status is non-zero", "stanza", ".*"
+                  ),
+                  "panel_id", "3", "stanza", ".*"
+                )
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        noDataState: Alerting
+        execErrState: Alerting
