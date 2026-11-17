@@ -59,10 +59,12 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/storage-capacity.json` | `storage-capacity` |
 | `dashboards/macos-ui-stalls.json` | `macos-ui-stalls` |
 | [Model picker][model-picker] | `model-quality-speed-cost` |
+| `dashboards/pgbackrest-backups.json` ([dashboard guide][pgbackrest-backups]) | `pgbackrest-backups` |
 | `dashboards/telemetry-health.json` | `telemetry-health` |
 
 [model-picker]: dashboards/model-quality-speed-cost.json
 [all-metrics]: dashboards/litellm-all-prometheus-metrics.json
+[pgbackrest-backups]: docs/pgbackrest-backups.md
 
 [bench]: dashboards/llm-serving-benchmarks.json
 [load-proof]: dashboards/local-inference-load-proof.json
