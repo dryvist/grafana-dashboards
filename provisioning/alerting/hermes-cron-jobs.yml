@@ -29,14 +29,14 @@ groups:
               editorMode: code
               expr: |-
                 label_replace(
-                  sum by (agent, job) (increase(hermes_cron_runs_total{outcome="failed"}[6h])) > 0,
+                  sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome="failed"}[6h])) > 0,
                   "host", "$1", "agent", "([^/]+)/.*"
                 )
                 unless on (host, job)
                 label_replace(
                   sum by (agent, job) (
                     label_replace(
-                      sum by (agent, job) (increase(hermes_cron_runs_total{outcome=~"delivered|silent"}[6h]))
+                      sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome=~"delivered|silent"}[6h]))
                       * on (job) group_left (job_name)
                         label_replace(max by (job_id, job_name) (max_over_time(hermes_cron_job_info[30d])), "job", "$1", "job_id", "(.+)"),
                       "job", "$1", "job_name", "(.+)"
