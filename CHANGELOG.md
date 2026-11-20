@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.1](https://github.com/dryvist/grafana-dashboards/compare/v1.46.0...v1.46.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **alerting:** send tracker exporter alerts to the warning digest tier ([#174](https://github.com/dryvist/grafana-dashboards/issues/174)) ([3376871](https://github.com/dryvist/grafana-dashboards/commit/33768716b8cf391f8b6c3621cf8c348d5a3488da))
+
 ## [1.46.0](https://github.com/dryvist/grafana-dashboards/compare/v1.45.1...v1.46.0) (2026-11-20)
 
 
