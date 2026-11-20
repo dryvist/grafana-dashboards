@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.1](https://github.com/dryvist/grafana-dashboards/compare/v1.45.0...v1.45.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **alerting:** page on a sustained blocked-process count above 20 ([#170](https://github.com/dryvist/grafana-dashboards/issues/170)) ([9102d30](https://github.com/dryvist/grafana-dashboards/commit/9102d30461bf13437189659cb139f2167f0cde05))
+
 ## [1.45.0](https://github.com/dryvist/grafana-dashboards/compare/v1.44.0...v1.45.0) (2026-11-20)
 
 
