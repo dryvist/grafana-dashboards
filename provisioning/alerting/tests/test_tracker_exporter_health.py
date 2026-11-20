@@ -61,12 +61,8 @@ def test_tracker_exporter_rules_detect_only_the_expected_conditions():
             "type": evaluator,
             "params": params,
         }
-        assert rule["labels"] == {"severity": "warning", "ntfy": "true"}
-        assert rule["notification_settings"] == {
-            "receiver": "critical-slack",
-            "group_by": ["grafana_folder", "alertname"],
-            "repeat_interval": "4h",
-        }
+        assert rule["labels"] == {"severity": "warning"}
+        assert "notification_settings" not in rule
         assert rule["noDataState"] == "OK"
         assert rule["execErrState"] == "Error"
         assert rule["annotations"]["__dashboardUid__"] == "telemetry-health"

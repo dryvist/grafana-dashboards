@@ -37,19 +37,12 @@ groups:
         execErrState: Error
         labels:
           severity: warning
-          ntfy: "true"
         annotations:
           __dashboardUid__: telemetry-health
           __panelId__: "1"
           summary: Tracker SQL exporter scrape is down
           description: >-
             up{job="tracker_sql_exporter"} has been 0 for 15 minutes. Check the tracker exporter scrape target.
-        notification_settings:
-          receiver: critical-slack
-          group_by:
-            - grafana_folder
-            - alertname
-          repeat_interval: 4h
       - uid: tracker-vikunja-open-tasks-missing
         title: Tracker open task metric is absent
         condition: B
@@ -81,19 +74,12 @@ groups:
         execErrState: Error
         labels:
           severity: warning
-          ntfy: "true"
         annotations:
           __dashboardUid__: telemetry-health
           __panelId__: "1"
           summary: Vikunja open task metric is absent
           description: >-
             vikunja_open_tasks has been absent for 30 minutes. Check whether a tracker schema change removed the exported metric family.
-        notification_settings:
-          receiver: critical-slack
-          group_by:
-            - grafana_folder
-            - alertname
-          repeat_interval: 4h
       - uid: tracker-zammad-open-tickets-missing
         title: Tracker open ticket metric is absent
         condition: B
@@ -125,16 +111,9 @@ groups:
         execErrState: Error
         labels:
           severity: warning
-          ntfy: "true"
         annotations:
           __dashboardUid__: telemetry-health
           __panelId__: "1"
           summary: Zammad open ticket metric is absent
           description: >-
             zammad_open_tickets has been absent for 30 minutes. Check whether a tracker schema change removed the exported metric family.
-        notification_settings:
-          receiver: critical-slack
-          group_by:
-            - grafana_folder
-            - alertname
-          repeat_interval: 4h
