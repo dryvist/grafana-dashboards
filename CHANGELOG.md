@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.0](https://github.com/dryvist/grafana-dashboards/compare/v1.46.1...v1.47.0) (2026-11-20)
+
+
+### Features
+
+* **local-llm-scoreboard:** add a prompt cache hit rate panel and a low cache warning ([#175](https://github.com/dryvist/grafana-dashboards/issues/175)) ([079f520](https://github.com/dryvist/grafana-dashboards/commit/079f5205c9755c1d74dce0881d5bceae91ce513a))
+
 ## [1.46.1](https://github.com/dryvist/grafana-dashboards/compare/v1.46.0...v1.46.1) (2026-11-20)
 
 
