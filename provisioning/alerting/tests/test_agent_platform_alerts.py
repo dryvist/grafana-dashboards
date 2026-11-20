@@ -450,6 +450,18 @@ def test_dashboard_links_name_both_dashboard_and_panel(path):
             assert len(keys) in (0, 2), f"{rule['uid']} sets only {keys}"
 
 
+@pytest.mark.parametrize("path", sorted(ALERTING.glob("*.yml")), ids=lambda path: path.name)
+def test_datasource_queries_have_a_nonzero_relative_time_range(path):
+    # Grafana refuses to start when a datasource query's range is From: 0s, To: 0s.
+    for group in load_provisioning(path.name).get("groups", []):
+        for rule in group.get("rules", []):
+            for query in rule["data"]:
+                if query["datasourceUid"] == "__expr__":
+                    continue
+                window = query["relativeTimeRange"]
+                assert window["from"] > window["to"], f"{rule['uid']} query {query['refId']}"
+
+
 def test_health_check_spend_counts_input_tokens_outside_the_cents_meter_local_lanes(
     spend_rules,
 ):

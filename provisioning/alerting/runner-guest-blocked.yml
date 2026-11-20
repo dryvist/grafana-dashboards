@@ -15,7 +15,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange:
-              from: 0
+              from: 900
               to: 0
             datasourceUid: victoriametrics
             model:
