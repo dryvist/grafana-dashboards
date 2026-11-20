@@ -1,0 +1,140 @@
+# Grafana file-provisioned tracker exporter alerts (unified alerting).
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: tracker-exporter-health
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: tracker-sql-exporter-down
+        title: Tracker SQL exporter scrape is down
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: 'up{job="tracker_sql_exporter"} == 0'
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+              refId: B
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          __dashboardUid__: telemetry-health
+          __panelId__: "1"
+          summary: Tracker SQL exporter scrape is down
+          description: >-
+            up{job="tracker_sql_exporter"} has been 0 for 15 minutes. Check the tracker exporter scrape target.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+          repeat_interval: 4h
+      - uid: tracker-vikunja-open-tasks-missing
+        title: Tracker open task metric is absent
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: absent(vikunja_open_tasks)
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        for: 30m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          __dashboardUid__: telemetry-health
+          __panelId__: "1"
+          summary: Vikunja open task metric is absent
+          description: >-
+            vikunja_open_tasks has been absent for 30 minutes. Check whether a tracker schema change removed the exported metric family.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+          repeat_interval: 4h
+      - uid: tracker-zammad-open-tickets-missing
+        title: Tracker open ticket metric is absent
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: absent(zammad_open_tickets)
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        for: 30m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+          ntfy: "true"
+        annotations:
+          __dashboardUid__: telemetry-health
+          __panelId__: "1"
+          summary: Zammad open ticket metric is absent
+          description: >-
+            zammad_open_tickets has been absent for 30 minutes. Check whether a tracker schema change removed the exported metric family.
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+          repeat_interval: 4h
