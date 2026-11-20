@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.44.0](https://github.com/dryvist/grafana-dashboards/compare/v1.43.0...v1.44.0) (2026-11-20)
+
+
+### Features
+
+* **hermes-cron:** count runs from the hermes_cron_run_outcome gauge ([#165](https://github.com/dryvist/grafana-dashboards/issues/165)) ([63237ab](https://github.com/dryvist/grafana-dashboards/commit/63237aba2c962f29d5dd8d37bc7d959cf5859bdb))
+
 ## [1.43.0](https://github.com/dryvist/grafana-dashboards/compare/v1.42.0...v1.43.0) (2026-11-20)
 
 
