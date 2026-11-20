@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.1](https://github.com/dryvist/grafana-dashboards/compare/v1.47.0...v1.47.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **alerting:** give every datasource query a nonzero relative time range ([#179](https://github.com/dryvist/grafana-dashboards/issues/179)) ([67d5fe5](https://github.com/dryvist/grafana-dashboards/commit/67d5fe5b71cfef62c39d4abfedeeaedb9a44047d))
+
 ## [1.47.0](https://github.com/dryvist/grafana-dashboards/compare/v1.46.1...v1.47.0) (2026-11-20)
 
 
