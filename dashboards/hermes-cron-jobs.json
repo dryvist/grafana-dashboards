@@ -1,0 +1,268 @@
+{
+  "uid": "hermes-cron-jobs",
+  "title": "Hermes cron jobs",
+  "description": "Recent run outcomes, success rate, and jobs that failed without a recent success.",
+  "tags": [
+    "hermes",
+    "cron"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "editable": false,
+  "graphTooltip": 1,
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Jobs with a successful run in the last hour",
+      "description": "Count of agent and job pairs with a delivered or silent run in the last hour.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum(count by (agent, job) (sum by (agent, job) (increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[1h])) > 0))",
+          "legendFormat": "successful jobs",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "bargauge",
+      "title": "24h success rate by agent",
+      "description": "Delivered and silent runs divided by all outcomes. When job profile data is present, runs are attributed through the job ID; otherwise the runs_total agent label is used.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 18,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "noValue": "No runs in last 24h",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "(\n  sum by (agent) (\n    sum by (job_id) (label_replace(increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n    * on (job_id) group_left (agent) max by (job_id, agent) (max_over_time(hermes_cron_job_profile[30d]))\n  )\n  /\n  sum by (agent) (\n    (\n      (\n        sum by (job_id) (label_replace(increase(hermes_cron_runs_total{outcome!=\"failed\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n        + on (job_id)\n        sum by (job_id) (\n          label_replace(sum by (agent, job) (increase(hermes_cron_runs_total{outcome=\"failed\"}[24h])), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\")\n          * on (host, job) group_left (job_id)\n          max by (host, job, job_id) (\n            label_replace(label_replace(max_over_time(hermes_cron_job_info[30d]), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"), \"job\", \"$1\", \"job_name\", \"(.+)\")\n          )\n        )\n      )\n      or sum by (job_id) (label_replace(increase(hermes_cron_runs_total{outcome!=\"failed\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n      or sum by (job_id) (\n        label_replace(sum by (agent, job) (increase(hermes_cron_runs_total{outcome=\"failed\"}[24h])), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\")\n        * on (host, job) group_left (job_id)\n        max by (host, job, job_id) (\n          label_replace(label_replace(max_over_time(hermes_cron_job_info[30d]), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"), \"job\", \"$1\", \"job_name\", \"(.+)\")\n        )\n      )\n    )\n    * on (job_id) group_left (agent) max by (job_id, agent) (max_over_time(hermes_cron_job_profile[30d]))\n  )\n)\nor on ()\n(\n  sum by (agent) (increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[24h]))\n  /\n  sum by (agent) (increase(hermes_cron_runs_total[24h]))\n)",
+          "legendFormat": "{{agent}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Run outcomes over time",
+      "description": "Run rate by outcome across the dashboard time range.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "noValue": "No run samples",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "sum by (outcome) (rate(hermes_cron_runs_total[5m]))",
+          "legendFormat": "{{outcome}}",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Failing jobs without success in 6h",
+      "description": "Jobs with at least one failed run and no delivered or silent run during the last 6 hours.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No failing jobs"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Failed runs",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Failed runs"
+            }
+          }
+        }
+      ],
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "expr": "label_replace(\n  sum by (agent, job) (increase(hermes_cron_runs_total{outcome=\"failed\"}[6h])) > 0,\n  \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"\n)\nunless on (host, job)\nlabel_replace(\n  sum by (agent, job) (\n    label_replace(\n      sum by (agent, job) (increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[6h]))\n      * on (job) group_left (job_name)\n        label_replace(max by (job_id, job_name) (max_over_time(hermes_cron_job_info[30d])), \"job\", \"$1\", \"job_id\", \"(.+)\"),\n      \"job\", \"$1\", \"job_name\", \"(.+)\"\n    )\n  ) > 0,\n  \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"\n)",
+          "legendFormat": "{{agent}} / {{job}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    }
+  ]
+}
