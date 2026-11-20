@@ -19,8 +19,11 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
+              # The 15-minute minimum ignores the short blocked bursts a busy
+              # CI guest has (5 on a healthy runner guest at first read); a
+              # wedged guest only climbs, about 50 an hour on 2026-11-17.
               expr: >-
-                node_procs_blocked{job="guest_node_exporter", guest=~"docker-host.*"}
+                min_over_time(node_procs_blocked{job="guest_node_exporter", guest=~"docker-host.*"}[15m])
               instant: true
               refId: A
           - refId: B
@@ -35,7 +38,7 @@ groups:
                 - evaluator:
                     type: gt
                     params:
-                      - 0
+                      - 20
               refId: B
         for: 15m
         noDataState: OK
@@ -49,6 +52,6 @@ groups:
           summary: >-
             Runner guest {{ $labels.guest }} has {{ $values.A.Value }} blocked processes.
           description: >-
-            Runner guest {{ $labels.guest }} has had processes in uninterruptible
-            wait for 15 minutes. A wedged guest keeps its runners offline; restart it
+            Runner guest {{ $labels.guest }} has kept more than 20 processes in
+            uninterruptible wait for 15 minutes. A wedged guest keeps its runners offline; restart it
             through guest-recovery.
