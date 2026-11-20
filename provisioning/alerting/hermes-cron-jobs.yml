@@ -1,0 +1,62 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: hermes-cron-jobs
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: hermes-cron-no-success
+        title: Hermes cron job failing without success
+        condition: B
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          __dashboardUid__: hermes-cron-jobs
+          __panelId__: "4"
+          summary: >-
+            Hermes cron job {{ $labels.job }} on {{ $labels.agent }} has failed without a delivered or silent run in 6 hours.
+          description: >-
+            {{ $values.A.Value }} failed runs were recorded without a delivered or silent run in 6 hours.
+            Review the linked failing-jobs table.
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 21600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: |-
+                label_replace(
+                  sum by (agent, job) (increase(hermes_cron_runs_total{outcome="failed"}[6h])) > 0,
+                  "host", "$1", "agent", "([^/]+)/.*"
+                )
+                unless on (host, job)
+                label_replace(
+                  sum by (agent, job) (
+                    label_replace(
+                      sum by (agent, job) (increase(hermes_cron_runs_total{outcome=~"delivered|silent"}[6h]))
+                      * on (job) group_left (job_name)
+                        label_replace(max by (job_id, job_name) (max_over_time(hermes_cron_job_info[30d])), "job", "$1", "job_id", "(.+)"),
+                      "job", "$1", "job_name", "(.+)"
+                    )
+                  ) > 0,
+                  "host", "$1", "agent", "([^/]+)/.*"
+                )
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.5
+              refId: B
+        noDataState: OK
+        execErrState: Error
