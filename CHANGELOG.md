@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.43.0](https://github.com/dryvist/grafana-dashboards/compare/v1.42.0...v1.43.0) (2026-11-20)
+
+
+### Features
+
+* **dashboards:** add the Hermes cron jobs dashboard and alert ([#162](https://github.com/dryvist/grafana-dashboards/issues/162)) ([f128761](https://github.com/dryvist/grafana-dashboards/commit/f128761a324609206328afed06fa71c4951c67fe))
+
 ## [1.42.0](https://github.com/dryvist/grafana-dashboards/compare/v1.41.0...v1.42.0) (2026-11-17)
 
 
