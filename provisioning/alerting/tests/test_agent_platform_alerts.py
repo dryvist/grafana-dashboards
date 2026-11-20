@@ -19,6 +19,9 @@ RETIRED_UNDERUSE_RULE_UIDS = {
     "accelerator-underutilized-gpu-secondary",
     "accelerator-underutilized-mac-primary",
 }
+# Warning-only digest groups: no ntfy label, no notification_settings.
+DIGEST_TIER_GROUPS = {"accelerator-prompt-cache"}
+PROMPT_CACHE_RULE_UID = "accelerator-prompt-cache-low"
 MAIN_CRITICAL_NOTIFICATION_SETTINGS = {
     "receiver": "critical-slack",
     "group_by": ["grafana_folder", "alertname", "accelerator"],
@@ -80,11 +83,26 @@ def rules():
     provisioned = [
         rule
         for group in document["groups"]
+        if group["name"] not in DIGEST_TIER_GROUPS
         for rule in group["rules"]
     ]
     indexed = {rule["uid"]: rule for rule in provisioned}
     assert len(indexed) == len(provisioned), "Alert rule UIDs must be unique"
     return indexed
+
+
+def test_digest_tier_rules_carry_only_a_warning_label():
+    document = load_provisioning("accelerator-underutilized.yml")
+    digest = [
+        rule
+        for group in document["groups"]
+        if group["name"] in DIGEST_TIER_GROUPS
+        for rule in group["rules"]
+    ]
+    assert digest, "Provision the digest-tier groups"
+    for rule in digest:
+        assert rule["labels"] == {"severity": "warning"}
+        assert "notification_settings" not in rule
 
 
 @pytest.fixture(scope="module")
@@ -228,6 +246,8 @@ def test_slot_duty_cycle_is_the_only_underuse_family():
                 expression = " ".join(
                     query["model"].get("expr", "") for query in rule["data"]
                 )
+                if rule["uid"] == PROMPT_CACHE_RULE_UID:
+                    continue
                 if evaluator.get("type") == "lt" and "accelerator:" in expression:
                     families.add(group["name"])
                     underuse_expressions.append(expression)

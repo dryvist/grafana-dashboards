@@ -275,3 +275,48 @@ groups:
           summary: Total serving queue grows for 15 minutes
           description: >-
             The 5-minute slope of total llm:requests_waiting across all serving lanes stays positive for 15 minutes.
+  - orgId: 1
+    name: accelerator-prompt-cache
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: accelerator-prompt-cache-low
+        title: Prompt cache hit rate below 80% over 4 hours
+        condition: B
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          __dashboardUid__: local-llm-scoreboard
+          __panelId__: "19"
+          summary: Serving-lane prompt cache hit rate is below 80%
+          description: >-
+            The 4-hour average prompt cache hit rate (accelerator:prompt_cache_hit:ratio)
+            for gpu-primary, gpu-secondary and mac-primary has stayed below 80%.
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 14400
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: >-
+                avg_over_time(accelerator:prompt_cache_hit:ratio{accelerator=~"gpu-primary|gpu-secondary|mac-primary"}[4h])
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0.8
+              refId: B
+        noDataState: OK
+        execErrState: Error

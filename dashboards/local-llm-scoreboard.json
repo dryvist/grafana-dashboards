@@ -1444,6 +1444,75 @@
           "instant": false
         }
       ]
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Prompt cache hit rate · 4h",
+      "description": "Four-hour average of accelerator:prompt_cache_hit:ratio across the gpu-primary, gpu-secondary and mac-primary serving lanes: red below 60%, yellow from 60%, green from 80%. A missing series shows 0.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 6,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg_over_time(accelerator:prompt_cache_hit:ratio{accelerator=~\"gpu-primary|gpu-secondary|mac-primary\"}[4h])",
+          "legendFormat": "Prompt cache",
+          "instant": true,
+          "range": false
+        }
+      ]
     }
   ],
   "refresh": "1m",

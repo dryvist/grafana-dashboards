@@ -19,7 +19,12 @@ RATIO_SERIES = (
     "accelerator:vram_utilization:ratio",
 )
 
-DOCUMENTED_NORMAL_RATIOS = {"accelerator:token_utilization:ratio"}
+# Token utilization can normally exceed 1.0; the prompt cache hit ratio has no
+# serving-slot denominator, so it cannot show slot drift.
+EXCLUDED_RATIOS = {
+    "accelerator:token_utilization:ratio",
+    "accelerator:prompt_cache_hit:ratio",
+}
 
 # The kpi label identifies each merged series in the alert summary.
 EXPECTED_EXPRESSION = " or ".join(
@@ -76,8 +81,8 @@ def test_drift_targets_eligible_recorded_ratio_series_above_one(rule):
     assert targeted == set(RATIO_SERIES), (
         "Stamp every eligible ratio series with a kpi label"
     )
-    assert recorded_ratio_series() - targeted == DOCUMENTED_NORMAL_RATIOS, (
-        "Only token utilization, which can normally exceed 100%, is excluded"
+    assert recorded_ratio_series() - targeted == EXCLUDED_RATIOS, (
+        "Only token utilization and the slot-free prompt cache ratio are excluded"
     )
     assert "clamp" not in expression, "Never clamp the ratio"
     assert query["datasourceUid"] == "victoriametrics"
