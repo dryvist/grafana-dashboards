@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.0](https://github.com/dryvist/grafana-dashboards/compare/v1.44.0...v1.45.0) (2026-11-20)
+
+
+### Features
+
+* **alerting:** page when a runner guest has blocked processes for 15 minutes ([#168](https://github.com/dryvist/grafana-dashboards/issues/168)) ([e966ac6](https://github.com/dryvist/grafana-dashboards/commit/e966ac61cd3ff925db3890caa5a83e942d034588))
+
 ## [1.44.0](https://github.com/dryvist/grafana-dashboards/compare/v1.43.0...v1.44.0) (2026-11-20)
 
 
