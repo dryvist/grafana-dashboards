@@ -81,7 +81,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(count by (agent, job) (sum by (agent, job) (increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[1h])) > 0))",
+          "expr": "sum(count by (agent, job) (sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome=~\"delivered|silent\"}[1h])) > 0))",
           "legendFormat": "successful jobs",
           "instant": true,
           "range": false
@@ -135,7 +135,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "(\n  sum by (agent) (\n    sum by (job_id) (label_replace(increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n    * on (job_id) group_left (agent) max by (job_id, agent) (max_over_time(hermes_cron_job_profile[30d]))\n  )\n  /\n  sum by (agent) (\n    (\n      (\n        sum by (job_id) (label_replace(increase(hermes_cron_runs_total{outcome!=\"failed\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n        + on (job_id)\n        sum by (job_id) (\n          label_replace(sum by (agent, job) (increase(hermes_cron_runs_total{outcome=\"failed\"}[24h])), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\")\n          * on (host, job) group_left (job_id)\n          max by (host, job, job_id) (\n            label_replace(label_replace(max_over_time(hermes_cron_job_info[30d]), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"), \"job\", \"$1\", \"job_name\", \"(.+)\")\n          )\n        )\n      )\n      or sum by (job_id) (label_replace(increase(hermes_cron_runs_total{outcome!=\"failed\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n      or sum by (job_id) (\n        label_replace(sum by (agent, job) (increase(hermes_cron_runs_total{outcome=\"failed\"}[24h])), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\")\n        * on (host, job) group_left (job_id)\n        max by (host, job, job_id) (\n          label_replace(label_replace(max_over_time(hermes_cron_job_info[30d]), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"), \"job\", \"$1\", \"job_name\", \"(.+)\")\n        )\n      )\n    )\n    * on (job_id) group_left (agent) max by (job_id, agent) (max_over_time(hermes_cron_job_profile[30d]))\n  )\n)\nor on ()\n(\n  sum by (agent) (increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[24h]))\n  /\n  sum by (agent) (increase(hermes_cron_runs_total[24h]))\n)",
+          "expr": "(\n  sum by (agent) (\n    sum by (job_id) (label_replace(count_over_time(hermes_cron_run_outcome{outcome=~\"delivered|silent\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n    * on (job_id) group_left (agent) max by (job_id, agent) (max_over_time(hermes_cron_job_profile[30d]))\n  )\n  /\n  sum by (agent) (\n    (\n      (\n        sum by (job_id) (label_replace(count_over_time(hermes_cron_run_outcome{outcome!=\"failed\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n        + on (job_id)\n        sum by (job_id) (\n          label_replace(sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome=\"failed\"}[24h])), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\")\n          * on (host, job) group_left (job_id)\n          max by (host, job, job_id) (\n            label_replace(label_replace(max_over_time(hermes_cron_job_info[30d]), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"), \"job\", \"$1\", \"job_name\", \"(.+)\")\n          )\n        )\n      )\n      or sum by (job_id) (label_replace(count_over_time(hermes_cron_run_outcome{outcome!=\"failed\"}[24h]), \"job_id\", \"$1\", \"job\", \"(.+)\"))\n      or sum by (job_id) (\n        label_replace(sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome=\"failed\"}[24h])), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\")\n        * on (host, job) group_left (job_id)\n        max by (host, job, job_id) (\n          label_replace(label_replace(max_over_time(hermes_cron_job_info[30d]), \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"), \"job\", \"$1\", \"job_name\", \"(.+)\")\n        )\n      )\n    )\n    * on (job_id) group_left (agent) max by (job_id, agent) (max_over_time(hermes_cron_job_profile[30d]))\n  )\n)\nor on ()\n(\n  sum by (agent) (count_over_time(hermes_cron_run_outcome{outcome=~\"delivered|silent\"}[24h]))\n  /\n  sum by (agent) (count_over_time(hermes_cron_run_outcome[24h]))\n)",
           "legendFormat": "{{agent}}",
           "instant": true,
           "range": false
@@ -197,7 +197,7 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum by (outcome) (rate(hermes_cron_runs_total[5m]))",
+          "expr": "sum by (outcome) (count_over_time(hermes_cron_run_outcome[5m]))",
           "legendFormat": "{{outcome}}",
           "instant": false,
           "range": true
@@ -257,7 +257,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "expr": "label_replace(\n  sum by (agent, job) (increase(hermes_cron_runs_total{outcome=\"failed\"}[6h])) > 0,\n  \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"\n)\nunless on (host, job)\nlabel_replace(\n  sum by (agent, job) (\n    label_replace(\n      sum by (agent, job) (increase(hermes_cron_runs_total{outcome=~\"delivered|silent\"}[6h]))\n      * on (job) group_left (job_name)\n        label_replace(max by (job_id, job_name) (max_over_time(hermes_cron_job_info[30d])), \"job\", \"$1\", \"job_id\", \"(.+)\"),\n      \"job\", \"$1\", \"job_name\", \"(.+)\"\n    )\n  ) > 0,\n  \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"\n)",
+          "expr": "label_replace(\n  sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome=\"failed\"}[6h])) > 0,\n  \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"\n)\nunless on (host, job)\nlabel_replace(\n  sum by (agent, job) (\n    label_replace(\n      sum by (agent, job) (count_over_time(hermes_cron_run_outcome{outcome=~\"delivered|silent\"}[6h]))\n      * on (job) group_left (job_name)\n        label_replace(max by (job_id, job_name) (max_over_time(hermes_cron_job_info[30d])), \"job\", \"$1\", \"job_id\", \"(.+)\"),\n      \"job\", \"$1\", \"job_name\", \"(.+)\"\n    )\n  ) > 0,\n  \"host\", \"$1\", \"agent\", \"([^/]+)/.*\"\n)",
           "legendFormat": "{{agent}} / {{job}}",
           "instant": true,
           "range": false
