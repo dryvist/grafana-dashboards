@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.0](https://github.com/dryvist/grafana-dashboards/compare/v1.45.1...v1.46.0) (2026-11-20)
+
+
+### Features
+
+* **alerting:** alert when the tracker SQL exporter stops reporting ([#164](https://github.com/dryvist/grafana-dashboards/issues/164)) ([68350ac](https://github.com/dryvist/grafana-dashboards/commit/68350acb98a0f628f36635d581018bdbdcd6da34))
+
 ## [1.45.1](https://github.com/dryvist/grafana-dashboards/compare/v1.45.0...v1.45.1) (2026-11-20)
 
 
