@@ -64,7 +64,7 @@ def test_pool_ratio_rule_thresholds_and_delivery(rules, uid, threshold, severity
     query, expression = rule["data"]
     assert query["model"]["expr"] == POOL_RATIO_EXPRESSION
     assert query["datasourceUid"] == "victoriametrics"
-    assert query["relativeTimeRange"] == {"from": 0, "to": 0}
+    assert query["relativeTimeRange"] == {"from": 600, "to": 0}
     assert query["model"]["instant"] is True
     assert expression["datasourceUid"] == "__expr__"
     assert expression["model"]["type"] == "threshold"
@@ -120,7 +120,7 @@ def test_quota_headroom_rule_threshold_and_delivery(rules):
     query, expression = rule["data"]
     assert query["model"]["expr"] == QUOTA_HEADROOM_EXPRESSION
     assert query["datasourceUid"] == "victoriametrics"
-    assert query["relativeTimeRange"] == {"from": 0, "to": 0}
+    assert query["relativeTimeRange"] == {"from": 600, "to": 0}
     assert query["model"]["instant"] is True
     assert expression["model"]["conditions"][0]["evaluator"] == {
         "type": "lt", "params": [53687091200],

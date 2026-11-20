@@ -13,7 +13,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange:
-              from: 0
+              from: 600
               to: 0
             datasourceUid: victoriametrics
             model:
@@ -63,7 +63,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange:
-              from: 0
+              from: 600
               to: 0
             datasourceUid: victoriametrics
             model:
@@ -124,7 +124,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange:
-              from: 0
+              from: 600
               to: 0
             datasourceUid: victoriametrics
             model:
