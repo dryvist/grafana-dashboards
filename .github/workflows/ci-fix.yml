@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   ci-fix:
-    uses: JacobPEvans/.github-ai/.github/workflows/cc-ci-fix.yml@fab07b7e36f0ef528496a8954e993053aad33522 # v2.33.0
+    uses: JacobPEvans/.github-ai/.github/workflows/cc-ci-fix.yml@306fade4b1147c6fc9cb1f1fdeb7f834b065c640 # v2.42.0
     secrets: inherit
     with:
       runner_label: ${{ (github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository) && 'review' || 'ubuntu-latest' }}
