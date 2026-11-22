@@ -1,7 +1,7 @@
 {
   "uid": "model-residency-memory",
   "title": "Model residency & memory",
-  "description": "Which models are loaded on each host, how much memory each uses, and how close each host is to running out of memory. Covers the Macs (macmon and Cribl Edge process series) and the Linux inference nodes (node_exporter, GPU exporter, llama-server, LiteLLM).",
+  "description": "Which models are loaded on each host, how much memory each uses, and how close each host is to running out of memory. Covers the Macs (macmon, and Mac process memory from the Stream process-memory pipeline) and the Linux inference nodes (node_exporter, GPU exporter, llama-server, LiteLLM).",
   "tags": ["llm", "memory", "macos", "llama-server", "litellm"],
   "editable": true,
   "graphTooltip": 1,
@@ -31,6 +31,24 @@
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "definition": "label_values({__name__=~\"macmon_memory_ram_total_bytes|node_memory_MemTotal_bytes\"}, instance)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "sort": 1
+      },
+      {
+        "name": "mac_host",
+        "label": "Mac host",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "query": {
+          "qryType": 1,
+          "query": "label_values(process_phys_footprint_bytes, host)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(process_phys_footprint_bytes, host)",
         "refresh": 2,
         "includeAll": true,
         "multi": true,
@@ -155,7 +173,7 @@
       "id": 5,
       "type": "state-timeline",
       "title": "Models loaded per host",
-      "description": "Mac: one row per model id parsed from the --model argument of each mlx-lm-launch process, from Cribl Edge process metrics (process_cmdline label). Linux: llm_gpu_engine scrape target up, which marks the 4080 engine as serving. Value 1 means loaded or serving. Process-series names come from the Cribl Edge process metric reference and are not yet confirmed against live Mac data.",
+      "description": "Mac: one row per host and model, from process_phys_footprint_bytes published by the Stream process-memory pipeline. The model label comes from the --model argument. Linux: llm_gpu_engine scrape target up, which marks the inference engine as serving. Value 1 means loaded or serving.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 0, "y": 16, "w": 24, "h": 9 },
       "fieldConfig": {
@@ -172,8 +190,8 @@
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
-          "legendFormat": "{{instance}} {{model}}",
-          "expr": "count by (instance, model) (label_replace(process_resident_memory_bytes{process_cmdline=~\".*mlx-lm-launch.*--model.*\", instance=~\"$host\"}, \"model\", \"$1\", \"process_cmdline\", \".*--model ([^ ]+).*\"))"
+          "legendFormat": "{{host}} {{model}}",
+          "expr": "count by (host, model) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}) > bool 0"
         },
         {
           "refId": "B",
@@ -217,8 +235,8 @@
     {
       "id": 7,
       "type": "timeseries",
-      "title": "Per-model resident memory (Macs, stacked)",
-      "description": "process_resident_memory_bytes summed per model id parsed from the --model argument of each mlx-lm-launch process, stacked, with total host RAM as a line. Process-series names come from the Cribl Edge process metric reference and are not yet confirmed against live Mac data.",
+      "title": "Per-model phys footprint (Macs, stacked)",
+      "description": "process_phys_footprint_bytes summed per model across the selected Macs, stacked, with the selected Macs' total RAM as a dashed line. Select one Mac to read a single machine.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 0, "y": 33, "w": 24, "h": 10 },
       "fieldConfig": {
@@ -245,21 +263,21 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "{{model}}",
-          "expr": "sum by (model) (label_replace(process_resident_memory_bytes{process_cmdline=~\".*mlx-lm-launch.*--model.*\", instance=~\"$host\"}, \"model\", \"$1\", \"process_cmdline\", \".*--model ([^ ]+).*\"))"
+          "expr": "sum by (model) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"})"
         },
         {
           "refId": "B",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "host total",
-          "expr": "sum by (instance) (macmon_memory_ram_total_bytes{instance=~\"$host\"})"
+          "expr": "sum(label_replace(macmon_memory_ram_total_bytes{instance=~\"$host\"}, \"host\", \"$1\", \"instance\", \"([^:]+):.*\") and on(host) count by (host) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}))"
         }
       ]
     },
     {
       "id": 8,
       "type": "timeseries",
-      "title": "GPU memory (RTX 4080)",
+      "title": "GPU memory (inference node)",
       "description": "node_gpu_memory_used_bytes against node_gpu_memory_total_bytes from the GPU exporter on the inference node.",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 0, "y": 43, "w": 12, "h": 8 },
@@ -288,7 +306,7 @@
     {
       "id": 9,
       "type": "timeseries",
-      "title": "llama-server requests (4080)",
+      "title": "llama-server requests (inference node)",
       "description": "llamacpp:requests_processing (active) and llamacpp:requests_deferred (queued for a slot), scraped from llama-server /metrics (job=llm_gpu_engine).",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
       "gridPos": { "x": 12, "y": 43, "w": 12, "h": 8 },
@@ -311,6 +329,28 @@
           "editorMode": "code",
           "legendFormat": "deferred ({{instance}})",
           "expr": "llamacpp:requests_deferred{job=\"llm_gpu_engine\", instance=~\"$host\"}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Per-model footprint as share of host RAM (Macs)",
+      "description": "Each model's process_phys_footprint_bytes as a percent of its host's RAM. The host name is the macmon instance label with its port removed, so it matches the pipeline's host label.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 51, "w": 24, "h": 9 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{host}} {{model}}",
+          "expr": "100 * sum by (host, model) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}) / on(host) group_left sum by (host) (label_replace(macmon_memory_ram_total_bytes{instance=~\"$host\"}, \"host\", \"$1\", \"instance\", \"([^:]+):.*\"))"
         }
       ]
     }
