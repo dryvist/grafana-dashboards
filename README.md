@@ -61,6 +61,7 @@ provisioning files. A consumer copies those files into Grafana's
 | [Model picker][model-picker] | `model-quality-speed-cost` |
 | [Hermes cron jobs][hermes-cron-jobs] | `hermes-cron-jobs` |
 | `dashboards/pgbackrest-backups.json` ([dashboard guide][pgbackrest-backups]) | `pgbackrest-backups` |
+| `dashboards/postgres-resilience.json` | `postgres-resilience` |
 | `dashboards/telemetry-health.json` | `telemetry-health` |
 
 [model-picker]: dashboards/model-quality-speed-cost.json
