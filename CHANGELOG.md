@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.0](https://github.com/dryvist/grafana-dashboards/compare/v1.47.1...v1.48.0) (2026-11-22)
+
+
+### Features
+
+* **alerting:** alert on a failed PostgreSQL or pgBackRest systemd unit ([#186](https://github.com/dryvist/grafana-dashboards/issues/186)) ([cf27183](https://github.com/dryvist/grafana-dashboards/commit/cf2718358370464732c61e2881dd5732a6671899))
+
 ## [1.47.1](https://github.com/dryvist/grafana-dashboards/compare/v1.47.0...v1.47.1) (2026-11-20)
 
 
