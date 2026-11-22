@@ -1,0 +1,96 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: postgres-resilience
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: postgres-service-not-running
+        title: PostgreSQL service failed or inactive
+        condition: B
+        for: 5m
+        labels:
+          severity: critical
+          ntfy: "true"
+        annotations:
+          __dashboardUid__: postgres-resilience
+          __panelId__: "1"
+          summary: >-
+            PostgreSQL unit {{ index $labels "name" }} on {{ index $labels "guest" }} is failed or inactive.
+          description: >-
+            Unit {{ index $labels "name" }} on {{ index $labels "guest" }} has been failed or inactive
+            for 5 minutes. Review the linked PostgreSQL unit state panel.
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: >-
+                sum by (guest, name) (node_systemd_unit_state{name=~"postgresql@.*\\.service", state=~"failed|inactive"} == 1)
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: critical-slack
+          group_by:
+            - grafana_folder
+            - alertname
+            - guest
+            - name
+          repeat_interval: 4h
+      - uid: pgbackrest-backup-unit-failed
+        title: pgBackRest backup unit failed
+        condition: B
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          __dashboardUid__: postgres-resilience
+          __panelId__: "2"
+          summary: >-
+            pgBackRest unit {{ index $labels "name" }} on {{ index $labels "guest" }} has failed.
+          description: >-
+            Unit {{ index $labels "name" }} on {{ index $labels "guest" }} has been failed for
+            10 minutes. Inactive backup units are normal between runs. Review the linked backup unit state panel.
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: >-
+                sum by (guest, name) (node_systemd_unit_state{name=~"pgbackrest-backup@.*\\.service", state="failed"} == 1)
+              instant: true
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        noDataState: OK
+        execErrState: Error

@@ -1,0 +1,161 @@
+{
+  "uid": "postgres-resilience",
+  "title": "PostgreSQL resilience",
+  "description": "PostgreSQL and pgBackRest unit states by guest, with newest backup age by stanza.",
+  "tags": ["postgresql", "backups"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "editable": false,
+  "graphTooltip": 1,
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "state-timeline",
+      "title": "PostgreSQL unit state per guest",
+      "description": "Each row names the guest, unit, and state. A segment marks when that state is current. Failed or inactive units alert after 5 minutes; missing samples remain gaps.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 5},
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No systemd state samples",
+          "color": {"mode": "fixed", "fixedColor": "green"},
+          "custom": {"fillOpacity": 100, "lineWidth": 0, "spanNulls": false}
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byRegexp", "options": " / (failed|inactive)$"},
+            "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]
+          },
+          {
+            "matcher": {"id": "byRegexp", "options": " / (activating|deactivating)$"},
+            "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "yellow"}}]
+          }
+        ]
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "rowHeight": 0.8,
+        "alignValue": "left",
+        "legend": {"displayMode": "hidden"},
+        "tooltip": {"mode": "single"}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+          "editorMode": "code",
+          "expr": "node_systemd_unit_state{name=~\"postgresql@.*\\\\.service\"} == 1",
+          "legendFormat": "{{guest}} / {{name}} / {{state}}",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "state-timeline",
+      "title": "pgBackRest unit state per guest",
+      "description": "Each row names the guest, unit, and current state. Inactive is normal between backup runs. Failed units alert after 10 minutes; missing samples remain gaps.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {"x": 0, "y": 5, "w": 24, "h": 5},
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No systemd state samples",
+          "color": {"mode": "fixed", "fixedColor": "green"},
+          "custom": {"fillOpacity": 100, "lineWidth": 0, "spanNulls": false}
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byRegexp", "options": " / failed$"},
+            "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]
+          },
+          {
+            "matcher": {"id": "byRegexp", "options": " / (activating|deactivating)$"},
+            "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "yellow"}}]
+          }
+        ]
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "rowHeight": 0.8,
+        "alignValue": "left",
+        "legend": {"displayMode": "hidden"},
+        "tooltip": {"mode": "single"}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+          "editorMode": "code",
+          "expr": "node_systemd_unit_state{name=~\"pgbackrest-backup@.*\\\\.service\"} == 1",
+          "legendFormat": "{{guest}} / {{name}} / {{state}}",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Newest backup age per stanza",
+      "description": "Age of the newest completed backup across all backup types. The warning threshold is 30 hours.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "gridPos": {"x": 0, "y": 10, "w": 24, "h": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "noValue": "No stanza samples",
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 108000}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+          "editorMode": "code",
+          "expr": "min by (stanza) (pgbackrest_backup_since_last_completion_seconds)",
+          "legendFormat": "{{stanza}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    }
+  ]
+}
