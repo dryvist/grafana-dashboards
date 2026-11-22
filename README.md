@@ -51,6 +51,7 @@ provisioning files. A consumer copies those files into Grafana's
 | `dashboards/litellm-genai-otel.json` | `litellm-genai-otel` |
 | `dashboards/litellm-prod-v2.json` | `litellm-prod-v2` |
 | `dashboards/llm-serving-4080.json` | `llm-serving-4080` |
+| `dashboards/model-residency-memory.json` | `model-residency-memory` |
 | [llm-serving-benchmarks.json][bench] | `llm-serving-benchmarks` |
 | [Local inference load proof][load-proof] | `local-inference-load-proof` |
 | `dashboards/local-llm-kpi-trends.json` | `local-llm-kpi-trends` |

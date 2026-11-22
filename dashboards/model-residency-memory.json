@@ -1,0 +1,318 @@
+{
+  "uid": "model-residency-memory",
+  "title": "Model residency & memory",
+  "description": "Which models are loaded on each host, how much memory each uses, and how close each host is to running out of memory. Covers the Macs (macmon and Cribl Edge process series) and the Linux inference nodes (node_exporter, GPU exporter, llama-server, LiteLLM).",
+  "tags": ["llm", "memory", "macos", "llama-server", "litellm"],
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "quick_ranges": [
+      { "display": "Last 24 hours", "from": "now-24h", "to": "now" },
+      { "display": "Last 2 days", "from": "now-2d", "to": "now" },
+      { "display": "Last 7 days", "from": "now-7d", "to": "now" }
+    ]
+  },
+  "schemaVersion": 42,
+  "templating": {
+    "list": [
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+        "query": {
+          "qryType": 1,
+          "query": "label_values({__name__=~\"macmon_memory_ram_total_bytes|node_memory_MemTotal_bytes\"}, instance)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values({__name__=~\"macmon_memory_ram_total_bytes|node_memory_MemTotal_bytes\"}, instance)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "sort": 1
+      }
+    ]
+  },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "RAM used vs total (Macs)",
+      "description": "macmon_memory_ram_used_bytes and macmon_memory_ram_total_bytes, scraped from macmon serve (job=macmon).",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} used",
+          "expr": "macmon_memory_ram_used_bytes{instance=~\"$host\"}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} total",
+          "expr": "macmon_memory_ram_total_bytes{instance=~\"$host\"}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "RAM used vs total (Linux nodes)",
+      "description": "node_memory_MemTotal_bytes and used memory derived as MemTotal minus MemAvailable, from node_exporter.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} used",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"$host\"} - node_memory_MemAvailable_bytes{instance=~\"$host\"}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} total",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"$host\"}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Memory pressure (Macs)",
+      "description": "macmon_memory_pressure_percent, the macOS memory-pressure reading from macmon serve (job=macmon).",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} ({{accelerator}})",
+          "expr": "macmon_memory_pressure_percent{instance=~\"$host\"}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Swap used (Macs)",
+      "description": "macmon_memory_swap_used_bytes against macmon_memory_swap_total_bytes, from macmon serve (job=macmon).",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} used",
+          "expr": "macmon_memory_swap_used_bytes{instance=~\"$host\"}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} total",
+          "expr": "macmon_memory_swap_total_bytes{instance=~\"$host\"}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "state-timeline",
+      "title": "Models loaded per host",
+      "description": "Mac: one row per model id parsed from the --model argument of each mlx-lm-launch process, from Cribl Edge process metrics (process_cmdline label). Linux: llm_gpu_engine scrape target up, which marks the 4080 engine as serving. Value 1 means loaded or serving. Process-series names come from the Cribl Edge process metric reference and are not yet confirmed against live Mac data.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [{ "type": "value", "options": { "1": { "text": "loaded", "color": "green", "index": 0 } } }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "transparent", "value": null }, { "color": "green", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "options": { "mergeValues": true, "showValue": "never", "rowHeight": 0.9, "legend": { "showLegend": false } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} {{model}}",
+          "expr": "count by (instance, model) (label_replace(process_resident_memory_bytes{process_cmdline=~\".*mlx-lm-launch.*--model.*\", instance=~\"$host\"}, \"model\", \"$1\", \"process_cmdline\", \".*--model ([^ ]+).*\"))"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} llm_gpu_engine",
+          "expr": "max by (instance) (up{job=\"llm_gpu_engine\", instance=~\"$host\"})"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "state-timeline",
+      "title": "LiteLLM deployment state",
+      "description": "litellm_deployment_state per model deployment, from the LiteLLM router (job=llm_router). 0 healthy, 1 partial outage, 2 complete outage.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 25, "w": 24, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "healthy", "color": "green", "index": 0 } } },
+            { "type": "value", "options": { "1": { "text": "partial outage", "color": "orange", "index": 1 } } },
+            { "type": "value", "options": { "2": { "text": "outage", "color": "red", "index": 2 } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 2 }] }
+        },
+        "overrides": []
+      },
+      "options": { "mergeValues": true, "showValue": "auto", "rowHeight": 0.9, "legend": { "showLegend": false } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{litellm_model_name}}",
+          "expr": "max by (litellm_model_name) (litellm_deployment_state)"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Per-model resident memory (Macs, stacked)",
+      "description": "process_resident_memory_bytes summed per model id parsed from the --model argument of each mlx-lm-launch process, stacked, with total host RAM as a line. Process-series names come from the Cribl Edge process metric reference and are not yet confirmed against live Mac data.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 33, "w": 24, "h": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0,
+          "custom": { "lineWidth": 1, "fillOpacity": 40, "stacking": { "mode": "normal", "group": "A" } }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "host total" },
+            "properties": [
+              { "id": "custom.stacking", "value": { "mode": "none", "group": "A" } },
+              { "id": "custom.fillOpacity", "value": 0 },
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } }
+            ]
+          }
+        ]
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{model}}",
+          "expr": "sum by (model) (label_replace(process_resident_memory_bytes{process_cmdline=~\".*mlx-lm-launch.*--model.*\", instance=~\"$host\"}, \"model\", \"$1\", \"process_cmdline\", \".*--model ([^ ]+).*\"))"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "host total",
+          "expr": "sum by (instance) (macmon_memory_ram_total_bytes{instance=~\"$host\"})"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "GPU memory (RTX 4080)",
+      "description": "node_gpu_memory_used_bytes against node_gpu_memory_total_bytes from the GPU exporter on the inference node.",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 0, "y": 43, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} used",
+          "expr": "node_gpu_memory_used_bytes{instance=~\"$host\"}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "{{instance}} total",
+          "expr": "node_gpu_memory_total_bytes{instance=~\"$host\"}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "llama-server requests (4080)",
+      "description": "llamacpp:requests_processing (active) and llamacpp:requests_deferred (queued for a slot), scraped from llama-server /metrics (job=llm_gpu_engine).",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "x": 12, "y": 43, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "showLegend": true, "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "processing ({{instance}})",
+          "expr": "llamacpp:requests_processing{job=\"llm_gpu_engine\", instance=~\"$host\"}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "editorMode": "code",
+          "legendFormat": "deferred ({{instance}})",
+          "expr": "llamacpp:requests_deferred{job=\"llm_gpu_engine\", instance=~\"$host\"}"
+        }
+      ]
+    }
+  ]
+}
