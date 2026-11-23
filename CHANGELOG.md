@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.0](https://github.com/dryvist/grafana-dashboards/compare/v1.48.0...v1.49.0) (2026-11-23)
+
+
+### Features
+
+* add a model residency and memory dashboard ([#191](https://github.com/dryvist/grafana-dashboards/issues/191)) ([a7b8d17](https://github.com/dryvist/grafana-dashboards/commit/a7b8d172bf4cb5982947800c6682d75e7ccf235f))
+
 ## [1.48.0](https://github.com/dryvist/grafana-dashboards/compare/v1.47.1...v1.48.0) (2026-11-22)
 
 
