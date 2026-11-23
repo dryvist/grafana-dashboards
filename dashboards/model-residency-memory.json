@@ -270,7 +270,7 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "host total",
-          "expr": "sum(label_replace(macmon_memory_ram_total_bytes{instance=~\"$host\"}, \"host\", \"$1\", \"instance\", \"([^:]+):.*\") and on(host) count by (host) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}))"
+          "expr": "sum(label_replace(macmon_memory_ram_total_bytes{instance=~\"$host\"}, \"host\", \"$1\", \"instance\", \"([^:.]+).*\") and on(host) count by (host) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}))"
         }
       ]
     },
@@ -350,7 +350,7 @@
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
           "editorMode": "code",
           "legendFormat": "{{host}} {{model}}",
-          "expr": "100 * sum by (host, model) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}) / on(host) group_left sum by (host) (label_replace(macmon_memory_ram_total_bytes{instance=~\"$host\"}, \"host\", \"$1\", \"instance\", \"([^:]+):.*\"))"
+          "expr": "100 * sum by (host, model) (process_phys_footprint_bytes{host=~\"$mac_host\", model!=\"unknown\"}) / on(host) group_left sum by (host) (label_replace(macmon_memory_ram_total_bytes{instance=~\"$host\"}, \"host\", \"$1\", \"instance\", \"([^:.]+).*\"))"
         }
       ]
     }
