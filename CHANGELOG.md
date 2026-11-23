@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.49.1](https://github.com/dryvist/grafana-dashboards/compare/v1.49.0...v1.49.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **alerting:** hold every critical alert to a 4-hour repeat floor ([d256f2a](https://github.com/dryvist/grafana-dashboards/commit/d256f2a9bc5e5c769a4387fdd2e03489c4d361b1))
+* **alerting:** hold every critical alert to a 4-hour repeat floor ([#198](https://github.com/dryvist/grafana-dashboards/issues/198)) ([355c0da](https://github.com/dryvist/grafana-dashboards/commit/355c0dad54ece6392d939d71a8c514972096daf4))
+
 ## [1.49.0](https://github.com/dryvist/grafana-dashboards/compare/v1.48.0...v1.49.0) (2026-11-23)
 
 
