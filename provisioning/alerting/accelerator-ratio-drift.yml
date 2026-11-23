@@ -67,10 +67,3 @@ groups:
             slot-count constant behind the ratio no longer matches the
             engine's real configuration, so this points at serving-slot
             drift.{{ end }}
-        notification_settings:
-          receiver: critical-slack
-          group_by:
-            - grafana_folder
-            - alertname
-            - accelerator
-          repeat_interval: 4h
