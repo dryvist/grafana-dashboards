@@ -71,7 +71,7 @@ groups:
             - grafana_folder
             - alertname
             - accelerator
-          repeat_interval: 55m
+          repeat_interval: 4h
       - <<: *critical-alert-defaults
         uid: accelerator-slot-underuse-gpu-secondary
         title: Serving lane gpu-secondary slot duty cycle below 50% over 4 hours

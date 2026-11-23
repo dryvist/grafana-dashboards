@@ -114,15 +114,7 @@ def test_drift_summary_names_the_series_the_accelerator_and_the_slot_check(rule)
 
 
 def test_drift_delivery_follows_the_accelerator_alert_convention(rule):
+    # A warning needs no immediate action: it inherits the default notification
+    # policy (the alert hub, at most once a day) instead of the critical channel.
     assert rule["labels"] == {"severity": "warning", "ntfy": "true"}
-    settings = rule["notification_settings"]
-    assert settings == {
-        "receiver": "critical-slack",
-        "group_by": ["grafana_folder", "alertname", "accelerator"],
-        "repeat_interval": "4h",
-    }
-    contact_points = {
-        point["name"]
-        for point in load_provisioning("critical-slack-contact-point.yml")["contactPoints"]
-    }
-    assert settings["receiver"] in contact_points
+    assert "notification_settings" not in rule
