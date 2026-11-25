@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.0](https://github.com/dryvist/grafana-dashboards/compare/v1.49.1...v1.50.0) (2026-11-25)
+
+
+### Features
+
+* **alerting:** one alert per cause for ZFS quota headroom and stale replicas ([#201](https://github.com/dryvist/grafana-dashboards/issues/201)) ([c1efc29](https://github.com/dryvist/grafana-dashboards/commit/c1efc29726bce0e89559ee65d65745ef925241f3))
+
 ## [1.49.1](https://github.com/dryvist/grafana-dashboards/compare/v1.49.0...v1.49.1) (2026-11-23)
 
 
