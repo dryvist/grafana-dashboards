@@ -1,0 +1,100 @@
+# Grafana file-provisioned alert rules (unified alerting).
+# ansible-proxmox-apps copies this file into /var/lib/grafana/provisioning/alerting.
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: zfs-capacity
+    folder: Alerting
+    interval: 5m
+    rules:
+      - uid: zfs-quota-tree-near-full
+        title: ZFS quota-bound dataset below 5% headroom
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              expr: >-
+                zfs_dataset_available_bytes{name!~".*@.*"} / on(instance, name) (zfs_dataset_quota_bytes{name!~".*@.*"} > 0)
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0.05
+              refId: B
+        for: 30m
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            Dataset {{ $labels.name }} on {{ $labels.instance }} has
+            {{ $values.A.Value | humanizePercentage }} of its ZFS quota free
+          description: >-
+            zfs_dataset_available_bytes / zfs_dataset_quota_bytes has stayed
+            below 0.05 for 30 minutes on dataset {{ $labels.name }} on
+            {{ $labels.instance }}. See /d/storage-capacity.
+          __dashboardUid__: storage-capacity
+          __panelId__: "19"
+      - uid: zfs-replica-copies-stale
+        title: Replica copies older than 26 hours
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              # Newest snapshot age per bulk/replica dataset, counted per
+              # (instance, source). Each dataset name is source, rest, tag;
+              # label_replace recovers the dataset path and the source machine
+              # so one alert fires per source instead of per dataset.
+              expr: >-
+                count by (instance, source) ((time() - max by (instance, source, dataset) (label_replace(label_replace(zfs_dataset_creation_timestamp{name=~"bulk/replica/.+@.+"}, "dataset", "$1", "name", "([^@]+)@.*"), "source", "$1", "name", "bulk/replica/([^/@]+).*"))) > 26*3600)
+              instant: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+              refId: B
+        for: 1h
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            {{ $values.A.Value }} replica datasets from
+            {{ $labels.source }} have no snapshot newer than 26 hours
+          description: >-
+            The newest snapshot (zfs_dataset_creation_timestamp) of
+            {{ $values.A.Value }} bulk/replica datasets from source
+            {{ $labels.source }} on {{ $labels.instance }} is older than 26
+            hours. See /d/storage-capacity.
+          __dashboardUid__: storage-capacity
+          __panelId__: "19"
